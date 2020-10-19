@@ -4,7 +4,7 @@
 
 module Category where
 
-open import HoTT renaming (lsucc to lsuc) public
+open import HoTT renaming (lsucc to lsuc; [_] to ∥_∥) public
 
 record WildCategory {i} : Type (lsuc i) where
   infix 40 _⊙_
@@ -13,7 +13,7 @@ record WildCategory {i} : Type (lsuc i) where
     Hom : Ob → Ob → Type i
     _⊙_ : ∀ {x y z} → Hom y z → Hom x y → Hom x z
     id  : ∀ {x} → Hom x x
-    
+
     ass : ∀ {x y z w} {f : Hom x y} {g : Hom y z} {h : Hom z w}
         → (h ⊙ g) ⊙ f == h ⊙ (g ⊙ f)
     idl : ∀ {x y} {f : Hom x y} → id ⊙ f == f
@@ -21,18 +21,13 @@ record WildCategory {i} : Type (lsuc i) where
 
 record PreCategory {i} : Type (lsuc i) where
   field {{C}} : WildCategory {i}
-  open WildCategory C hiding (Ob) public
-  --Re-export Ob with the right domain type
-  Ob = WildCategory.Ob C
-  
+  open WildCategory C public
   field
     Hom-is-set : ∀ {x y} → is-set (Hom x y)
 
 record StrictCategory {i} : Type (lsuc i) where
   field {{C}} : PreCategory {i}
-  open PreCategory C hiding (C; Ob) public
-  Ob = PreCategory.Ob C
-
+  open PreCategory C public
   field
     Ob-is-set  : is-set Ob
 
@@ -61,9 +56,7 @@ module _ {i} {{C : WildCategory {i}}} where
 
 record Category {i} : Type (lsuc i) where
   field {{C}} : PreCategory {i}
-  open PreCategory C hiding (C; Ob) public
-  Ob = PreCategory.Ob C
-  
+  open PreCategory C public
   field
     id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso {i} {x} {y})
 
