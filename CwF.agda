@@ -16,5 +16,3 @@ record StrictCwF {i} : Type (lsuc i) where
     ; Ob-is-set  to Con-is-set
     ; Hom-is-set to Sub-is-set
     ) public
-
-  
