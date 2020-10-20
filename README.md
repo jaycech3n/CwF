@@ -1,4 +1,4 @@
-# CwF
-A small formalization of categories with families in HoTT.
+### About
 
-Depends on Andrew Swan's Agda 2.6.1-compatible fork of HoTT-Agda available [here](https://github.com/awswan/HoTT-Agda/tree/agda-2.6.1-compatible).
+A small formalization of categories with families in HoTT.
+Depends on Andrew Swan's [fork](https://github.com/awswan/HoTT-Agda/tree/agda-2.6.1-compatible) of the HoTT-Agda library.
