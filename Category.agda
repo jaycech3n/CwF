@@ -1,10 +1,15 @@
 {-# OPTIONS --without-K #-}
 
-{- Various notions of categories in HoTT -}
+{- Category theory in HoTT -}
 
 module Category where
 
-open import HoTT renaming (lsucc to lsuc; [_] to ∥_∥) public
+open import HoTT renaming
+  ( lsucc to lsuc
+  ; transport to tr
+  ; transport! to tr!) public
+
+{- Various notions of categories -}
 
 record WildCategory {i} : Type (lsuc i) where
   infix 40 _⊙_
@@ -31,7 +36,6 @@ record StrictCategory {i} : Type (lsuc i) where
   field
     Ob-is-set  : is-set Ob
 
--- Isomorphism is usually defined for precategories; we define it for wild ones.
 module _ {i} {{C : WildCategory {i}}} where
   open WildCategory C
   
@@ -60,3 +64,13 @@ record Category {i} : Type (lsuc i) where
   field
     id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso {i} {x} {y})
 
+{- Properties of objects
+
+We define these notions for the most general case of wild categories.
+-}
+
+module _ {i} {{C : WildCategory {i}}} where
+  open WildCategory C
+  
+  is-terminal : (x : Ob) → Type i
+  is-terminal x = (y : Ob) → is-contr (Hom y x)
