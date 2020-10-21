@@ -1,7 +1,12 @@
 {-# OPTIONS --without-K #-}
 
-{- Category theory in HoTT -}
+{- Categories in HoTT
 
+This development differs from the
+[agda-categories](https://github.com/agda/agda-categories) library
+in that we don't use setoids. Instead we directly use propositional equality,
+and either truncate or impose higher coherences as needed.
+-}
 module Category where
 
 open import HoTT renaming
@@ -9,8 +14,11 @@ open import HoTT renaming
   ; transport to tr
   ; transport! to tr!) public
 
-{- Various notions of categories -}
+{- Various flavors of category
 
+"Wild" constructions are those which are neither truncated nor required to be
+coherent.
+-}
 record WildCategory {i} : Type (lsuc i) where
   infix 40 _⊙_
   field
@@ -32,10 +40,11 @@ record PreCategory {i} : Type (lsuc i) where
 
 record StrictCategory {i} : Type (lsuc i) where
   field {{C}} : PreCategory {i}
-  open PreCategory C public
+  open PreCategory C hiding (C) public
   field
     Ob-is-set  : is-set Ob
 
+-- We need the notion of isomorphism in order to define (univalent) categories.
 module _ {i} {{C : WildCategory {i}}} where
   open WildCategory C
   
@@ -51,7 +60,6 @@ module _ {i} {{C : WildCategory {i}}} where
       f : Hom x y
       f-is-iso : is-iso f
 
-  -- Equal objects are isomorphic.
   id-to-iso : ∀ {x y} → x == y → x ≅ y
   id-to-iso {x} {.x} idp = record
     { f = id
@@ -60,15 +68,22 @@ module _ {i} {{C : WildCategory {i}}} where
 
 record Category {i} : Type (lsuc i) where
   field {{C}} : PreCategory {i}
-  open PreCategory C public
+  open PreCategory C hiding (C) public
   field
     id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso {i} {x} {y})
 
-{- Properties of objects
+{- Coercions -}
+wild-of-pre = PreCategory.C
+pre-of-strict = StrictCategory.C
+pre-of-cat = Category.C
 
-We define these notions for the most general case of wild categories.
--}
+wild-of-strict : ∀ {i} → StrictCategory {i} → WildCategory {i}
+wild-of-strict = wild-of-pre ∘ pre-of-strict
 
+wild-of-cat : ∀ {i} → Category {i} → WildCategory {i}
+wild-of-cat = wild-of-pre ∘ pre-of-cat
+
+{- Properties of objects -}
 module _ {i} {{C : WildCategory {i}}} where
   open WildCategory C
   

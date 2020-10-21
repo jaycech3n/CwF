@@ -2,31 +2,29 @@
 
 module CwF where
 
-open import Category renaming (⟨⟩ to <>; [_] to ∥_∥) public
+open import Category renaming
+  ( ⟨⟩ to <>
+  ; [_] to ∥_∥
+  ; wild-of-strict to s→w-cat
+  ) public
 
-{- Strict categories with families as a generalized algebraic theory. -}
+{- Categories with families
 
-record StrictCwF {i} : Type (lsuc i) where
-  {- Contexts and substitutions -}
-  field
-    C : StrictCategory {i}
-  open StrictCategory C renaming
-    ( Ob         to Con
-    ; Hom        to Sub
-    ; Ob-is-set  to Con-is-set
-    ; Hom-is-set to Sub-is-set
+Formulated as generalized algebraic theories following Dybjer ("Internal Type Theory",
+1996) and others.
+-}
+record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
+  open WildCategory C renaming
+    ( Ob  to Con
+    ; Hom to Sub
     ) public
+
+  {- Empty context -}
   field
     ⟨⟩ : Con
-    ⟨⟩-is-terminal : is-terminal ⟨⟩
+    ⟨⟩-is-terminal : is-terminal {{C}} ⟨⟩
   
-  {- Types and terms
-
-  In more classical/informal settings this part can be succinctly given as a
-  Fam-valued presheaf. Here we want to have more control over our later
-  definitions and also avoid formalizing all the requisite intermediate notions,
-  so we'll just formulate everything explicitly from the get-go.
-  -}
+  {- Types and terms -}
   field
     Ty    : Con → Type i
     _[_]  : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
@@ -34,13 +32,11 @@ record StrictCwF {i} : Type (lsuc i) where
     []-id : ∀ {Γ} {σ : Ty Γ}
           → (σ [ id ]) == σ
           
-    []-⊙  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
-          → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
-
-    Ty-is-set : ∀ {Γ} → is-set (Ty Γ)
+    []-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
+         → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
 
   field
-    Tm    : ∀ {Γ} → (σ : Ty Γ) → Type i
+    Tm   : ∀ {Γ} (σ : Ty Γ) → Type i
     _[_]ₜ : ∀ {Γ Δ} {σ : Ty Δ} → Tm σ → (f : Sub Γ Δ) → Tm (σ [ f ])
 
     []ₜ-id : ∀ {Γ} {σ : Ty Γ} {t : Tm σ}
@@ -48,33 +44,65 @@ record StrictCwF {i} : Type (lsuc i) where
 
     []ₜ-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
           → (t [ g ⊙ f ]ₜ) == (t [ g ]ₜ [ f ]ₜ) [ Tm ↓ []-⊙ ]
-          
-    Tm-is-set : ∀ {Γ} {σ : Ty Γ} → is-set (Tm σ)
 
-  {- Comprehensions: context extension and projection -}
+  {- Comprehensions: context extension and projections -}
   field
     _∷_ : (Γ : Con) (σ : Ty Γ) → Con
-    p   : ∀ {Γ} → (σ : Ty Γ) → Sub (Γ ∷ σ) Γ
-    ν   : ∀ {Γ} → (σ : Ty Γ) → Tm (σ [ p σ ])
+    p   : ∀ {Γ} (σ : Ty Γ) → Sub (Γ ∷ σ) Γ
+    ν   : ∀ {Γ} (σ : Ty Γ) → Tm (σ [ p σ ])
 
   field
-    ⟨_∣_⟩ : ∀ {Γ Δ} {σ : Ty Γ}
-          → (f : Sub Δ Γ) (t : Tm (σ [ f ])) → Sub Δ (Γ ∷ σ)
+    ⟨_∣_⟩ : ∀ {Γ Δ} {σ : Ty Γ} (f : Sub Δ Γ) (t : Tm (σ [ f ])) → Sub Δ (Γ ∷ σ)
 
     {-
-    The universal property of comprehensions is given by the following η- and
-    β-rules.
+    The universal property of comprehensions is given by the following β- and
+    η-rules.
     -}
-    ⟨∣⟩-id : ∀ {Γ} {σ : Ty Γ} → ⟨ p σ ∣ ν σ ⟩ == id
-
-    ⟨∣⟩-⊙  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
-           → ⟨ g ⊙ f ∣ tr! Tm []-⊙ (t [ f ]ₜ) ⟩ == ⟨ g ∣ t ⟩ ⊙ f
-           -- Note the transport
-
     ⟨∣⟩-β1 : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
            → (p σ) ⊙ ⟨ f ∣ t ⟩ == f
 
     ⟨∣⟩-β2 : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-           → ((ν σ) [ ⟨ f ∣ t ⟩ ]ₜ) == t
+           → (ν σ [ ⟨ f ∣ t ⟩ ]ₜ) == t
              [ Tm ↓ ! ([]-⊙) ∙ ap (λ f → σ [ f ]) ⟨∣⟩-β1 ]
-             -- There must be a nicer way to write this...
+             
+    ⟨∣⟩-id : ∀ {Γ} {σ : Ty Γ} → ⟨ p σ ∣ ν σ ⟩ == id
+
+    ⟨∣⟩-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
+           → ⟨ g ⊙ f ∣ tr! Tm []-⊙ (t [ f ]ₜ) ⟩ == ⟨ g ∣ t ⟩ ⊙ f
+
+record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
+  field
+    {{W}} : WildCwFStructure (s→w-cat C)
+    
+  open StrictCategory C renaming
+    ( Ob-is-set  to Con-is-set
+    ; Hom-is-set to Sub-is-set
+    ) public
+  open WildCwFStructure W public
+
+  {- Additional truncation requirements -}
+  field
+    Ty-is-set : ∀ {Γ} → is-set (Ty Γ)
+    Tm-is-set : ∀ {Γ} {σ : Ty Γ} → is-set (Tm σ)
+
+-- Coercion
+wild-of-strict : ∀ {i} {C : StrictCategory {i}}
+        → StrictCwFStructure C → WildCwFStructure (s→w-cat C)
+wild-of-strict = StrictCwFStructure.W
+
+{- Additional structure
+
+To avoid names getting too long we introduce the prefixes [w], [W] for "wild"
+notions, and [s], [S] for "strict" ones.
+-}
+
+record PiStructure {i}
+  {C : StrictCategory {i}} (sCwF : StrictCwFStructure C) : Type (lsuc i)
+  where
+  open StrictCwFStructure sCwF public
+  
+  field
+    ̂Π   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
+    ̂λ   : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) → Tm (̂Π A B)
+    -- _`_ :
+    -- TBC
