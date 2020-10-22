@@ -54,7 +54,7 @@ module _ {i} {{C : WildCategory {i}}} where
       g-f : g ⊙ f == id
       f-g : f ⊙ g == id
 
-  infix 20 _≅_
+  infix 30 _≅_
   record _≅_ (x y : Ob) : Type i where
     field
       f : Hom x y
