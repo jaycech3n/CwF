@@ -68,10 +68,26 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     ,,-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
            → (g ⊙ f ,, tr! Tm []-⊙ (t [ f ]ₜ)) == (g ,, t) ⊙ f
 
-  -- Given `A : Ty Γ` and `f : Sub Δ Γ` we get the lifted substitution `f ↑ :
-  -- Sub (Δ ∷ A [ f ]) (Γ ∷ A)` that acts on any type family `B : Ty (Γ ∷ A)` or
-  -- dependent term `b : Tm (Γ ∷ A)` as `f` does, and leaves the "free variable
-  -- x : A" alone.
+  -- Substitution in dependent types and terms
+  infix 40 _[[_]] _[[_]]ₜ
+  
+  _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
+  B [[ a ]] = B [ id ,, a [ id ]ₜ ]
+
+  _[[_]]ₜ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) (a : Tm A)
+            → Tm (B [[ a ]])
+  b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
+
+  {- Given `A : Ty Γ` and `f : Sub Δ Γ` we get the lifted substitution `f ↑`
+  -- that acts as `f` does, and leaves the "free variable x : A" alone.
+  -- Diagram:
+                        f ↑
+              Δ ∷ A[f] -----> Γ ∷ A
+       p {A[f]} |               | p {A}
+                v               v
+                Δ ------------> Γ
+                        f
+  -}
   _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
   f ↑ = (f ⊙ p ,, tr! Tm []-⊙ ν )
 
@@ -97,17 +113,13 @@ wild-of-strict = StrictCwFStructure.W
 
 {- Additional structure
 
-Many of the following formulations follow after those in *Shallow Embedding of
-Type Theory is Morally Correct* (Kaposi, Kovács, Kraus '18)
-
-To avoid names getting too long we introduce the prefixes [w], [W] for "wild"
-notions, and [s], [S] for "strict" ones.
+Many of the following formulations loosely follow those in *Shallow Embedding of
+Type Theory is Morally Correct* (Kaposi, Kovács, Kraus '18).
 -}
 record PiStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
   open WildCwFStructure cwF public
-  
   field
     ̂Π   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
     ̂λ   : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) → Tm (̂Π A B)
@@ -125,7 +137,33 @@ record PiStructure {i}
 
   -- If we must talk about actually applying functions
   _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
-        → Tm (B [ id ,, a [ id ]ₜ ])
-  f ` a = (app f) [ id ,, a [ id ]ₜ ]ₜ
+        → Tm (B [[ a ]])
+  f ` a = (app f) [[ a ]]ₜ
 
---record SigmaStructure {i}
+record SigmaStructure {i}
+  {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
+  where
+  open WildCwFStructure cwF public
+  field
+    ̂Σ   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
+    _،_ : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} (a : Tm A) (b : Tm (B [[ a ]]))
+          → Tm (̂Σ A B)
+    π1 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} → Tm (̂Σ A B) → Tm A    
+    π2 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} (p : Tm (̂Σ A B)) → Tm (B [[ π1 p ]])
+
+  field
+    ،-π1 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {a : Tm A} {b : Tm (B [[ a ]])}
+           → π1 (a ، b) == a
+           
+    ،-π2 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {a : Tm A} {b : Tm (B [[ a ]])}
+           → π2 (a ، b) == b [ (λ x → Tm (B [[ x ]])) ↓ ،-π1 ]
+           
+    ̂Σ-η : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {p : Tm (̂Σ A B)} → (π1 p ، π2 p) == p
+
+  field
+    ̂Σ-[] : ∀ {Δ Γ} {A B} {f : Sub Δ Γ}
+           → (̂Σ A B) [ f ] == ̂Σ (A [ f ]) (B [ f ↑ ])
+           
+    ،-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
+           {a : Tm A} {b : Tm (B [[ a ]])} {f : Sub Δ Γ}
+           → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، {!!}) [ Tm ↓ ̂Σ-[] ]
