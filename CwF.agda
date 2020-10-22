@@ -104,9 +104,9 @@ To avoid names getting too long we introduce the prefixes [w], [W] for "wild"
 notions, and [s], [S] for "strict" ones.
 -}
 record PiStructure {i}
-  {C : StrictCategory {i}} (sCwF : StrictCwFStructure C) : Type (lsuc i)
+  {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
-  open StrictCwFStructure sCwF public
+  open WildCwFStructure cwF public
   
   field
     ̂Π   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
@@ -127,3 +127,5 @@ record PiStructure {i}
   _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
         → Tm (B [ id ,, a [ id ]ₜ ])
   f ` a = (app f) [ id ,, a [ id ]ₜ ]ₜ
+
+--record SigmaStructure {i}
