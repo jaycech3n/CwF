@@ -9,7 +9,7 @@ Theory", 1996) and others.
 module CwF where
 
 open import Category renaming
-  ( ⟨⟩ to <>
+  ( ⟨⟩ to ?instance
   ; [_] to ∥_∥
   ; wild-of-strict to s→w-cat
   ) public
@@ -32,11 +32,10 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     Ty    : Con → Type i
     _[_]  : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
     
-    []-id : ∀ {Γ} {σ : Ty Γ}
-            → (σ [ id ]) == σ
+    {{[]-id}} : ∀ {Γ} {σ : Ty Γ} → (σ [ id ]) == σ
           
-    []-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
-           → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
+    {{[]-⊙}} : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
+               → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
 
     Tm   : ∀ {Γ} (σ : Ty Γ) → Type i
     _[_]ₜ : ∀ {Γ Δ} {σ : Ty Δ} → Tm σ → (f : Sub Γ Δ) → Tm (σ [ f ])
@@ -57,17 +56,47 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
     -- The universal property of comprehensions is given by the following β- and
     -- η-rules.
-    ,,-β1 : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-            → p ⊙ (f ,, t) == f
+    {{,,-β1}} : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+                → p ⊙ (f ,, t) == f
 
     ,,-β2 : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
             → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ ap (λ f → σ [ f ]) ,,-β1 ]
              
-    ,,-id : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
+    {{,,-id}} : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
-    ,,-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
-           → (g ⊙ f ,, tr! Tm []-⊙ (t [ f ]ₜ)) == (g ,, t) ⊙ f
+    {{,,-⊙}} : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
+                 {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
+               → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
+  {- Transport instance search -}
+  -- Experimental: instance search for equations to transport along. Not too
+  -- sure about the single universe level, but at least it shouldn't break
+  -- anything.
+  tr* : ∀ {i} {A : Type i} {x y : A} {{p : x == y}} (B : A → Type i)
+                 → B x → B y
+  tr* {_} {_} {_} {_} {{p}} B b = tr B p b
+
+  instance
+    []-id-inv : ∀ {Γ} {σ : Ty Γ} → σ == (σ [ id ])
+    []-id-inv = ! []-id
+
+    []-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
+               → (σ [ g ] [ f ]) == (σ [ g ⊙ f ])
+    []-⊙-inv = ! []-⊙
+
+    ,,-β1-inv : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+                → f == p ⊙ (f ,, t)
+    ,,-β1-inv = ! ,,-β1
+
+    ,,-id-inv : ∀ {Γ} {σ : Ty Γ} → id == (p {Γ} {σ} ,, ν {Γ} {σ})
+    ,,-id-inv = ! ,,-id
+
+    ,,-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
+                 {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
+               → (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ)) == (g ,, t) ⊙ f
+    ,,-⊙-inv = ! ,,-⊙
+
+  {- Equations for substitution -}
   -- Substitution in dependent types and terms
   infix 40 _[[_]] _[[_]]ₜ
   
@@ -89,7 +118,23 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                         f
   -}
   _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
-  f ↑ = (f ⊙ p ,, tr! Tm []-⊙ ν )
+  f ↑ = (f ⊙ p ,, tr* Tm ν)
+      -- This initially used `tr! Tm []-⊙ ν`, but was changed to the current
+      -- version to work with transport instance search.
+
+  -- "Exchange"-type law for substitutions
+  []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
+            → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
+  []-[[]] {_} {_} {_} {B} {f} {a} =
+    B [ f ↑ ] [[ a [ f ]ₜ ]]
+      =⟨ idp ⟩
+    B [ f ⊙ p ,, tr* Tm ν ] [ id ,, a [ f ]ₜ [ id ]ₜ ]
+      =⟨ ! []-⊙ ∙ ap (λ □ → B [ □ ]) ,,-⊙ ⟩
+    {!!}
+      =⟨ {!!} ⟩
+    --  ...
+    B [ id ,, a [ id ]ₜ ] [ f ] =⟨ idp ⟩
+    B [[ a ]] [ f ] ∎
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
   field

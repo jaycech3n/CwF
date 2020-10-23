@@ -11,8 +11,7 @@ module Category where
 
 open import HoTT renaming
   ( lsucc to lsuc
-  ; transport to tr
-  ; transport! to tr!) public
+  ; transport to tr ) public
 
 {- Various flavors of category
 
@@ -20,7 +19,7 @@ open import HoTT renaming
 coherent.
 -}
 record WildCategory {i} : Type (lsuc i) where
-  infix 40 _⊙_
+  infixr 40 _⊙_
   field
     Ob  : Type i
     Hom : Ob → Ob → Type i
