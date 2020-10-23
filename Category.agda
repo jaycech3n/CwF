@@ -26,8 +26,8 @@ record WildCategory {i} : Type (lsuc i) where
     _⊙_ : ∀ {x y z} → Hom y z → Hom x y → Hom x z
     id  : ∀ {x} → Hom x x
 
-    ass : ∀ {x y z w} {f : Hom x y} {g : Hom y z} {h : Hom z w}
-        → (h ⊙ g) ⊙ f == h ⊙ (g ⊙ f)
+    ass : ∀ {x y z w} {f : Hom z w} {g : Hom y z} {h : Hom x y}
+        → (f ⊙ g) ⊙ h == f ⊙ (g ⊙ h)
     idl : ∀ {x y} {f : Hom x y} → id ⊙ f == f
     idr : ∀ {x y} {f : Hom x y} → f ⊙ id == f
 

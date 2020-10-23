@@ -9,8 +9,7 @@ Theory", 1996) and others.
 module CwF where
 
 open import Category renaming
-  ( ⟨⟩ to ?instance
-  ; [_] to ∥_∥
+  ( [_] to ∥_∥
   ; wild-of-strict to s→w-cat
   ) public
 
@@ -20,14 +19,14 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     ( Ob  to Con
     ; Hom to Sub
     ) public
-
+    
   -- Empty context
   field
-    ⟨⟩ : Con
-    ⟨⟩-is-terminal : is-terminal {{C}} ⟨⟩
+    ◆ : Con
+    ◆-is-terminal : is-terminal {{C}} ◆
   
   -- Types and terms
-  infix 40 _[_] _[_]ₜ
+  infixl 40 _[_] _[_]ₜ
   field
     Ty    : Con → Type i
     _[_]  : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
@@ -60,20 +59,19 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                 → p ⊙ (f ,, t) == f
 
     ,,-β2 : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-            → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ ap (λ f → σ [ f ]) ,,-β1 ]
+            → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ ap (σ [_]) ,,-β1 ]
              
     {{,,-id}} : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
     {{,,-⊙}} : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
-                 {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
+                 {σ : Ty Ε} {t : Tm (σ [ g ])}
                → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
   {- Transport instance search -}
   -- Experimental: instance search for equations to transport along. Not too
   -- sure about the single universe level, but at least it shouldn't break
   -- anything.
-  tr* : ∀ {i} {A : Type i} {x y : A} {{p : x == y}} (B : A → Type i)
-                 → B x → B y
+  tr* : ∀ {i} {A : Type i} {x y : A} {{p : x == y}} (B : A → Type i) → B x → B y
   tr* {_} {_} {_} {_} {{p}} B b = tr B p b
 
   instance
@@ -96,7 +94,8 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                → (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ)) == (g ,, t) ⊙ f
     ,,-⊙-inv = ! ,,-⊙
 
-  {- Equations for substitution -}
+  {- More on substitution -}
+  
   -- Substitution in dependent types and terms
   infix 40 _[[_]] _[[_]]ₜ
   
@@ -122,16 +121,34 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
       -- This initially used `tr! Tm []-⊙ ν`, but was changed to the current
       -- version to work with transport instance search.
 
+  -- Equalities
+
+  -- Do I need to postulate the general version of ",,-ass", or will the following
+  -- weaker form suffice?...
+  postulate --Temporary!
+    ,,-ass : ∀ {Γ Δ Ε Ζ} {f : Sub Ε Ζ} {g : Sub Δ Ε} {h : Sub Γ Δ}
+               {A : Ty Ζ} {t : Tm A}
+             → ((f ⊙ g) ⊙ h ,, t [ (f ⊙ g) ⊙ h ]ₜ)
+               == (f ⊙ g ⊙ h ,, t [ f ⊙ g ⊙ h ]ₜ)
+  {- Proof attempt
+    ,,-ass {Γ} {Δ} {Ε} {Ζ} {f} {g} {h} {A} {t} =
+         ((f ⊙ g) ⊙ h ,, t [ (f ⊙ g) ⊙ h ]ₜ) =⟨ ? ⟩
+  -}
+
   -- "Exchange"-type law for substitutions
+  -- I seem to need this to formulate ،-[] below.
   []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
-  []-[[]] {_} {_} {_} {B} {f} {a} =
-    B [ f ↑ ] [[ a [ f ]ₜ ]]
-      =⟨ idp ⟩
+  []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
+    B [ f ↑ ] [[ a [ f ]ₜ ]] =⟨ idp ⟩
     B [ f ⊙ p ,, tr* Tm ν ] [ id ,, a [ f ]ₜ [ id ]ₜ ]
-      =⟨ ! []-⊙ ∙ ap (λ □ → B [ □ ]) ,,-⊙ ⟩
-    {!!}
-      =⟨ {!!} ⟩
+      =⟨ []-⊙-inv ∙ ap (B [_]) ,,-⊙ ⟩
+    {- This just does not work, for typing reasons:
+    B [ (f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, tr* Tm (tr* Tm ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ]
+      =⟨ ap (λ ◻ → B [ ◻ ,, tr Tm []-⊙-inv (tr Tm []-⊙-inv ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ]) ass ⟩
+    -- Need some form of associativity for ,,
+    -}
+    {!!} =⟨ {!!} ⟩
     --  ...
     B [ id ,, a [ id ]ₜ ] [ f ] =⟨ idp ⟩
     B [[ a ]] [ f ] ∎
@@ -201,7 +218,7 @@ record SigmaStructure {i}
            → π1 (a ، b) == a
            
     ،-π2 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {a : Tm A} {b : Tm (B [[ a ]])}
-           → π2 (a ، b) == b [ (λ x → Tm (B [[ x ]])) ↓ ،-π1 ]
+           → π2 (a ، b) == b [ (λ ◻ → Tm (B [[ ◻ ]])) ↓ ،-π1 ]
            
     ̂Σ-η : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {p : Tm (̂Σ A B)} → (π1 p ، π2 p) == p
 
