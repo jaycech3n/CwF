@@ -59,13 +59,19 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                 → p ⊙ (f ,, t) == f
 
     ,,-β2 : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-            → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ ap (σ [_]) ,,-β1 ]
+            → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ (,,-β1 |in-ctx (σ [_])) ]
              
     {{,,-id}} : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
     {{,,-⊙}} : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
                  {σ : Ty Ε} {t : Tm (σ [ g ])}
                → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
+
+    --? Nicolai
+    -- I need this equality; it seems like it could be provable...
+    ,,-eq : ∀ {Γ Δ} {σ : Ty Γ} {f f' : Sub Δ Γ} {t : Tm (σ [ f ])}
+              {{p : f == f'}}
+            → (f ,, t) == (f' ,, tr (Tm ∘ (σ [_])) p t)
 
   {- Transport instance search -}
   -- Experimental: instance search for equations to transport along. Not too
@@ -74,25 +80,30 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   tr* : ∀ {i} {A : Type i} {x y : A} {{p : x == y}} (B : A → Type i) → B x → B y
   tr* {_} {_} {_} {_} {{p}} B b = tr B p b
 
-  instance
-    []-id-inv : ∀ {Γ} {σ : Ty Γ} → σ == (σ [ id ])
-    []-id-inv = ! []-id
+  private
+    instance
+      []-id-inv : ∀ {Γ} {σ : Ty Γ} → σ == (σ [ id ])
+      []-id-inv = ! []-id
 
-    []-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
-               → (σ [ g ] [ f ]) == (σ [ g ⊙ f ])
-    []-⊙-inv = ! []-⊙
+      []-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
+                 → (σ [ g ] [ f ]) == (σ [ g ⊙ f ])
+      []-⊙-inv = ! []-⊙
 
-    ,,-β1-inv : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-                → f == p ⊙ (f ,, t)
-    ,,-β1-inv = ! ,,-β1
+      ,,-β1-inv : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+                  → f == p ⊙ (f ,, t)
+      ,,-β1-inv = ! ,,-β1
 
-    ,,-id-inv : ∀ {Γ} {σ : Ty Γ} → id == (p {Γ} {σ} ,, ν {Γ} {σ})
-    ,,-id-inv = ! ,,-id
+      ,,-id-inv : ∀ {Γ} {σ : Ty Γ} → id == (p {Γ} {σ} ,, ν {Γ} {σ})
+      ,,-id-inv = ! ,,-id
 
-    ,,-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
-                 {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
-               → (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ)) == (g ,, t) ⊙ f
-    ,,-⊙-inv = ! ,,-⊙
+      ,,-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
+                   {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
+                 → (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ)) == (g ,, t) ⊙ f
+      ,,-⊙-inv = ! ,,-⊙
+
+      ass-instance = ass
+      idl-instance = idl
+      idr-instance = idr
 
   {- More on substitution -}
   
@@ -117,41 +128,33 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                         f
   -}
   _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
-  f ↑ = (f ⊙ p ,, tr* Tm ν)
-      -- This initially used `tr! Tm []-⊙ ν`, but was changed to the current
-      -- version to work with transport instance search.
+  f ↑ = (f ⊙ p ,, tr Tm (! []-⊙) ν)
 
   -- Equalities
-
-  -- Do I need to postulate the general version of ",,-ass", or will the following
-  -- weaker form suffice?...
-  postulate --Temporary!
-    ,,-ass : ∀ {Γ Δ Ε Ζ} {f : Sub Ε Ζ} {g : Sub Δ Ε} {h : Sub Γ Δ}
-               {A : Ty Ζ} {t : Tm A}
-             → ((f ⊙ g) ⊙ h ,, t [ (f ⊙ g) ⊙ h ]ₜ)
-               == (f ⊙ g ⊙ h ,, t [ f ⊙ g ⊙ h ]ₜ)
-  {- Proof attempt
-    ,,-ass {Γ} {Δ} {Ε} {Ζ} {f} {g} {h} {A} {t} =
-         ((f ⊙ g) ⊙ h ,, t [ (f ⊙ g) ⊙ h ]ₜ) =⟨ ? ⟩
-  -}
-
   -- "Exchange"-type law for substitutions
   -- I seem to need this to formulate ،-[] below.
   []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
   []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
-    B [ f ↑ ] [[ a [ f ]ₜ ]] =⟨ idp ⟩
-    B [ f ⊙ p ,, tr* Tm ν ] [ id ,, a [ f ]ₜ [ id ]ₜ ]
-      =⟨ []-⊙-inv ∙ ap (B [_]) ,,-⊙ ⟩
-    {- This just does not work, for typing reasons:
-    B [ (f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, tr* Tm (tr* Tm ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ]
-      =⟨ ap (λ ◻ → B [ ◻ ,, tr Tm []-⊙-inv (tr Tm []-⊙-inv ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ]) ass ⟩
-    -- Need some form of associativity for ,,
-    -}
-    {!!} =⟨ {!!} ⟩
+    B [ f ⊙ p ,, _ ] [[ a [ f ]ₜ ]]
+      =⟨ []-⊙-inv ⟩
+    B [ (f ⊙ p ,, _) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]
+      =⟨ ,,-⊙ ∙ ,,-eq |in-ctx (B [_]) ⟩
+    B [ f ⊙ p ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, _ ]
+      =⟨ ,,-eq {{,,-β1 |in-ctx (f ⊙_)}} |in-ctx (B [_]) ⟩
+    B [ f ⊙ id ,, _ ]
+      =⟨ {!!} ⟩
     --  ...
-    B [ id ,, a [ id ]ₜ ] [ f ] =⟨ idp ⟩
-    B [[ a ]] [ f ] ∎
+    B [ id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ) ]
+      =⟨ ⟨⟩ |in-ctx (B [_]) ⟩
+    B [ (id ,, a [ id ]ₜ) ⊙ f ]
+      =⟨ []-⊙ ⟩
+    B [ id ,, a [ id ]ₜ ] [ f ]
+      =∎
+
+  [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
+            → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
+  [[]]-[] = ! []-[[]]
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
   field
@@ -218,7 +221,7 @@ record SigmaStructure {i}
            → π1 (a ، b) == a
            
     ،-π2 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {a : Tm A} {b : Tm (B [[ a ]])}
-           → π2 (a ، b) == b [ (λ ◻ → Tm (B [[ ◻ ]])) ↓ ،-π1 ]
+           → π2 (a ، b) == b [ Tm ∘ (B [[_]]) ↓ ،-π1 ]
            
     ̂Σ-η : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {p : Tm (̂Σ A B)} → (π1 p ، π2 p) == p
 
@@ -228,4 +231,4 @@ record SigmaStructure {i}
            
     ،-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
            {a : Tm A} {b : Tm (B [[ a ]])} {f : Sub Δ Γ}
-           → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، {!!}) [ Tm ↓ ̂Σ-[] ]
+           → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، tr Tm [[]]-[] (b [ f ]ₜ)) [ Tm ↓ ̂Σ-[] ]
