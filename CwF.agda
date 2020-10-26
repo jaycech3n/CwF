@@ -59,7 +59,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                → p ⊙ (f ,, t) == f
 
     ν-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-           → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (σ [_])) ]
+           → ν [ f ,, t ]ₜ == t [ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (σ [_])) ]
              
     ,,-id : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
