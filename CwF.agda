@@ -31,9 +31,9 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     Ty    : Con → Type i
     _[_]  : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
     
-    {{[]-id}} : ∀ {Γ} {σ : Ty Γ} → (σ [ id ]) == σ
+    []-id : ∀ {Γ} {σ : Ty Γ} → (σ [ id ]) == σ
           
-    {{[]-⊙}} : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
+    []-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
                → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
 
     Tm   : ∀ {Γ} (σ : Ty Γ) → Type i
@@ -55,55 +55,22 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
     -- The universal property of comprehensions is given by the following β- and
     -- η-rules.
-    {{,,-β1}} : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-                → p ⊙ (f ,, t) == f
+    p-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+               → p ⊙ (f ,, t) == f
 
-    ,,-β2 : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-            → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ (,,-β1 |in-ctx (σ [_])) ]
+    ν-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+           → (ν [ f ,, t ]ₜ) == t [ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (σ [_])) ]
              
-    {{,,-id}} : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
+    ,,-id : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
-    {{,,-⊙}} : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
+    ,,-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
                  {σ : Ty Ε} {t : Tm (σ [ g ])}
                → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
     --? Nicolai
     -- I need this equality; it seems like it could be provable...
     ,,-eq : ∀ {Γ Δ} {σ : Ty Γ} {f f' : Sub Δ Γ} {t : Tm (σ [ f ])}
-              {{p : f == f'}}
-            → (f ,, t) == (f' ,, tr (Tm ∘ (σ [_])) p t)
-
-  {- Transport instance search -}
-  -- Experimental: instance search for equations to transport along. Not too
-  -- sure about the single universe level, but at least it shouldn't break
-  -- anything.
-  tr* : ∀ {i} {A : Type i} {x y : A} {{p : x == y}} (B : A → Type i) → B x → B y
-  tr* {_} {_} {_} {_} {{p}} B b = tr B p b
-
-  private
-    instance
-      []-id-inv : ∀ {Γ} {σ : Ty Γ} → σ == (σ [ id ])
-      []-id-inv = ! []-id
-
-      []-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
-                 → (σ [ g ] [ f ]) == (σ [ g ⊙ f ])
-      []-⊙-inv = ! []-⊙
-
-      ,,-β1-inv : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-                  → f == p ⊙ (f ,, t)
-      ,,-β1-inv = ! ,,-β1
-
-      ,,-id-inv : ∀ {Γ} {σ : Ty Γ} → id == (p {Γ} {σ} ,, ν {Γ} {σ})
-      ,,-id-inv = ! ,,-id
-
-      ,,-⊙-inv : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
-                   {σ : Ty Ε} {t : Tm {Δ} (σ [ g ])}
-                 → (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ)) == (g ,, t) ⊙ f
-      ,,-⊙-inv = ! ,,-⊙
-
-      ass-instance = ass
-      idl-instance = idl
-      idr-instance = idr
+            → (p : f == f') → (f ,, t) == (f' ,, tr (Tm ∘ (σ [_])) p t)
 
   {- More on substitution -}
   
@@ -130,23 +97,29 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
   f ↑ = (f ⊙ p ,, tr Tm (! []-⊙) ν)
 
-  -- Equalities
+  {- Do I need this?
+  ν-↑ : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ}
+        → ν [ f ↑ ]ₜ == tr Tm (! []-⊙) ν
+          [ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (A [_])) ]
+  ν-↑ = ν-,,
+  -}
+
   -- "Exchange"-type law for substitutions
-  -- I seem to need this to formulate ،-[] below.
   []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
+            
   []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
     B [ f ⊙ p ,, _ ] [[ a [ f ]ₜ ]]
-      =⟨ []-⊙-inv ⟩
+      =⟨ ! []-⊙ ⟩
     B [ (f ⊙ p ,, _) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]
-      =⟨ ,,-⊙ ∙ ,,-eq |in-ctx (B [_]) ⟩
+      =⟨ ,,-⊙ ∙ ,,-eq ass |in-ctx (B [_]) ⟩
     B [ f ⊙ p ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, _ ]
-      =⟨ ,,-eq {{,,-β1 |in-ctx (f ⊙_)}} |in-ctx (B [_]) ⟩
+      =⟨ ,,-eq (p-,, |in-ctx (f ⊙_)) |in-ctx (B [_]) ⟩
     B [ f ⊙ id ,, _ ]
       =⟨ {!!} ⟩
     --  ...
     B [ id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ) ]
-      =⟨ ⟨⟩ |in-ctx (B [_]) ⟩
+      =⟨ ! ,,-⊙ |in-ctx (B [_]) ⟩
     B [ (id ,, a [ id ]ₜ) ⊙ f ]
       =⟨ []-⊙ ⟩
     B [ id ,, a [ id ]ₜ ] [ f ]
