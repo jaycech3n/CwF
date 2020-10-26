@@ -40,10 +40,10 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     _[_]ₜ : ∀ {Γ Δ} {σ : Ty Δ} → Tm σ → (f : Sub Γ Δ) → Tm (σ [ f ])
 
     []ₜ-id : ∀ {Γ} {σ : Ty Γ} {t : Tm σ}
-             → (t [ id ]ₜ) == t [ Tm ↓ []-id ]
+             → (t [ id ]ₜ) == tr Tm (! []-id) t
 
     []ₜ-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
-            → (t [ g ⊙ f ]ₜ) == (t [ g ]ₜ [ f ]ₜ) [ Tm ↓ []-⊙ ]
+            → (t [ g ⊙ f ]ₜ) == tr Tm (! []-⊙) (t [ g ]ₜ [ f ]ₜ)
 
   -- Comprehensions: context extension and projections
   infixl 30 _,,_
@@ -59,18 +59,20 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                → p ⊙ (f ,, t) == f
 
     ν-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-           → ν [ f ,, t ]ₜ == t [ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (σ [_])) ]
+           → ν [ f ,, t ]ₜ == tr Tm ((! p-,, |in-ctx (σ [_])) ∙ []-⊙) t
+             --[ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (σ [_])) ]
              
     ,,-id : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
     ,,-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
-                 {σ : Ty Ε} {t : Tm (σ [ g ])}
-               → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
+             {σ : Ty Ε} {t : Tm (σ [ g ])}
+           → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
-    --? Nicolai
-    -- I need this equality; it seems like it could be provable...
-    ,,-eq : ∀ {Γ Δ} {σ : Ty Γ} {f f' : Sub Δ Γ} {t : Tm (σ [ f ])}
-            → (p : f == f') → (f ,, t) == (f' ,, tr (Tm ∘ (σ [_])) p t)
+  ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
+            {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
+            (p₁ : f == f') (p₂ : t == tr (Tm ∘ (σ [_])) (! p₁) t')
+          → (f ,, t) == (f' ,, t')
+  ,,-eq idp idp = idp
 
   {- More on substitution -}
   
@@ -97,33 +99,24 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
   f ↑ = (f ⊙ p ,, tr Tm (! []-⊙) ν)
 
-  {- Do I need this?
-  ν-↑ : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ}
-        → ν [ f ↑ ]ₜ == tr Tm (! []-⊙) ν
-          [ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (A [_])) ]
-  ν-↑ = ν-,,
-  -}
-
   -- "Exchange"-type law for substitutions
   []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
             
   []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
-    B [ f ⊙ p ,, _ ] [[ a [ f ]ₜ ]]
-      =⟨ ! []-⊙ ⟩
-    B [ (f ⊙ p ,, _) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]
-      =⟨ ,,-⊙ ∙ ,,-eq ass |in-ctx (B [_]) ⟩
-    B [ f ⊙ p ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, _ ]
-      =⟨ ,,-eq (p-,, |in-ctx (f ⊙_)) |in-ctx (B [_]) ⟩
-    B [ f ⊙ id ,, _ ]
-      =⟨ {!!} ⟩
-    --  ...
-    B [ id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ) ]
-      =⟨ ! ,,-⊙ |in-ctx (B [_]) ⟩
-    B [ (id ,, a [ id ]ₜ) ⊙ f ]
-      =⟨ []-⊙ ⟩
-    B [ id ,, a [ id ]ₜ ] [ f ]
-      =∎
+    B [ f ⊙ p ,, tr Tm (! []-⊙) ν ] [[ a [ f ]ₜ ]] =⟨ ! []-⊙ ⟩
+    B [ (f ⊙ p ,, _) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ eq |in-ctx (B [_]) ⟩
+    B [ (id ,, a [ id ]ₜ) ⊙ f ] =⟨ []-⊙ ⟩
+    B [ id ,, a [ id ]ₜ ] [ f ] =∎
+    where
+    eq = 
+      (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) =⟨ ,,-⊙ ⟩
+      ((f ⊙ p) ⊙ (id ,, _) ,, _) =⟨ ,,-eq p₁ p₂ ⟩
+      (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ)) =⟨ ! ,,-⊙ ⟩
+      (id ,, a [ id ]ₜ) ⊙ f =∎
+      where
+      p₁ = ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr ∙ ! idl
+      p₂ = {!!}
 
   [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
