@@ -114,7 +114,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
       {-
       ???
-      {! !} [ id ,, a [ f ]ₜ [ id ]ₜ ]
+      {! !} [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
       =⟨ {! !} |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ⟩
       ν [ f ↑ ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ
       =⟨ ! []ₜ-⊙ ⟩
@@ -156,7 +156,8 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
       =⟨ ,,-eq (! idl) (! (!-! idl) |in-ctx (λ p → tr (Tm ∘ (A [_])) p a*)) ⟩
       (id ⊙ f ,, a*)
       =⟨ ! ,,-⊙ ⟩
-      (id ,, a [ id ]ₜ) ⊙ f =∎
+      (id ,, a [ id ]ₜ) ⊙ f
+      =∎
       where
       a*  = tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ)
 
