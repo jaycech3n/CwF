@@ -110,7 +110,22 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
         (f ,, _)
         =⟨ ,,-eq idp (! (transp-∙ eq idr (tr Tm (! []-⊙) ν+))) ⟩
         _
-        =∎        
+        =∎
+
+      {-
+      ???
+      {! !} [ id ,, a [ f ]ₜ [ id ]ₜ ]
+      =⟨ {! !} |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ⟩
+      ν [ f ↑ ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ
+      =⟨ ! []ₜ-⊙ ⟩
+      ν [ (f ↑) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+      =⟨ _↑-lemma |in-ctx (ν [_]ₜ) ⟩
+      ν [ f ,, tr (Tm ∘ (A [_])) (eq ∙ idr) (tr Tm (! []-⊙) ν+) ]ₜ
+      =⟨ ν-,, ⟩
+      tr Tm []-⊙
+        (tr (Tm ∘ (A [_])) (! p-,,)
+          (tr (Tm ∘ (A [_])) (eq ∙ idr) (tr Tm (! []-⊙) ν+)))
+      -}
   
   {- Substitution in dependent types and terms -}
   infix 40 _[[_]] _[[_]]ₜ
@@ -133,13 +148,17 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     B [ id ,, a [ id ]ₜ ] [ f ] =∎
     where
     eq = 
-      (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) =⟨ ,,-⊙ ⟩
-      ((f ⊙ p) ⊙ (id ,, _) ,, _) =⟨ ,,-eq eq₁ eq₂ ⟩
-      (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ)) =⟨ ! ,,-⊙ ⟩
+      (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
+      =⟨ ,,-⊙ ⟩
+      ((f ⊙ p) ⊙ (id ,, _) ,, _)
+      =⟨ ,,-eq (ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr) {!!} ⟩
+      (f ,, tr (Tm ∘ (A [_])) idl a*)
+      =⟨ ,,-eq (! idl) (! (!-! idl) |in-ctx (λ p → tr (Tm ∘ (A [_])) p a*)) ⟩
+      (id ⊙ f ,, a*)
+      =⟨ ! ,,-⊙ ⟩
       (id ,, a [ id ]ₜ) ⊙ f =∎
       where
-      eq₁ = ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr ∙ ! idl
-      eq₂ = {!!}
+      a*  = tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ)
 
   [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
