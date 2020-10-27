@@ -20,12 +20,10 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     ; Hom to Sub
     ) public
     
-  -- Empty context
   field
     ◆ : Con
     ◆-is-terminal : is-terminal {{C}} ◆
   
-  -- Types and terms
   infixl 40 _[_] _[_]ₜ
   field
     Ty    : Con → Type i
@@ -34,7 +32,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     []-id : ∀ {Γ} {σ : Ty Γ} → (σ [ id ]) == σ
           
     []-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
-               → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
+           → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
 
     Tm   : ∀ {Γ} (σ : Ty Γ) → Type i
     _[_]ₜ : ∀ {Γ Δ} {σ : Ty Δ} → Tm σ → (f : Sub Γ Δ) → Tm (σ [ f ])
@@ -56,11 +54,10 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     -- The universal property of comprehensions is given by the following β- and
     -- η-rules.
     p-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-               → p ⊙ (f ,, t) == f
+           → p ⊙ (f ,, t) == f
 
     ν-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-           → ν [ f ,, t ]ₜ == tr Tm ((! p-,, |in-ctx (σ [_])) ∙ []-⊙) t
-             --[ Tm ↓ (! []-⊙) ∙ (p-,, |in-ctx (σ [_])) ]
+           → ν [ f ,, t ]ₜ == tr Tm []-⊙ (tr (Tm ∘ (σ [_])) (! p-,,) t)
              
     ,,-id : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
@@ -68,27 +65,16 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
              {σ : Ty Ε} {t : Tm (σ [ g ])}
            → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
+  {- Equality for substitutions -}
   ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
             {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
-            (p₁ : f == f') (p₂ : t == tr (Tm ∘ (σ [_])) (! p₁) t')
+            (eq₁ : f == f') (eq₂ : t == tr (Tm ∘ (σ [_])) (! eq₁) t')
           → (f ,, t) == (f' ,, t')
   ,,-eq idp idp = idp
 
-  {- More on substitution -}
-  
-  -- Substitution in dependent types and terms
-  infix 40 _[[_]] _[[_]]ₜ
-  
-  _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
-  B [[ a ]] = B [ id ,, a [ id ]ₜ ]
-
-  _[[_]]ₜ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) (a : Tm A)
-            → Tm (B [[ a ]])
-  b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
-
   {- Given `A : Ty Γ` and `f : Sub Δ Γ` we get the lifted substitution `f ↑`
   -- that acts as `f` does, and leaves the "free variable x : A" alone.
-  -- Diagram:
+  -- This diagram commutes:
                         f ↑
               Δ ∷ A[f] -----> Γ ∷ A
        p {A[f]} |               | p {A}
@@ -99,7 +85,44 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
   f ↑ = (f ⊙ p ,, tr Tm (! []-⊙) ν)
 
-  -- "Exchange"-type law for substitutions
+  _↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → p {_} {A} ⊙ (f ↑) == f ⊙ p
+  _↑-comm = p-,,
+
+  {- Proof of a somewhat technical equality -}
+  private
+    module _ {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} {a : Tm A} where
+      private
+        ν* = tr Tm (! []-⊙) ν
+        ν+ = ν* [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+        eq = ass ∙ (p-,, |in-ctx (f ⊙_))
+
+      _↑-lemma :
+        (f ↑) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ==
+        (f ,, tr (Tm ∘ (A [_])) (eq ∙ idr) (tr Tm (! []-⊙) ν+))
+        
+      _↑-lemma =
+        (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
+        =⟨ ,,-⊙ ⟩
+        ((f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, tr Tm (! []-⊙) ν+)
+        =⟨ ,,-eq eq (! (tr-!-tr eq)) ⟩
+        (f ⊙ id ,, tr (Tm ∘ (A [_])) eq (tr Tm (! []-⊙) ν+))
+        =⟨ ,,-eq idr (! (tr-!-tr idr)) ⟩
+        (f ,, _)
+        =⟨ ,,-eq idp (! (transp-∙ eq idr (tr Tm (! []-⊙) ν+))) ⟩
+        _
+        =∎        
+  
+  {- Substitution in dependent types and terms -}
+  infix 40 _[[_]] _[[_]]ₜ
+  
+  _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
+  B [[ a ]] = B [ id ,, a [ id ]ₜ ]
+
+  _[[_]]ₜ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) (a : Tm A)
+            → Tm (B [[ a ]])
+  b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
+
+  {- "Exchange"-type law for substitutions -}
   []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
             
@@ -111,16 +134,17 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     where
     eq = 
       (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) =⟨ ,,-⊙ ⟩
-      ((f ⊙ p) ⊙ (id ,, _) ,, _) =⟨ ,,-eq p₁ p₂ ⟩
+      ((f ⊙ p) ⊙ (id ,, _) ,, _) =⟨ ,,-eq eq₁ eq₂ ⟩
       (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ)) =⟨ ! ,,-⊙ ⟩
       (id ,, a [ id ]ₜ) ⊙ f =∎
       where
-      p₁ = ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr ∙ ! idl
-      p₂ = {!!}
+      eq₁ = ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr ∙ ! idl
+      eq₂ = {!!}
 
   [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
             → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
   [[]]-[] = ! []-[[]]
+
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
   field
@@ -197,4 +221,5 @@ record SigmaStructure {i}
            
     ،-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
            {a : Tm A} {b : Tm (B [[ a ]])} {f : Sub Δ Γ}
-           → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، tr Tm [[]]-[] (b [ f ]ₜ)) [ Tm ↓ ̂Σ-[] ]
+           → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، tr Tm [[]]-[] (b [ f ]ₜ))
+             [ Tm ↓ ̂Σ-[] ]

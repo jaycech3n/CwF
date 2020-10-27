@@ -9,9 +9,7 @@ and either truncate or impose higher coherences as needed.
 -}
 module Category where
 
-open import HoTT renaming
-  ( lsucc to lsuc
-  ; transport to tr ) public
+open import Prelude public
 
 {- Various flavors of category
 
