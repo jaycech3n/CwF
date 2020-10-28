@@ -6,10 +6,28 @@ open import HoTT renaming
   ( lsucc to lsuc
   ; transport to tr ) public
 
-tr-!-tr : ∀ {i j} {A : Type i} {B : A → Type j} {x y : A} (p : x == y) {b : B x}
-          → tr B (! p) (tr B p b) == b
+{- Equality reasoning -}
+private
+  variable
+    i j : ULevel
+    A : Type i
+    B : A → Type j
+    x y : A
+
+tr-!-tr : ∀ {b} (p : x == y) → tr B (! p) (tr B p b) == b
 tr-!-tr idp = idp
 
-tr-tr-! : ∀ {i j} {A : Type i} {B : A → Type j} {x y : A} (p : x == y) {b : B y}
-          → tr B p (tr B (! p) b) == b
+tr-tr-! : ∀ {b} (p : x == y) → tr B p (tr B (! p) b) == b
 tr-tr-! idp = idp
+
+move-tr-l : ∀ {b b'} {p : x == y} (p' : b == tr B p b') → tr B (! p) b == b'
+move-tr-l {p = idp} idp = idp
+
+move-tr-!-l : ∀ {b b'} {p : x == y} (p' : b == tr B (! p) b') → tr B p b == b'
+move-tr-!-l {p = idp} idp = idp
+
+move-tr-r : ∀ {b b'} {p : x == y} (p' : tr B p b == b') → b == tr B (! p) b'
+move-tr-r {p = idp} idp = idp
+
+move-tr-!-r : ∀ {b b'} {p : x == y} (p' : tr B (! p) b == b') → b == tr B p b'
+move-tr-!-r {p = idp} idp = idp

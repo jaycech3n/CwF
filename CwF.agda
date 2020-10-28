@@ -13,13 +13,23 @@ open import Category renaming
   ; wild-of-strict to s→w-cat
   ) public
 
-{- Basic CwF structures -}
+{- Basic CwF structures
+
+To make equational reasoning and simplification easier we tend to follow the
+following rules of thumb:
+
+1. Use explicit transports instead of the `PathOver` construct.
+2. Use repeated transports along paths, as opposed to transporting along a
+   single concatenated path.
+
+These may be broken as necessary.
+-}
 record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open WildCategory C renaming
-    ( Ob  to Con
+    ( Ob to Con
     ; Hom to Sub
     ) public
-    
+  
   field
     ◆ : Con
     ◆-is-terminal : is-terminal {{C}} ◆
@@ -37,11 +47,10 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     Tm   : ∀ {Γ} (σ : Ty Γ) → Type i
     _[_]ₜ : ∀ {Γ Δ} {σ : Ty Δ} → Tm σ → (f : Sub Γ Δ) → Tm (σ [ f ])
 
-    []ₜ-id : ∀ {Γ} {σ : Ty Γ} {t : Tm σ}
-             → (t [ id ]ₜ) == tr Tm (! []-id) t
+    []ₜ-id : ∀ {Γ} {σ : Ty Γ} {t : Tm σ} → t [ id ]ₜ == tr Tm (! []-id) t
 
     []ₜ-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
-            → (t [ g ⊙ f ]ₜ) == tr Tm (! []-⊙) (t [ g ]ₜ [ f ]ₜ)
+            → t [ g ⊙ f ]ₜ == tr Tm (! []-⊙) (t [ g ]ₜ [ f ]ₜ)
 
   -- Comprehensions: context extension and projections
   infixl 30 _,,_
@@ -65,105 +74,140 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
              {σ : Ty Ε} {t : Tm (σ [ g ])}
            → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
-  {- Equality for substitutions -}
-  ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
-            {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
-            (eq₁ : f == f') (eq₂ : t == tr (Tm ∘ (σ [_])) (! eq₁) t')
-          → (f ,, t) == (f' ,, t')
-  ,,-eq idp idp = idp
+  {- Substitutions and their properties -}
+  module _ where
+    -- Manipulating transports
+    []ₜ-id' : ∀ {Γ} {σ : Ty Γ} {t : Tm σ} → tr Tm []-id (t [ id ]ₜ) == t
+    []ₜ-id' = move-tr-!-l []ₜ-id
 
-  {- Given `A : Ty Γ` and `f : Sub Δ Γ` we get the lifted substitution `f ↑`
-  -- that acts as `f` does, and leaves the "free variable x : A" alone.
-  -- This diagram commutes:
-                        f ↑
-              Δ ∷ A[f] -----> Γ ∷ A
-       p {A[f]} |               | p {A}
-                v               v
-                Δ ------------> Γ
-                        f
-  -}
-  _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
-  f ↑ = (f ⊙ p ,, tr Tm (! []-⊙) ν)
+    []ₜ-⊙' : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
+             → tr Tm []-⊙ (t [ g ⊙ f ]ₜ) == t [ g ]ₜ [ f ]ₜ
+    []ₜ-⊙' = move-tr-!-l []ₜ-⊙
 
-  _↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → p {_} {A} ⊙ (f ↑) == f ⊙ p
-  _↑-comm = p-,,
+    -- Equality for substitutions
+    ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
+              {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
+              (eq₁ : f == f') (eq₂ : tr (Tm ∘ (σ [_])) eq₁ t == t')
+            → (f ,, t) == (f' ,, t')
+    ,,-eq idp idp = idp
 
-  {- Proof of a somewhat technical equality -}
-  private
-    module _ {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} {a : Tm A} where
-      private
-        ν* = tr Tm (! []-⊙) ν
-        ν+ = ν* [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
-        eq = ass ∙ (p-,, |in-ctx (f ⊙_))
+    ,,-eq-l : ∀ {Γ Δ} {σ : Ty Γ} {f f' : Sub Δ Γ} {t : Tm (σ [ f ])}
+                (eq : f == f')
+              → (f ,, t) == (f' ,, tr (Tm ∘ (σ [_])) eq t)
+    ,,-eq-l idp = idp
 
-      _↑-lemma :
-        (f ↑) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ==
-        (f ,, tr (Tm ∘ (A [_])) (eq ∙ idr) (tr Tm (! []-⊙) ν+))
+    ,,-eq-r : ∀ {Γ Δ} {σ : Ty Γ} {f : Sub Δ Γ} {t t' : Tm (σ [ f ])}
+                (eq : t == t')
+              → (f ,, t) == (f ,, t')
+    ,,-eq-r idp = idp
+    
+    []ₜ-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} {t : Tm σ} (eq : f == f')
+           → tr (Tm ∘ (σ [_])) eq (t [ f ]ₜ) == t [ f' ]ₜ
+    []ₜ-eq idp = idp
+
+    {- Given `A : Ty Γ` and `f : Sub Δ Γ` we get the lifted substitution `f ↑`
+    -- that acts as `f` does, and leaves the "free variable x : A" alone.
+    -- This diagram commutes:
+                          f ↑
+                Δ ∷ A[f] -----> Γ ∷ A
+         p {A[f]} |               | p {A}
+                  v               v
+                  Δ ------------> Γ
+                          f
+    -}
+    _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
+    _↑ {_} {_} {A} f = (f ⊙ p ,, tr Tm (! []-⊙) (ν {_} {A [ f ]}))
+
+    _↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → p {_} {A} ⊙ (f ↑) == f ⊙ p
+    _↑-comm = p-,,
+
+    -- Substitution in dependent types and terms
+    infix 40 _[[_]] _[[_]]ₜ
+
+    _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
+    B [[ a ]] = B [ id ,, a [ id ]ₜ ]
+
+    _[[_]]ₜ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) (a : Tm A)
+              → Tm (B [[ a ]])
+    b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
+
+    -- Somewhat technical proof of an equality we need
+    private
+      module _ {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} {a : Tm A} where
+        private
+          eq = ass ∙ ap (f ⊙_) p-,, ∙ idr
+          
+        module _ where
+          private
+            ν* = tr Tm (! []-⊙) ν
+            ν+ = ν* [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+
+          _↑-lem :
+            (f ↑) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ==
+            (f ,, tr (Tm ∘ (A [_])) eq (tr Tm (! []-⊙) ν+))
+
+          _↑-lem =
+            (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
+            =⟨ ,,-⊙ ⟩
+            ((f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, tr Tm (! []-⊙) ν+)
+            =⟨ ,,-eq-l eq ⟩
+            _
+            =∎
+
+        tr-ν-lemma :
+          tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+          == a [ (f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+        tr-ν-lemma =
+          move-tr-l {p = []-⊙} (
+            {!!} ∙ (! []ₜ-⊙')
+          )
         
-      _↑-lemma =
+        rearrangement-lemma :
+          tr (Tm ∘ _[_] A) eq
+            (tr Tm (! []-⊙)
+              (tr Tm (! []-⊙) ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ))
+          == a [ f ]ₜ
+
+        rearrangement-lemma =
+          move-tr-!-l {p = eq} (
+            tr Tm (! []-⊙)
+              (tr Tm (! []-⊙) ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+            =⟨ tr-ν-lemma ⟩
+            a [ (f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+            =⟨ ! ([]ₜ-eq (! eq)) ⟩
+            _
+            =∎
+          )
+
+    -- "Exchange"-type law for substitutions
+    []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
+              → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
+
+    []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
+      B [ f ⊙ p ,, tr Tm (! []-⊙) ν ] [[ a [ f ]ₜ ]] =⟨ ! []-⊙ ⟩
+      B [ (f ⊙ p ,, _) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ eq |in-ctx (B [_]) ⟩
+      B [ (id ,, a [ id ]ₜ) ⊙ f ] =⟨ []-⊙ ⟩
+      B [ id ,, a [ id ]ₜ ] [ f ] =∎
+      where
+      eq = 
         (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
         =⟨ ,,-⊙ ⟩
-        ((f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, tr Tm (! []-⊙) ν+)
-        =⟨ ,,-eq eq (! (tr-!-tr eq)) ⟩
-        (f ⊙ id ,, tr (Tm ∘ (A [_])) eq (tr Tm (! []-⊙) ν+))
-        =⟨ ,,-eq idr (! (tr-!-tr idr)) ⟩
+        ((f ⊙ p) ⊙ (id ,, _) ,, _)
+        =⟨ ,,-eq-l (ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr) ⟩
         (f ,, _)
-        =⟨ ,,-eq idp (! (transp-∙ eq idr (tr Tm (! []-⊙) ν+))) ⟩
-        _
+        =⟨ ,,-eq-r rearrangement-lemma ⟩
+        ((f ,, a [ f ]ₜ))
+        =⟨ ,,-eq (! idl) ([]ₜ-eq (! idl)) ⟩
+        (id ⊙ f ,, a [ id ⊙ f ]ₜ )
+        =⟨ ,,-eq idp []ₜ-⊙ ⟩
+        (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ))
+        =⟨ ! ,,-⊙ ⟩
+        (id ,, a [ id ]ₜ) ⊙ f
         =∎
 
-      {-
-      ???
-      {! !} [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
-      =⟨ {! !} |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ⟩
-      ν [ f ↑ ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ
-      =⟨ ! []ₜ-⊙ ⟩
-      ν [ (f ↑) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
-      =⟨ _↑-lemma |in-ctx (ν [_]ₜ) ⟩
-      ν [ f ,, tr (Tm ∘ (A [_])) (eq ∙ idr) (tr Tm (! []-⊙) ν+) ]ₜ
-      =⟨ ν-,, ⟩
-      tr Tm []-⊙
-        (tr (Tm ∘ (A [_])) (! p-,,)
-          (tr (Tm ∘ (A [_])) (eq ∙ idr) (tr Tm (! []-⊙) ν+)))
-      -}
-  
-  {- Substitution in dependent types and terms -}
-  infix 40 _[[_]] _[[_]]ₜ
-  
-  _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
-  B [[ a ]] = B [ id ,, a [ id ]ₜ ]
-
-  _[[_]]ₜ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) (a : Tm A)
-            → Tm (B [[ a ]])
-  b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
-
-  {- "Exchange"-type law for substitutions -}
-  []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
-            → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
-            
-  []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
-    B [ f ⊙ p ,, tr Tm (! []-⊙) ν ] [[ a [ f ]ₜ ]] =⟨ ! []-⊙ ⟩
-    B [ (f ⊙ p ,, _) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ eq |in-ctx (B [_]) ⟩
-    B [ (id ,, a [ id ]ₜ) ⊙ f ] =⟨ []-⊙ ⟩
-    B [ id ,, a [ id ]ₜ ] [ f ] =∎
-    where
-    eq = 
-      (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
-      =⟨ ,,-⊙ ⟩
-      ((f ⊙ p) ⊙ (id ,, _) ,, _)
-      =⟨ ,,-eq (ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr) {!!} ⟩
-      (f ,, tr (Tm ∘ (A [_])) idl a*)
-      =⟨ ,,-eq (! idl) (! (!-! idl) |in-ctx (λ p → tr (Tm ∘ (A [_])) p a*)) ⟩
-      (id ⊙ f ,, a*)
-      =⟨ ! ,,-⊙ ⟩
-      (id ,, a [ id ]ₜ) ⊙ f
-      =∎
-      where
-      a*  = tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ)
-
-  [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
-            → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
-  [[]]-[] = ! []-[[]]
+    [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
+              → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
+    [[]]-[] = ! []-[[]]
 
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
