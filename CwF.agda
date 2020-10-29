@@ -1,10 +1,18 @@
 {-# OPTIONS --without-K #-}
 
-{- Categories with families
+{--- Categories with families ---
 
 Formulated as generalized algebraic theories following Dybjer ("Internal Type
 Theory", 1996) and others.
--}
+
+To make equational reasoning and simplification easier we tend to follow the
+following rules of thumb:
+
+  1. Use explicit transports instead of the `PathOver` construct.
+  2. Use repeated transports along paths, as opposed to transporting along a
+     single concatenated path.
+
+These may be broken as necessary. ---}
 
 module CwF where
 
@@ -13,17 +21,7 @@ open import Category renaming
   ; wild-of-strict to s→w-cat
   ) public
 
-{- Basic CwF structures
-
-To make equational reasoning and simplification easier we tend to follow the
-following rules of thumb:
-
-1. Use explicit transports instead of the `PathOver` construct.
-2. Use repeated transports along paths, as opposed to transporting along a
-   single concatenated path.
-
-These may be broken as necessary.
--}
+{- Basic CwF structures -}
 record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open WildCategory C renaming
     ( Ob to Con
@@ -47,12 +45,12 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     Tm   : ∀ {Γ} (σ : Ty Γ) → Type i
     _[_]ₜ : ∀ {Γ Δ} {σ : Ty Δ} → Tm σ → (f : Sub Γ Δ) → Tm (σ [ f ])
 
-    []ₜ-id : ∀ {Γ} {σ : Ty Γ} {t : Tm σ} → t [ id ]ₜ == tr Tm (! []-id) t
+    []ₜ-id : ∀ {Γ} {σ : Ty Γ} {t : Tm σ} → tr Tm []-id (t [ id ]ₜ) == t
 
     []ₜ-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
-            → t [ g ⊙ f ]ₜ == tr Tm (! []-⊙) (t [ g ]ₜ [ f ]ₜ)
+            → tr Tm []-⊙ (t [ g ⊙ f ]ₜ) == t [ g ]ₜ [ f ]ₜ
 
-  -- Comprehensions: context extension and projections
+  -- Comprehensions: context extension and projections 
   infixl 30 _,,_
   field
     _∷_  : (Γ : Con) (σ : Ty Γ) → Con
@@ -74,8 +72,16 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
              {σ : Ty Ε} {t : Tm (σ [ g ])}
            → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
-  {- Substitutions and their properties -}
-  module _ where
+  module definitions where
+    -- Equality of types and terms
+    []-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} (eq : f == f')
+            → σ [ f ] == σ [ f' ]
+    []-eq idp = idp
+    
+    []ₜ-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} {t : Tm σ} (eq : f == f')
+             → tr Tm ([]-eq eq) (t [ f ]ₜ) == t [ f' ]ₜ
+    []ₜ-eq idp = idp
+    
     -- Manipulating transports
     []ₜ-id' : ∀ {Γ} {σ : Ty Γ} {t : Tm σ} → tr Tm []-id (t [ id ]ₜ) == t
     []ₜ-id' = move-tr-!-l []ₜ-id
@@ -84,42 +90,74 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
              → tr Tm []-⊙ (t [ g ⊙ f ]ₜ) == t [ g ]ₜ [ f ]ₜ
     []ₜ-⊙' = move-tr-!-l []ₜ-⊙
 
-    -- Equality for substitutions
+    -- Equality of substitutions
     ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
               {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
-              (eq₁ : f == f') (eq₂ : tr (Tm ∘ (σ [_])) eq₁ t == t')
+              (eq₁ : f == f') (eq₂ : tr Tm ([]-eq eq₁) t == t')
             → (f ,, t) == (f' ,, t')
     ,,-eq idp idp = idp
 
     ,,-eq-l : ∀ {Γ Δ} {σ : Ty Γ} {f f' : Sub Δ Γ} {t : Tm (σ [ f ])}
                 (eq : f == f')
-              → (f ,, t) == (f' ,, tr (Tm ∘ (σ [_])) eq t)
+              → (f ,, t) == (f' ,, tr Tm ([]-eq eq) t)
     ,,-eq-l idp = idp
 
     ,,-eq-r : ∀ {Γ Δ} {σ : Ty Γ} {f : Sub Δ Γ} {t t' : Tm (σ [ f ])}
                 (eq : t == t')
               → (f ,, t) == (f ,, t')
     ,,-eq-r idp = idp
-    
-    []ₜ-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} {t : Tm σ} (eq : f == f')
-           → tr (Tm ∘ (σ [_])) eq (t [ f ]ₜ) == t [ f' ]ₜ
-    []ₜ-eq idp = idp
 
-    {- Given `A : Ty Γ` and `f : Sub Δ Γ` we get the lifted substitution `f ↑`
-    -- that acts as `f` does, and leaves the "free variable x : A" alone.
-    -- This diagram commutes:
-                          f ↑
-                Δ ∷ A[f] -----> Γ ∷ A
-         p {A[f]} |               | p {A}
-                  v               v
-                  Δ ------------> Γ
-                          f
+    {- Weakening
+
+    Given `A : Ty Γ` and `f : Sub Δ Γ` we get the substitution `f ↑` that acts
+    as `f` does, and leaves the "free variable x : A" alone. This is the
+    *weakening of `f` by `A`*.
+    This diagram commutes:
+
+                         f ↑
+               Δ ∷ A[f] -----> Γ ∷ A
+        p {A[f]} |               | p {A}
+                 v               v
+                 Δ ------------> Γ
+                         f
     -}
     _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
     _↑ {_} {_} {A} f = (f ⊙ p ,, tr Tm (! []-⊙) (ν {_} {A [ f ]}))
 
     _↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → p {_} {A} ⊙ (f ↑) == f ⊙ p
     _↑-comm = p-,,
+
+    ν[↑] : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ}
+           → ν [ f ↑ ]ₜ
+             == tr Tm []-⊙ (tr (Tm ∘ (A [_])) (! p-,,) (tr Tm (! []-⊙) ν))
+    ν[↑] = ν-,,
+
+    -- Somewhat technical equalities; not sure which I'll need yet
+    module _ {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} {t : Tm (A [ f ] [ id ])} where
+      _↑-eq : (f ↑) ⊙ (id ,, t)
+              ==
+              (  f
+              ,, tr (Tm ∘ (A [_])) (ass ∙ ap (f ⊙_) p-,, ∙ idr)
+                   (tr Tm (! []-⊙)
+                     (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
+              )
+              
+      _↑-eq =
+        (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, t)
+        =⟨ ,,-⊙ ⟩
+        ((f ⊙ p) ⊙ (id ,, t) ,, tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
+        =⟨ ,,-eq-l eq ⟩
+        _
+        =⟨ {!!} ⟩
+        _
+        =∎
+        where
+        eq = ass ∙ ap (f ⊙_) p-,, ∙ idr
+
+      env =
+        {!(id ,, t)!}
+        where
+        ν* = tr Tm (! []-⊙) (ν {_} {A [ f ]})
 
     -- Substitution in dependent types and terms
     infix 40 _[[_]] _[[_]]ₜ
@@ -134,50 +172,6 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     -- Somewhat technical proof of an equality we need
     private
       module _ {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} {a : Tm A} where
-        private
-          eq = ass ∙ ap (f ⊙_) p-,, ∙ idr
-          
-        module _ where
-          private
-            ν* = tr Tm (! []-⊙) ν
-            ν+ = ν* [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
-
-          _↑-lem :
-            (f ↑) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ==
-            (f ,, tr (Tm ∘ (A [_])) eq (tr Tm (! []-⊙) ν+))
-
-          _↑-lem =
-            (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
-            =⟨ ,,-⊙ ⟩
-            ((f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ,, tr Tm (! []-⊙) ν+)
-            =⟨ ,,-eq-l eq ⟩
-            _
-            =∎
-
-        tr-ν-lemma :
-          tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-          == a [ (f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
-        tr-ν-lemma =
-          move-tr-l {p = []-⊙} (
-            {!!} ∙ (! []ₜ-⊙')
-          )
-        
-        rearrangement-lemma :
-          tr (Tm ∘ _[_] A) eq
-            (tr Tm (! []-⊙)
-              (tr Tm (! []-⊙) ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ))
-          == a [ f ]ₜ
-
-        rearrangement-lemma =
-          move-tr-!-l {p = eq} (
-            tr Tm (! []-⊙)
-              (tr Tm (! []-⊙) ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-            =⟨ tr-ν-lemma ⟩
-            a [ (f ⊙ p) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
-            =⟨ ! ([]ₜ-eq (! eq)) ⟩
-            _
-            =∎
-          )
 
     -- "Exchange"-type law for substitutions
     []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
@@ -193,9 +187,11 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
         (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
         =⟨ ,,-⊙ ⟩
         ((f ⊙ p) ⊙ (id ,, _) ,, _)
-        =⟨ ,,-eq-l (ass ∙ (p-,, |in-ctx (f ⊙_)) ∙ idr) ⟩
+        =⟨ ,,-eq-l (ass ∙ ap (f ⊙_) p-,, ∙ idr) ⟩
         (f ,, _)
-        =⟨ ,,-eq-r rearrangement-lemma ⟩
+        =⟨ ,,-eq {!!} {!!} ⟩
+          -- Find the correct equality `f == f` to transport along so that the
+          -- second goal is provable.
         ((f ,, a [ f ]ₜ))
         =⟨ ,,-eq (! idl) ([]ₜ-eq (! idl)) ⟩
         (id ⊙ f ,, a [ id ⊙ f ]ₜ )
@@ -209,6 +205,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
               → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
     [[]]-[] = ! []-[[]]
 
+  open definitions public
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
   field
