@@ -174,6 +174,53 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                 → Tm (B [[ a ]])
       b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
 
+
+      {- "Exchange"-type law for substitution extension and composition.
+         Given f : Sub Δ Γ and A : Ty Γ and a : Tm A, we have two 
+         "single-step" ways to go from Δ to Γ ∷ A, and they end up being
+         equal:
+
+                        (add a)
+                   Δ -----------> Δ ∷ A[f]
+                 f |               | f ↑ A
+                   v               v
+                   Γ -----------> Γ ∷ A
+                       (add a)
+      -}
+
+      ,,-⊙-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+                → (id ,, a [ id ]ₜ) ⊙ f == (f ,, (a [ f ]ₜ))
+      ,,-⊙-join {Γ} {Δ} {A} f a =
+        ((id ,, a [ id ]ₜ) ⊙ f)
+        =⟨ ,,-⊙  {f = f} {g = id} {t = a [ id ]ₜ} ⟩
+        (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ))
+        =⟨ {!undo the transport!} ⟩
+        (id ⊙ f ,, a [ id ⊙ f ]ₜ)
+        =⟨ {!idl!} ⟩
+        (f ,, (a [ f ]ₜ))
+        =∎
+
+      ⊙-,,-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+                  → (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == (f ,, (a [ f ]ₜ))
+      ⊙-,,-join {Γ} {Δ} {A} f a =
+        (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
+        =⟨ {!,,-⊙  {f = f} {g = id} {t = a [ id ]ₜ}!} ⟩
+--        {!!}
+--        =⟨ {!!} ⟩
+--        {!!}
+--        =⟨ {!!} ⟩
+--        {!!}
+        (f ,, (a [ f ]ₜ))
+        =∎ 
+
+
+
+      ⊙-,,-exch : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+                  → (id ,, a [ id ]ₜ) ⊙ f == (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
+      ⊙-,,-exch f a = ,,-⊙-join f a  ∙ ! (⊙-,,-join f a)
+
+
+
       -- "Exchange"-type law for substitutions
       []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
                 → B [ f ↑ A ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
@@ -184,7 +231,9 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
         B [ (id ,, a [ id ]ₜ) ⊙ f ] =⟨ []-⊙ ⟩
         B [ id ,, a [ id ]ₜ ] [ f ] =∎
         where
+        eq : (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == (id ,, a [ id ]ₜ) ⊙ f
         eq = {!!}
+
 
       [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
                 → B [[ a ]] [ f ] == B [ f ↑ A ] [[ a [ f ]ₜ ]]
