@@ -22,7 +22,7 @@ open import Category renaming
   ) public
 
 {- Basic CwF structures -}
-record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
+record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open WildCategory C renaming
     ( Ob to Con
     ; Hom to Sub
@@ -37,10 +37,10 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     Ty    : Con → Type i
     _[_]  : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
     
-    []-id : ∀ {Γ} {σ : Ty Γ} → (σ [ id ]) == σ
+    []-id : ∀ {Γ} {σ : Ty Γ} → σ [ id ] == σ
           
     []-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
-           → (σ [ g ⊙ f ]) == (σ [ g ] [ f ])
+           → σ [ g ⊙ f ] == σ [ g ] [ f ]
 
     Tm   : ∀ {Γ} (σ : Ty Γ) → Type i
     _[_]ₜ : ∀ {Γ Δ} {σ : Ty Δ} → Tm σ → (f : Sub Γ Δ) → Tm (σ [ f ])
@@ -50,7 +50,24 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     []ₜ-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
             → tr Tm []-⊙ (t [ g ⊙ f ]ₜ) == t [ g ]ₜ [ f ]ₜ
 
-  -- Comprehensions: context extension and projections 
+  private
+    module definitions where
+      {- Equality of types and terms -}
+      infix 40 _[=_]
+      _[=_] : ∀ {Δ Γ} {f f' : Sub Δ Γ} (σ : Ty Γ)
+              → f == f' → σ [ f ] == σ [ f' ]
+      _[=_] σ = ap (σ [_])
+
+      []ₜ-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} {t : Tm σ} (p : f == f')
+               → tr Tm (σ [= p ]) (t [ f ]ₜ) == t [ f' ]ₜ
+      []ₜ-eq idp = idp
+      
+  open definitions public
+
+record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
+  field {{T}} : TyTmStructure C
+  open TyTmStructure T public
+  
   infixl 30 _,,_
   field
     _∷_  : (Γ : Con) (σ : Ty Γ) → Con
@@ -60,170 +77,138 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
     -- The universal property of comprehensions is given by the following β- and
     -- η-rules.
-    p-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-           → p ⊙ (f ,, t) == f
+    βp : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+         → p ⊙ (f ,, t) == f
 
-    ν-,, : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-           → ν [ f ,, t ]ₜ == tr Tm []-⊙ (tr (Tm ∘ (σ [_])) (! p-,,) t)
+    βν : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+         → ν [ f ,, t ]ₜ == tr Tm []-⊙ (tr Tm (σ [= ! βp ]) t)
              
-    ,,-id : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
+    ,,η : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
     ,,-⊙ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
              {σ : Ty Ε} {t : Tm (σ [ g ])}
            → (g ,, t) ⊙ f == (g ⊙ f ,, tr Tm (! []-⊙) (t [ f ]ₜ))
 
-  module definitions where
-    -- Equality of types and terms
-    []-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} (eq : f == f')
-            → σ [ f ] == σ [ f' ]
-    []-eq idp = idp
-    
-    []ₜ-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} {t : Tm σ} (eq : f == f')
-             → tr Tm ([]-eq eq) (t [ f ]ₜ) == t [ f' ]ₜ
-    []ₜ-eq idp = idp
-    
-    -- Manipulating transports
-    []ₜ-id' : ∀ {Γ} {σ : Ty Γ} {t : Tm σ} → tr Tm []-id (t [ id ]ₜ) == t
-    []ₜ-id' = move-tr-!-l []ₜ-id
+  private
+    module definitions where
+      {- Equality of substitutions -}
+      ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
+                {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
+                (eq₁ : f == f') (eq₂ : tr Tm (σ [= eq₁ ]) t == t')
+              → (f ,, t) == (f' ,, t')
+      ,,-eq idp idp = idp
 
-    []ₜ-⊙' : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
-             → tr Tm []-⊙ (t [ g ⊙ f ]ₜ) == t [ g ]ₜ [ f ]ₜ
-    []ₜ-⊙' = move-tr-!-l []ₜ-⊙
+      ,,-eq-init : ∀ {Γ Δ} {σ : Ty Γ} {f f' : Sub Δ Γ} {t : Tm (σ [ f ])}
+                     (eq : f == f')
+                   → (f ,, t) == (f' ,, tr Tm (σ [= eq ]) t)
+      ,,-eq-init idp = idp
 
-    -- Equality of substitutions
-    ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
-              {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
-              (eq₁ : f == f') (eq₂ : tr Tm ([]-eq eq₁) t == t')
-            → (f ,, t) == (f' ,, t')
-    ,,-eq idp idp = idp
+      ,,-eq-last : ∀ {Γ Δ} {σ : Ty Γ} {f : Sub Δ Γ} {t t' : Tm (σ [ f ])}
+                     (eq : t == t')
+                   → (f ,, t) == (f ,, t')
+      ,,-eq-last idp = idp
 
-    ,,-eq-l : ∀ {Γ Δ} {σ : Ty Γ} {f f' : Sub Δ Γ} {t : Tm (σ [ f ])}
-                (eq : f == f')
-              → (f ,, t) == (f' ,, tr Tm ([]-eq eq) t)
-    ,,-eq-l idp = idp
+      {- Weakening
 
-    ,,-eq-r : ∀ {Γ Δ} {σ : Ty Γ} {f : Sub Δ Γ} {t t' : Tm (σ [ f ])}
-                (eq : t == t')
-              → (f ,, t) == (f ,, t')
-    ,,-eq-r idp = idp
+      Given `A : Ty Γ` and `f : Sub Δ Γ` we get the weakening `f ↑ A` of `f` by
+      `A` that intuitively acts as `f` does, and leaves the "free variable
+      `x : A`" alone. This diagram commutes:
 
-    {- Weakening
+                          f ↑ A
+                 Δ ∷ A[f] -----> Γ ∷ A
+          p {A[f]} |               | p {A}
+                   v               v
+                   Δ ------------> Γ
+                           f
+      -}
+      _↑_ : ∀ {Δ Γ} (f : Sub Δ Γ) (A : Ty Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
+      f ↑ A = (f ⊙ p ,, tr Tm (! []-⊙) (ν {_} {A [ f ]}))
 
-    Given `A : Ty Γ` and `f : Sub Δ Γ` we get the substitution `f ↑` that acts
-    as `f` does, and leaves the "free variable x : A" alone. This is the
-    *weakening of `f` by `A`*.
-    This diagram commutes:
+      ↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → p ⊙ (f ↑ A) == f ⊙ p
+      ↑-comm = βp
 
-                         f ↑
-               Δ ∷ A[f] -----> Γ ∷ A
-        p {A[f]} |               | p {A}
-                 v               v
-                 Δ ------------> Γ
-                         f
-    -}
-    _↑ : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
-    _↑ {_} {_} {A} f = (f ⊙ p ,, tr Tm (! []-⊙) (ν {_} {A [ f ]}))
+      -- Somewhat technical equalities; not sure which I'll need yet.
+      -- Note that the definitions in this module are currently not used.
+      module rewrites {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} where
+        ν[↑] : ν [ f ↑ A ]ₜ
+               == tr Tm []-⊙ (tr Tm (A [= ! βp ]) (tr Tm (! []-⊙) ν))
+        ν[↑] = βν
 
-    _↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → p {_} {A} ⊙ (f ↑) == f ⊙ p
-    _↑-comm = p-,,
+        ↑-eq : {t : Tm (A [ f ] [ id ])}
+             → (f ↑ A)
+               == (p ⊙ (f ↑ A) ,, tr Tm (A [= ! βp ]) (tr Tm (! []-⊙) ν))
+        ↑-eq {t} = ,,-eq-init (! ↑-comm)
 
-    ν[↑] : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ}
-           → ν [ f ↑ ]ₜ
-             == tr Tm []-⊙ (tr (Tm ∘ (A [_])) (! p-,,) (tr Tm (! []-⊙) ν))
-    ν[↑] = ν-,,
+        ↑-subst-eq : {t : Tm (A [ f ] [ id ])}
+                   → (f ↑ A) ⊙ (id ,, t)
+                     == (  f
+                        ,, tr Tm (A [= ass ∙ ap (f ⊙_) βp ∙ idr ])
+                            (tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
+                        )
+        ↑-subst-eq {t} =
+          (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, t)
+          =⟨ ,,-⊙ ⟩
+          ((f ⊙ p) ⊙ (id ,, t) ,, tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
+          =⟨ ,,-eq-init (ass ∙ ap (f ⊙_) βp ∙ idr) ⟩
+          _
+          =∎
 
-    -- Somewhat technical equalities; not sure which I'll need yet
-    module _ {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} {t : Tm (A [ f ] [ id ])} where
-      _↑-eq : (f ↑) ⊙ (id ,, t)
-              ==
-              (  f
-              ,, tr (Tm ∘ (A [_])) (ass ∙ ap (f ⊙_) p-,, ∙ idr)
-                   (tr Tm (! []-⊙)
-                     (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
-              )
-              
-      _↑-eq =
-        (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, t)
-        =⟨ ,,-⊙ ⟩
-        ((f ⊙ p) ⊙ (id ,, t) ,, tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
-        =⟨ ,,-eq-l eq ⟩
-        _
-        =⟨ {!!} ⟩
-        _
-        =∎
+        calc1 : {a : Tm A} →
+          a [ f ]ₜ [ p ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+          == tr Tm []-⊙ (tr Tm (A [ f ] [= ! βp ]) (a [ f ]ₜ [ id ]ₜ))
+        calc1 {a} =
+          a [ f ]ₜ [ p ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+          =⟨ ! []ₜ-⊙ ⟩
+          tr Tm []-⊙ (a [ f ]ₜ [ p ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ)
+          =⟨ ! ([]ₜ-eq (! βp)) |in-ctx (tr Tm []-⊙) ⟩
+          tr Tm []-⊙ (tr Tm (A [ f ] [= ! βp ]) (a [ f ]ₜ [ id ]ₜ))
+          =∎
+
+      -- Substitution in dependent types and terms
+      infix 40 _[[_]] _[[_]]ₜ
+
+      _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
+      B [[ a ]] = B [ id ,, a [ id ]ₜ ]
+
+      _[[_]]ₜ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) (a : Tm A)
+                → Tm (B [[ a ]])
+      b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
+
+      -- "Exchange"-type law for substitutions
+      []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
+                → B [ f ↑ A ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
+
+      []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
+        B [ f ↑ A ] [[ a [ f ]ₜ ]] =⟨ ! []-⊙ ⟩
+        B [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ B [= eq ] ⟩
+        B [ (id ,, a [ id ]ₜ) ⊙ f ] =⟨ []-⊙ ⟩
+        B [ id ,, a [ id ]ₜ ] [ f ] =∎
         where
-        eq = ass ∙ ap (f ⊙_) p-,, ∙ idr
+        eq = {!!}
 
-      env =
-        {!(id ,, t)!}
-        where
-        ν* = tr Tm (! []-⊙) (ν {_} {A [ f ]})
-
-    -- Substitution in dependent types and terms
-    infix 40 _[[_]] _[[_]]ₜ
-
-    _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
-    B [[ a ]] = B [ id ,, a [ id ]ₜ ]
-
-    _[[_]]ₜ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) (a : Tm A)
-              → Tm (B [[ a ]])
-    b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
-
-    -- Somewhat technical proof of an equality we need
-    private
-      module _ {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} {a : Tm A} where
-
-    -- "Exchange"-type law for substitutions
-    []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
-              → B [ f ↑ ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
-
-    []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
-      B [ f ⊙ p ,, tr Tm (! []-⊙) ν ] [[ a [ f ]ₜ ]] =⟨ ! []-⊙ ⟩
-      B [ (f ⊙ p ,, _) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ eq |in-ctx (B [_]) ⟩
-      B [ (id ,, a [ id ]ₜ) ⊙ f ] =⟨ []-⊙ ⟩
-      B [ id ,, a [ id ]ₜ ] [ f ] =∎
-      where
-      eq = 
-        (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
-        =⟨ ,,-⊙ ⟩
-        ((f ⊙ p) ⊙ (id ,, _) ,, _)
-        =⟨ ,,-eq-l (ass ∙ ap (f ⊙_) p-,, ∙ idr) ⟩
-        (f ,, _)
-        =⟨ ,,-eq {!!} {!!} ⟩
-          -- Find the correct equality `f == f` to transport along so that the
-          -- second goal is provable.
-        ((f ,, a [ f ]ₜ))
-        =⟨ ,,-eq (! idl) ([]ₜ-eq (! idl)) ⟩
-        (id ⊙ f ,, a [ id ⊙ f ]ₜ )
-        =⟨ ,,-eq idp []ₜ-⊙ ⟩
-        (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ))
-        =⟨ ! ,,-⊙ ⟩
-        (id ,, a [ id ]ₜ) ⊙ f
-        =∎
-
-    [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
-              → B [[ a ]] [ f ] == B [ f ↑ ] [[ a [ f ]ₜ ]]
-    [[]]-[] = ! []-[[]]
+      [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
+                → B [[ a ]] [ f ] == B [ f ↑ A ] [[ a [ f ]ₜ ]]
+      [[]]-[] = ! []-[[]]
 
   open definitions public
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
-  field
-    {{W}} : WildCwFStructure (s→w-cat C)
-    
+  field {{W}} : WildCwFStructure (s→w-cat C)
+  
+  open WildCwFStructure W hiding (T) public
   open StrictCategory C using () renaming
     ( Ob-is-set  to Con-is-set
     ; Hom-is-set to Sub-is-set
     ) public
-  open WildCwFStructure W public
 
   -- Additional truncation requirements
   field
     Ty-is-set : ∀ {Γ} → is-set (Ty Γ)
     Tm-is-set : ∀ {Γ} {σ : Ty Γ} → is-set (Tm σ)
 
--- Coercion
+{- Coercion -}
 wild-of-strict : ∀ {i} {C : StrictCategory {i}}
+                   {{T : TyTmStructure (s→w-cat C)}}
                  → StrictCwFStructure C → WildCwFStructure (s→w-cat C)
 wild-of-strict = StrictCwFStructure.W
 
@@ -246,10 +231,10 @@ record PiStructure {i}
 
     -- Substitution rules
     ̂Π-[] : ∀ {Δ Γ} {A B} {f : Sub Δ Γ}
-           → (̂Π A B) [ f ] == ̂Π (A [ f ]) (B [ f ↑ ])
+           → (̂Π A B) [ f ] == ̂Π (A [ f ]) (B [ f ↑ A ])
 
     ̂λ-[] : ∀ {Δ Γ} {A} {B : Ty (Γ ∷ A)} {b : Tm B} {f : Sub Δ Γ}
-           → (̂λ b) [ f ]ₜ == ̂λ (b [ f ↑ ]ₜ) [ Tm ↓ ̂Π-[] ]
+           → (̂λ b) [ f ]ₜ == ̂λ (b [ f ↑ A ]ₜ) [ Tm ↓ ̂Π-[] ]
 
   -- If we must talk about actually applying functions
   _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
@@ -278,7 +263,7 @@ record SigmaStructure {i}
 
   field
     ̂Σ-[] : ∀ {Δ Γ} {A B} {f : Sub Δ Γ}
-           → (̂Σ A B) [ f ] == ̂Σ (A [ f ]) (B [ f ↑ ])
+           → (̂Σ A B) [ f ] == ̂Σ (A [ f ]) (B [ f ↑ A ])
            
     ،-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
            {a : Tm A} {b : Tm (B [[ a ]])} {f : Sub Δ Γ}

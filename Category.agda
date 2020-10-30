@@ -1,12 +1,12 @@
 {-# OPTIONS --without-K #-}
 
-{- Categories in HoTT
+{--- Categories in HoTT ---
 
 This development differs from the
 [agda-categories](https://github.com/agda/agda-categories) library
 in that we don't use setoids. Instead we directly use propositional equality,
-and either truncate or impose higher coherences as needed.
--}
+and either truncate or impose higher coherences as needed. ---}
+
 module Category where
 
 open import Prelude public
