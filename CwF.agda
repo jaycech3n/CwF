@@ -74,6 +74,12 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     p    : ∀ {Γ} {σ : Ty Γ} → Sub (Γ ∷ σ) Γ
     ν    : ∀ {Γ} {σ : Ty Γ} → Tm (σ [ p ])
     _,,_ : ∀ {Γ Δ} {σ : Ty Γ} (f : Sub Δ Γ) (t : Tm (σ [ f ])) → Sub Δ (Γ ∷ σ)
+    {-
+    Perhaps we can reformulate _,,_? e.g.
+    _,,_ : ∀ {Γ Δ} {σ : Ty Γ} {σ' : Ty Δ}
+             (f : Sub Δ Γ) (p : σ' == σ [ f ]) (t : Tm σ')
+           → Sub Δ (Γ ∷ σ)
+    -}
 
     -- The universal property of comprehensions is given by the following β- and
     -- η-rules.
