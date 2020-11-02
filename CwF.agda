@@ -81,7 +81,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
          → p ⊙ (f ,, t) == f
 
     βν : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-         → ν [ f ,, t ]ₜ == tr Tm []-⊙ (tr Tm (σ [= ! βp ]) t)
+         → ν [ f ,, t ]ₜ == tr Tm []-⊙ (tr Tm (! (σ [= βp ])) t)
              
     ,,η : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
@@ -107,10 +107,30 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                      (eq : t == t')
                    → (f ,, t) == (f ,, t')
       ,,-eq-last idp = idp
+      
+      {- Uniqueness of comprehension -}
+      ,,-uniq : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
+                  (ϕ : Sub Δ (Γ ∷ σ))
+                  (pϕ : p ⊙ ϕ == f)
+                  (νϕ : ν [ ϕ ]ₜ == tr Tm []-⊙ (tr Tm (! (σ [= pϕ ])) t))
+                → ϕ == (f ,, t)
+      ,,-uniq {_} {_} {f} {σ} {t} ϕ pϕ νϕ =
+        ϕ
+        =⟨ ! idl ⟩ id ⊙ ϕ
+        =⟨ ! ,,η |in-ctx (_⊙ ϕ) ⟩ (p ,, ν) ⊙ ϕ
+        =⟨ ,,-⊙ ⟩ (p ⊙ ϕ ,, tr Tm (! []-⊙) (ν [ ϕ ]ₜ))
+        =⟨ ,,-eq-init pϕ
+         ∙ ,,-eq-last (νϕ |in-ctx (tr Tm (σ [= pϕ ]) ∘ (tr Tm (! []-⊙)))) ⟩
+        (f ,,
+         tr Tm (σ [= pϕ ])
+          (tr Tm (! []-⊙) (tr Tm []-⊙ (tr Tm (! (σ [= pϕ ])) t))))
+        =⟨ ,,-eq-last ((tr-!-tr []-⊙ |in-ctx (tr Tm (σ [= pϕ ])))
+         ∙ tr-tr-! (σ [= pϕ ])) ⟩
+        (f ,, t) =∎
 
       {- Weakening
 
-      Given `A : Ty Γ` and `f : Sub Δ Γ` we get the weakening `f ↑ A` of `f` by
+      Given A : Ty Γ and f : Sub Δ Γ we get the weakening `f ↑ A` of `f` by
       `A` that intuitively acts as `f` does, and leaves the "free variable
       `x : A`" alone. This diagram commutes:
 
@@ -127,6 +147,76 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
       ↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → p ⊙ (f ↑ A) == f ⊙ p
       ↑-comm = βp
 
+      {-
+      Given f : Sub Δ Γ, A : Ty Γ, and a : Tm A, we have the two "single-step"
+      compositions from Δ to Γ ∷ A:
+
+               (add a[f])
+            Δ -----------> Δ ∷ A[f]
+          f |                | f ↑ A
+            v                v
+            Γ -----------> Γ ∷ A
+                (add a)
+
+      where (add t) = (id ,, t [ id ]ₜ). There is also a direct substitution,
+      which is just (f ,, a [ f ]ₜ).  We show that the two compositions are both
+      equal to the direct substitution, which implies that the compositions are
+      equal.
+      -}
+      ,,-⊙-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+                  → (id ,, a [ id ]ₜ) ⊙ f == (f ,, (a [ f ]ₜ))
+      ,,-⊙-join f a =
+        (id ,, a [ id ]ₜ) ⊙ f
+        =⟨ ,,-⊙ ⟩
+        (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ))
+        =⟨ ,,-eq-last (tr!=-if-=tr (! []ₜ-⊙)) ⟩
+        (id ⊙ f ,, a [ id ⊙ f ]ₜ)
+        =⟨ ,,-eq idl ([]ₜ-eq idl) ⟩
+        (f ,, (a [ f ]ₜ))
+        =∎
+
+      p-↑-,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+               → p ⊙ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == f
+      p-↑-,, f a = ! ass
+                 ∙ (↑-comm |in-ctx (_⊙ (id ,, a [ f ]ₜ [ id ]ₜ)))
+                 ∙ ass
+                 ∙ (βp |in-ctx (f ⊙_))
+                 ∙ idr
+          
+      ν-↑-,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+               → ν [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+                 == tr Tm []-⊙ (tr Tm (! (A [= p-↑-,, f a ])) (a [ f ]ₜ))
+      ν-↑-,, {_} {_} {A} f a = red ∙ ! red'
+        where
+        red =
+          ν [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+          =⟨ =tr!-if-tr= []ₜ-⊙ ⟩
+          tr Tm (! []-⊙)
+             (ν [ _ ,, tr Tm (! []-⊙) ν ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+          =⟨ {!!} ⟩
+          a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ =∎
+        red' =
+          tr Tm []-⊙ (tr Tm (! (A [= p-↑-,, f a ])) (a [ f ]ₜ))
+          =⟨ tr!=-if-=tr (! ([]ₜ-eq (p-↑-,, f a))) |in-ctx (tr Tm []-⊙) ⟩
+          tr Tm []-⊙ (a [ p ⊙ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ)
+          =⟨ []ₜ-⊙ ⟩
+          a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ =∎
+        
+
+      ⊙-,,-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+                  → (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == (f ,, (a [ f ]ₜ))
+      ⊙-,,-join {_} {_} {A} f a =
+        (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
+        =⟨ ,,-uniq ((f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ))
+                   (p-↑-,, f a) (ν-↑-,, f a) ⟩
+        (f ,, a [ f ]ₜ)
+        =∎ 
+
+      ⊙-,,-exch : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+                   → (id ,, a [ id ]ₜ) ⊙ f == (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
+      ⊙-,,-exch f a = ,,-⊙-join f a  ∙ ! (⊙-,,-join f a)
+
+      {-
       -- Somewhat technical equalities; not sure which I'll need yet.
       -- Note that the definitions in this module are currently not used.
       module rewrites {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} where
@@ -163,6 +253,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
           =⟨ ! ([]ₜ-eq (! βp)) |in-ctx (tr Tm []-⊙) ⟩
           tr Tm []-⊙ (tr Tm (A [ f ] [= ! βp ]) (a [ f ]ₜ [ id ]ₜ))
           =∎
+      -}
 
       -- Substitution in dependent types and terms
       infix 40 _[[_]] _[[_]]ₜ
@@ -174,49 +265,6 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                 → Tm (B [[ a ]])
       b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
 
-
-      {- "Exchange"-type law for substitution extension and composition.
-         Given f : Sub Δ Γ and A : Ty Γ and a : Tm A, we have two 
-         "single-step" ways to go from Δ to Γ ∷ A:
-
-                        (add a)
-                   Δ -----------> Δ ∷ A[f]
-                 f |               | f ↑ A
-                   v               v
-                   Γ -----------> Γ ∷ A
-                       (add a)
-
-         There is one "double-step" way, which is simpl (f ,, (a [ f ]ₜ)).
-         We show that each "single-step" is equal to the "double-step",
-         which implies that the two "single-steps" are equal.
-      -}
-
-      ,,-⊙-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-                → (id ,, a [ id ]ₜ) ⊙ f == (f ,, (a [ f ]ₜ))
-      ,,-⊙-join {Γ} {Δ} {A} f a =
-        ((id ,, a [ id ]ₜ) ⊙ f)
-        =⟨ ,,-⊙  {f = f} {g = id} {t = a [ id ]ₜ} ⟩
-        (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ))
-        =⟨ {!undo the transport!} ⟩
-        (id ⊙ f ,, a [ id ⊙ f ]ₜ)
-        =⟨ {!idl!} ⟩
-        (f ,, (a [ f ]ₜ))
-        =∎
-
-      ⊙-,,-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-                  → (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == (f ,, (a [ f ]ₜ))
-      ⊙-,,-join {Γ} {Δ} {A} f a =
-        (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
-        =⟨ {!!} ⟩
-        (f ,, (a [ f ]ₜ))
-        =∎ 
-
-      ⊙-,,-exch : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-                  → (id ,, a [ id ]ₜ) ⊙ f == (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
-      ⊙-,,-exch f a = ,,-⊙-join f a  ∙ ! (⊙-,,-join f a)
-
-
-
       -- "Exchange"-type law for substitutions
       []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
                 → B [ f ↑ A ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
@@ -226,7 +274,6 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
         B [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ B [= ! (⊙-,,-exch f a) ] ⟩
         B [ (id ,, a [ id ]ₜ) ⊙ f ] =⟨ []-⊙ ⟩
         B [ id ,, a [ id ]ₜ ] [ f ] =∎
-
 
       [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
                 → B [[ a ]] [ f ] == B [ f ↑ A ] [[ a [ f ]ₜ ]]
