@@ -56,11 +56,16 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
       infix 40 _[=_]
       _[=_] : ∀ {Δ Γ} {f f' : Sub Δ Γ} (σ : Ty Γ)
               → f == f' → σ [ f ] == σ [ f' ]
-      _[=_] σ = ap (σ [_])
+      _[=_] σ = ap (σ [_]) 
 
       []ₜ-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} {t : Tm σ} (p : f == f')
                → tr Tm (σ [= p ]) (t [ f ]ₜ) == t [ f' ]ₜ
       []ₜ-eq idp = idp
+
+      []ₜ-⊙' : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
+               → tr Tm (! []-⊙) (t [ g ]ₜ [ f ]ₜ) == t [ g ⊙ f ]ₜ
+      []ₜ-⊙' {Γ} {Δ} {Ε} {f} {g} {σ} {t} =
+        tr!=-if-=tr (! ([]ₜ-⊙ {Γ} {Δ} {Ε} {f} {g} {σ} {t}))
       
   open definitions public
 
@@ -74,12 +79,6 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
     p    : ∀ {Γ} {σ : Ty Γ} → Sub (Γ ∷ σ) Γ
     ν    : ∀ {Γ} {σ : Ty Γ} → Tm (σ [ p ])
     _,,_ : ∀ {Γ Δ} {σ : Ty Γ} (f : Sub Δ Γ) (t : Tm (σ [ f ])) → Sub Δ (Γ ∷ σ)
-    {-
-    Perhaps we can reformulate _,,_? e.g.
-    _,,_ : ∀ {Γ Δ} {σ : Ty Γ} {σ' : Ty Δ}
-             (f : Sub Δ Γ) (p : σ' == σ [ f ]) (t : Tm σ')
-           → Sub Δ (Γ ∷ σ)
-    -}
 
     -- The universal property of comprehensions is given by the following β- and
     -- η-rules.
@@ -87,7 +86,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
          → p ⊙ (f ,, t) == f
 
     βν : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
-         → ν [ f ,, t ]ₜ == tr Tm []-⊙ (tr Tm (! (σ [= βp ])) t)
+         → ν [ f ,, t ]ₜ == tr Tm []-⊙ (tr Tm (σ [= ! βp ]) t)
              
     ,,η : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
@@ -97,6 +96,14 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
   private
     module definitions where
+      {- Exhanging transport and substitution -}
+      tr-,, : ∀ {Γ Δ} {σ : Ty Γ} {σ' : Ty (Γ ∷ σ)}
+                {f : Sub Δ Γ} {t : Tm (σ [ p ])} {t' : Tm (σ [ f ])}
+                (eq : σ [ p ] == σ')
+              → tr Tm eq t [ f ,, t' ]ₜ
+                == tr Tm (ap (_[ f ,, t' ]) eq) (t [ f ,, t' ]ₜ)
+      tr-,, idp = idp
+      
       {- Equality of substitutions -}
       ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
                 {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
@@ -113,14 +120,6 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                      (eq : t == t')
                    → (f ,, t) == (f ,, t')
       ,,-eq-last idp = idp
-
-      -- Exhanging transport and substitution
-      tr-,, : ∀ {Γ Δ} {σ : Ty Γ} {σ' : Ty (Γ ∷ σ)}
-                {f : Sub Δ Γ} {t : Tm (σ [ p ])} {t' : Tm (σ [ f ])}
-                (eq : σ [ p ] == σ')
-              → tr Tm eq t [ f ,, t' ]ₜ
-                == tr Tm (ap (_[ f ,, t' ]) eq) (t [ f ,, t' ]ₜ)
-      tr-,, idp = idp
       
       {- Uniqueness of comprehension -}
       ,,-uniq : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
@@ -129,17 +128,17 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                   (νϕ : ν [ ϕ ]ₜ == tr Tm []-⊙ (tr Tm (! (σ [= pϕ ])) t))
                 → ϕ == (f ,, t)
       ,,-uniq {_} {_} {f} {σ} {t} ϕ pϕ νϕ =
-        ϕ
-        =⟨ ! idl ⟩ id ⊙ ϕ
-        =⟨ ! ,,η |in-ctx (_⊙ ϕ) ⟩ (p ,, ν) ⊙ ϕ
-        =⟨ ,,-⊙ ⟩ (p ⊙ ϕ ,, tr Tm (! []-⊙) (ν [ ϕ ]ₜ))
-        =⟨ ,,-eq-init pϕ
-         ∙ ,,-eq-last (νϕ |in-ctx (tr Tm (σ [= pϕ ]) ∘ (tr Tm (! []-⊙)))) ⟩
-        (f ,,
-         tr Tm (σ [= pϕ ])
-          (tr Tm (! []-⊙) (tr Tm []-⊙ (tr Tm (! (σ [= pϕ ])) t))))
-        =⟨ ,,-eq-last ((tr-!-tr []-⊙ |in-ctx (tr Tm (σ [= pϕ ])))
-         ∙ tr-tr-! (σ [= pϕ ])) ⟩
+        ϕ            =⟨ ! idl ⟩
+        id ⊙ ϕ       =⟨ ! ,,η |in-ctx (_⊙ ϕ) ⟩
+        (p ,, ν) ⊙ ϕ =⟨ ,,-⊙ ⟩
+        (p ⊙ ϕ ,, tr Tm (! []-⊙) (ν [ ϕ ]ₜ))
+          =⟨ ,,-eq-init pϕ
+           ∙ ,,-eq-last (νϕ |in-ctx (tr Tm (σ [= pϕ ]) ∘ (tr Tm (! []-⊙)))) ⟩
+        (f ,, tr Tm (σ [= pϕ ])
+                 (tr Tm (! []-⊙) (tr Tm []-⊙ (tr Tm (! (σ [= pϕ ])) t))))
+          =⟨ ,,-eq-last
+               ( (tr-!-tr []-⊙ |in-ctx (tr Tm (σ [= pϕ ])))
+               ∙ tr-tr-! (σ [= pϕ ])) ⟩
         (f ,, t) =∎
 
       {- Weakening
@@ -176,19 +175,22 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
       which is just (f ,, a [ f ]ₜ).  We show that the two compositions are both
       equal to the direct substitution, which implies that the compositions are
       equal.
+
+      The first is easy:
       -}
       ,,-⊙-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
                   → (id ,, a [ id ]ₜ) ⊙ f == (f ,, (a [ f ]ₜ))
       ,,-⊙-join f a =
         (id ,, a [ id ]ₜ) ⊙ f
-        =⟨ ,,-⊙ ⟩
+          =⟨ ,,-⊙ ⟩
         (id ⊙ f ,, tr Tm (! []-⊙) (a [ id ]ₜ [ f ]ₜ))
-        =⟨ ,,-eq-last (tr!=-if-=tr (! []ₜ-⊙)) ⟩
+          =⟨ ,,-eq-last (tr!=-if-=tr (! []ₜ-⊙)) ⟩
         (id ⊙ f ,, a [ id ⊙ f ]ₜ)
-        =⟨ ,,-eq idl ([]ₜ-eq idl) ⟩
-        (f ,, (a [ f ]ₜ))
-        =∎
+          =⟨ ,,-eq idl ([]ₜ-eq idl) ⟩
+        (f ,, (a [ f ]ₜ)) =∎
 
+      -- The second is a bit more work. We use the universal property `,,-uniq`,
+      -- and have to prove a somewhat lengthy reduction.
       p-↑-,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
                → p ⊙ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == f
       p-↑-,, f a = ! ass
@@ -196,52 +198,75 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                  ∙ ass
                  ∙ (βp |in-ctx (f ⊙_))
                  ∙ idr
-          
+
+      private
+        module _ {Δ Γ : Con} {A : Ty Γ} {f : Sub Δ Γ} {a : Tm A} where
+          ν-red : ν [ f ⊙ p ,, tr Tm (! []-⊙) ν ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+                  == a [ p ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+          ν-red =
+            ν [ f ⊙ p ,, tr Tm (! []-⊙) ν ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+              =⟨ βν ∙ ! (tr-∙ (A [= ! βp ]) []-⊙ (tr Tm (! []-⊙) ν))
+               |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ⟩
+            tr Tm ((A [= ! βp ]) ∙ []-⊙) (tr Tm (! []-⊙) ν)
+             [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+              =⟨ ! (tr-∙ (! []-⊙) ((A [= ! βp ]) ∙ []-⊙) ν)
+               |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ) ⟩
+            tr Tm (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙) ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+              =⟨ tr-,, (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙) ⟩
+            tr Tm
+               (ap _[ id ,, a [ f ]ₜ [ id ]ₜ ] (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙))
+               (ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+              =⟨ βν
+               |in-ctx (tr Tm (ap _[ id ,, a [ f ]ₜ [ id ]ₜ ] _)) ⟩
+            tr Tm
+               (ap _[ id ,, a [ f ]ₜ [ id ]ₜ ] (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙))
+               (tr Tm []-⊙ (tr Tm ((A [ f ]) [= ! βp ]) (a [ f ]ₜ [ id ]ₜ)))
+              =⟨ ( []ₜ-eq (! βp)
+                 |in-ctx ((tr Tm (ap _[ id ,, a [ f ]ₜ [ id ]ₜ ]
+                            (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙))) ∘
+                          (tr Tm []-⊙)))
+               ∙ ( []ₜ-⊙
+                 |in-ctx (tr Tm (ap _[ id ,, a [ f ]ₜ [ id ]ₜ ]
+                             (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙)))) ⟩
+            tr Tm
+               (ap _[ id ,, a [ f ]ₜ [ id ]ₜ ] (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙))
+               (a [ f ]ₜ [ p ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+              =⟨ ! (tr-,, (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙)) ⟩
+            tr Tm (! []-⊙ ∙ (A [= ! βp ]) ∙ []-⊙) (a [ f ]ₜ [ p ]ₜ)
+             [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+              =⟨ tr-∙ (! []-⊙) ((A [= ! βp ]) ∙ []-⊙) (a [ f ]ₜ [ p ]ₜ)
+               ∙ tr-∙ (A [= ! βp ]) []-⊙ _
+               ∙ ([]ₜ-⊙' |in-ctx (tr Tm []-⊙) ∘ (tr Tm (A [= ! βp ])))
+               ∙ ( []ₜ-eq (! βp) |in-ctx (tr Tm []-⊙))
+               ∙ []ₜ-⊙
+               |in-ctx _[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ ⟩
+            a [ p ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ =∎
+
+          red : ν [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+                == a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+          red =
+            ν [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+              =⟨ =tr!-if-tr= []ₜ-⊙ ⟩
+            tr Tm (! []-⊙)
+             (ν [ _ ,, tr Tm (! []-⊙) ν ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+              =⟨ ν-red |in-ctx (tr Tm (! []-⊙)) ⟩
+            tr Tm (! []-⊙) (a [ p ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+              =⟨ tr!=-if-=tr (! []ₜ-⊙) ⟩
+            a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ =∎
+
+          red' : tr Tm []-⊙ (tr Tm (! (A [= p-↑-,, f a ])) (a [ f ]ₜ))
+                 == a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+          red' =
+            tr Tm []-⊙ (tr Tm (! (A [= p-↑-,, f a ])) (a [ f ]ₜ))
+              =⟨ tr!=-if-=tr (! ([]ₜ-eq (p-↑-,, f a))) |in-ctx (tr Tm []-⊙) ⟩
+            tr Tm []-⊙ (a [ p ⊙ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ)
+              =⟨ []ₜ-⊙ ⟩
+            a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ =∎
+
       ν-↑-,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
                → ν [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
                  == tr Tm []-⊙ (tr Tm (! (A [= p-↑-,, f a ])) (a [ f ]ₜ))
-      ν-↑-,, {_} {_} {A} f a = rew ∙ ! rew'
-        where
-        rew =
-          ν [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
-          =⟨ =tr!-if-tr= []ₜ-⊙ ⟩
-          tr Tm (! []-⊙)
-             (ν [ _ ,, tr Tm (! []-⊙) ν ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-          =⟨ βν
-           |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-           |in-ctx (tr Tm (! []-⊙)) ⟩
-          tr Tm (! []-⊙)
-            ((tr Tm []-⊙ (tr Tm (! (A [= βp ])) (tr Tm (! []-⊙) ν)))
-              [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-          =⟨ ! (tr-∙ (! (A [= βp ])) []-⊙ (tr Tm (! []-⊙) ν))
-           |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-           |in-ctx (tr Tm (! []-⊙))⟩
-          tr Tm (! []-⊙)
-            ((tr Tm (! (A [= βp ]) ∙ []-⊙) (tr Tm (! []-⊙) ν))
-              [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-          =⟨ ! (tr-∙ (! []-⊙) (! (A [= βp ]) ∙ []-⊙) ν)
-           |in-ctx (_[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-           |in-ctx (tr Tm (! []-⊙)) ⟩
-          tr Tm (! []-⊙)
-            ((tr Tm (! []-⊙ ∙ ! (A [= βp ]) ∙ []-⊙) ν)
-              [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-          =⟨ tr-,, (! []-⊙ ∙ ! (A [= βp ]) ∙ []-⊙)
-           |in-ctx (tr Tm (! []-⊙)) ⟩
-          tr Tm (! []-⊙)
-           (tr Tm
-               (ap _[ id ,, a [ f ]ₜ [ id ]ₜ ] (! []-⊙ ∙ ! (A [= βp ]) ∙ []-⊙))
-               (ν [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ))
-          =⟨ {!!} ⟩
-          tr Tm (! []-⊙) (a [ p ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
-          =⟨ {!tr!=-if-=tr (! []ₜ-⊙)!} ⟩
-          a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ =∎
-        rew' =
-          tr Tm []-⊙ (tr Tm (! (A [= p-↑-,, f a ])) (a [ f ]ₜ))
-          =⟨ tr!=-if-=tr (! ([]ₜ-eq (p-↑-,, f a))) |in-ctx (tr Tm []-⊙) ⟩
-          tr Tm []-⊙ (a [ p ⊙ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ)
-          =⟨ []ₜ-⊙ ⟩
-          a [ p ]ₜ [ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ =∎
-        
+      ν-↑-,, {_} {_} {A} f a = red ∙ ! red'
 
       ⊙-,,-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
                   → (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == (f ,, (a [ f ]ₜ))
@@ -249,53 +274,13 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
         (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
         =⟨ ,,-uniq ((f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ))
                    (p-↑-,, f a) (ν-↑-,, f a) ⟩
-        (f ,, a [ f ]ₜ)
-        =∎ 
+        (f ,, a [ f ]ₜ) =∎
 
       ⊙-,,-exch : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
                    → (id ,, a [ id ]ₜ) ⊙ f == (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ)
       ⊙-,,-exch f a = ,,-⊙-join f a  ∙ ! (⊙-,,-join f a)
 
-      {-
-      -- Somewhat technical equalities; not sure which I'll need yet.
-      -- Note that the definitions in this module are currently not used.
-      module rewrites {Δ Γ} {f : Sub Δ Γ} {A : Ty Γ} where
-        ν[↑] : ν [ f ↑ A ]ₜ
-               == tr Tm []-⊙ (tr Tm (A [= ! βp ]) (tr Tm (! []-⊙) ν))
-        ν[↑] = βν
-
-        ↑-eq : {t : Tm (A [ f ] [ id ])}
-             → (f ↑ A)
-               == (p ⊙ (f ↑ A) ,, tr Tm (A [= ! βp ]) (tr Tm (! []-⊙) ν))
-        ↑-eq {t} = ,,-eq-init (! ↑-comm)
-
-        ↑-subst-eq : {t : Tm (A [ f ] [ id ])}
-                   → (f ↑ A) ⊙ (id ,, t)
-                     == (  f
-                        ,, tr Tm (A [= ass ∙ ap (f ⊙_) βp ∙ idr ])
-                            (tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
-                        )
-        ↑-subst-eq {t} =
-          (f ⊙ p ,, tr Tm (! []-⊙) ν) ⊙ (id ,, t)
-          =⟨ ,,-⊙ ⟩
-          ((f ⊙ p) ⊙ (id ,, t) ,, tr Tm (! []-⊙) (tr Tm (! []-⊙) ν [ id ,, t ]ₜ))
-          =⟨ ,,-eq-init (ass ∙ ap (f ⊙_) βp ∙ idr) ⟩
-          _
-          =∎
-
-        calc1 : {a : Tm A} →
-          a [ f ]ₜ [ p ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
-          == tr Tm []-⊙ (tr Tm (A [ f ] [= ! βp ]) (a [ f ]ₜ [ id ]ₜ))
-        calc1 {a} =
-          a [ f ]ₜ [ p ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
-          =⟨ ! []ₜ-⊙ ⟩
-          tr Tm []-⊙ (a [ f ]ₜ [ p ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ)
-          =⟨ ! ([]ₜ-eq (! βp)) |in-ctx (tr Tm []-⊙) ⟩
-          tr Tm []-⊙ (tr Tm (A [ f ] [= ! βp ]) (a [ f ]ₜ [ id ]ₜ))
-          =∎
-      -}
-
-      -- Substitution in dependent types and terms
+      {- Substitution in dependent types and terms -}
       infix 40 _[[_]] _[[_]]ₜ
 
       _[[_]] : ∀ {Γ} {A : Ty Γ} (B : Ty (Γ ∷ A)) (a : Tm A) → Ty Γ
