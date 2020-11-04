@@ -3,8 +3,9 @@
 module Prelude where
 
 open import HoTT renaming
-  ( lsucc to lsuc
-  ; transport to tr ) public
+  ( lsucc     to lsuc
+  ; transport to tr
+  ; transp-∙  to tr-∙ ) public
 
 {- Equality reasoning -}
 module _ {i j : ULevel} {A : Type i} {B : A → Type j} {x y : A} where

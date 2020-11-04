@@ -83,6 +83,9 @@ wild-of-cat = wild-of-pre ∘ pre-of-cat
 {- Properties of objects -}
 module _ {i} {{C : WildCategory {i}}} where
   open WildCategory C
+
+  is-initial : (x : Ob) → Type i
+  is-initial x = (y : Ob) → is-contr (Hom x y)
   
   is-terminal : (x : Ob) → Type i
   is-terminal x = (y : Ob) → is-contr (Hom y x)
