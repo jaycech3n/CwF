@@ -8,7 +8,7 @@ Theory", 1996) and others.
 To make equational reasoning and simplification easier we tend to follow the
 following rules of thumb:
 
-  1. Use explicit transports instead of the `PathOver` construct.
+  1. Use explicit transports instead of the PathOver construct.
   2. Use repeated transports along paths, as opposed to transporting along a
      single concatenated path.
 
@@ -25,8 +25,7 @@ open import Category renaming
 record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open WildCategory C renaming
     ( Ob to Con
-    ; Hom to Sub
-    ) public
+    ; Hom to Sub ) public
   
   field
     ◆ : Con
@@ -143,9 +142,9 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
       {- Weakening
 
-      Given A : Ty Γ and f : Sub Δ Γ we get the weakening `f ↑ A` of `f` by
-      `A` that intuitively acts as `f` does, and leaves the "free variable
-      `x : A`" alone. This diagram commutes:
+      Given A : Ty Γ and f : Sub Δ Γ we get the weakening (f ↑ A) of f by A that
+      intuitively acts as f does, and leaves the "free variable x : A" alone.
+      This diagram commutes:
 
                           f ↑ A
                  Δ ∷ A[f] -----> Γ ∷ A
@@ -189,7 +188,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
           =⟨ ,,-eq idl ([]ₜ-eq idl) ⟩
         (f ,, (a [ f ]ₜ)) =∎
 
-      -- The second is a bit more work. We use the universal property `,,-uniq`,
+      -- The second is a bit more work. We use the universal property ,,-uniq,
       -- and have to prove a somewhat lengthy reduction.
       p-↑-,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
                → p ⊙ (f ↑ A) ⊙ (id ,, a [ f ]ₜ [ id ]ₜ) == f
