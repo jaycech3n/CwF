@@ -331,6 +331,7 @@ record PiStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
   open WildCwFStructure cwF public
+  
   field
     ̂Π   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
     ̂λ   : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) → Tm (̂Π A B)
@@ -379,3 +380,21 @@ record SigmaStructure {i}
            {a : Tm A} {b : Tm (B [[ a ]])} {f : Sub Δ Γ}
          → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، tr Tm [[]]-[] (b [ f ]ₜ))
              [ Tm ↓ ̂Σ-[] ]
+
+record UStructure {i}
+  {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
+  where
+  open WildCwFStructure cwF public
+  
+  field
+    U   : ∀ {Γ} → Ty Γ
+    `_` : ∀ {Γ} → Ty Γ → Tm {Γ} U -- reflect
+    el  : ∀ {Γ} → Tm {Γ} U → Ty Γ -- reify
+
+    βU : ∀ {Γ} {σ : Ty Γ} → el ` σ ` == σ
+    ηU : ∀ {Γ} {T : Tm {Γ} U} → ` el T ` == T
+
+  field
+    U-[]  : ∀ {Γ Δ} {f : Sub Δ Γ} → U [ f ] == U
+    el-[] : ∀ {Γ Δ} {f : Sub Δ Γ} {T : Tm {Γ} U}
+          → (el T) [ f ] == el (tr Tm U-[] (T [ f ]ₜ))

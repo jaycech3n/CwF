@@ -42,11 +42,3 @@ tr-ap-∙ : {B : Type j} {f : A → B} {C : B → Type k}
           {x y z : A} (p : x == y) (q : y == z) (c : C (f x))
         → tr C (ap f (p ∙ q)) c == tr C (ap f q) (tr C (ap f p) c)
 tr-ap-∙ idp idp c = idp
-
-{- PathOver-transport interaction -}
-PathOver-tr : {B : A → Type j} {x y z : A}
-              {p : x == y} {q : y == z}
-              {b' : B z} (b : B x)
-            → b == b' [ B ↓ p ∙ q ]
-            → tr B p b == b' [ B ↓ q ]
-PathOver-tr {p = idp} {q = idp} _ idp = idp
