@@ -330,7 +330,7 @@ Type Theory is Morally Correct* (Kaposi, Kovács, Kraus '18).
 record PiStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
-  open WildCwFStructure cwF public
+  open WildCwFStructure cwF
   
   field
     ̂Π   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
@@ -347,15 +347,23 @@ record PiStructure {i}
     ̂λ-[] : ∀ {Δ Γ} {A} {B : Ty (Γ ∷ A)} {b : Tm B} {f : Sub Δ Γ}
          → (̂λ b) [ f ]ₜ == ̂λ (b [ f ↑ A ]ₜ) [ Tm ↓ ̂Π-[] ]
 
-  -- If we must talk about actually applying functions
-  _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
-      → Tm (B [[ a ]])
-  f ` a = (app f) [[ a ]]ₜ
+  private
+    module definitions where
+      infixr 20 _̂→_
+      _̂→_ : ∀ {Γ} (A B : Ty Γ) → Ty Γ
+      A ̂→ B = ̂Π A (B [ p ])
+
+      -- If we must talk about actually applying functions
+      _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
+          → Tm (B [[ a ]])
+      f ` a = (app f) [[ a ]]ₜ
+      
+  open definitions public
 
 record SigmaStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
-  open WildCwFStructure cwF public
+  open WildCwFStructure cwF
   field
     ̂Σ   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
     _،_ : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} (a : Tm A) (b : Tm (B [[ a ]]))
@@ -381,10 +389,18 @@ record SigmaStructure {i}
          → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، tr Tm [[]]-[] (b [ f ]ₜ))
              [ Tm ↓ ̂Σ-[] ]
 
+  private
+    module definitions where
+      infixl 20 _̂×_
+      _̂×_ : ∀ {Γ} (A B : Ty Γ) → Ty Γ
+      A ̂× B = ̂Σ A (B [ p ])
+
+  open definitions public
+
 record UStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
-  open WildCwFStructure cwF public
+  open WildCwFStructure cwF
   
   field
     U   : ∀ {Γ} → Ty Γ
