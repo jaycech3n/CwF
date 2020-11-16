@@ -17,17 +17,17 @@ open import Prelude public
 coherent.
 -}
 record WildCategory {i} : Type (lsuc i) where
-  infixr 40 _⊙_
+  infixr 40 _◦_
   field
     Ob  : Type i
     Hom : Ob → Ob → Type i
-    _⊙_ : ∀ {x y z} → Hom y z → Hom x y → Hom x z
+    _◦_ : ∀ {x y z} → Hom y z → Hom x y → Hom x z
     id  : ∀ {x} → Hom x x
 
     ass : ∀ {x y z w} {f : Hom z w} {g : Hom y z} {h : Hom x y}
-        → (f ⊙ g) ⊙ h == f ⊙ (g ⊙ h)
-    idl : ∀ {x y} {f : Hom x y} → id ⊙ f == f
-    idr : ∀ {x y} {f : Hom x y} → f ⊙ id == f
+        → (f ◦ g) ◦ h == f ◦ (g ◦ h)
+    idl : ∀ {x y} {f : Hom x y} → id ◦ f == f
+    idr : ∀ {x y} {f : Hom x y} → f ◦ id == f
 
 record PreCategory {i} : Type (lsuc i) where
   field {{C}} : WildCategory {i}
@@ -48,8 +48,8 @@ module _ {i} {{C : WildCategory {i}}} where
   record is-iso  {x y : Ob} (f : Hom x y) : Type i where
     field
       g : Hom y x
-      g-f : g ⊙ f == id
-      f-g : f ⊙ g == id
+      g-f : g ◦ f == id
+      f-g : f ◦ g == id
 
   infix 30 _≅_
   record _≅_ (x y : Ob) : Type i where
