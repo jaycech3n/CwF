@@ -2,12 +2,14 @@
 
 module Prelude where
 
-open import HoTT renaming
+open import HoTT
+  renaming
   ( lsucc     to lsuc
   ; transport to tr
   ; transp-∙  to tr-∙
   ; to-transp to to-tr
-  ; from-transp to from-tr ) public
+  ; from-transp to from-tr )
+  public
 
 private
   variable
@@ -42,3 +44,18 @@ tr-ap-∙ : {B : Type j} {f : A → B} {C : B → Type k}
           {x y z : A} (p : x == y) (q : y == z) (c : C (f x))
         → tr C (ap f (p ∙ q)) c == tr C (ap f q) (tr C (ap f p) c)
 tr-ap-∙ idp idp c = idp
+
+{- Automatic coercions -}
+record Coerceable {i j} (A : Type i) (B : Type j) : Type (lmax i j) where
+  field
+    coerce : A → B
+
+open Coerceable {{...}} public
+
+_↗ : ∀ {i j} {A B} {{coerceable : Coerceable {i} {j} A B}} → A → B
+t ↗  = coerce t
+
+{- Finite sets -}
+instance
+  Fin-coercion : ∀ {n} → Coerceable (Fin n) ℕ
+  coerce {{Fin-coercion}} = fst

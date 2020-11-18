@@ -401,7 +401,11 @@ record UStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
   open WildCwFStructure cwF
-  
+
+  -- I've parametrized U over contexts instead of fixing it in ◆ and using
+  -- explicit substitutions; I think this should be okay?
+  -- (Note: Nicolai says this might be more complicated for the non-set-
+  -- truncated version of things)
   field
     U   : ∀ {Γ} → Ty Γ
     `_` : ∀ {Γ} → Ty Γ → Tm {Γ} U -- reflect
@@ -414,3 +418,11 @@ record UStructure {i}
     U-[]  : ∀ {Γ Δ} {f : Sub Δ Γ} → U [ f ] == U
     el-[] : ∀ {Γ Δ} {f : Sub Δ Γ} {T : Tm {Γ} U}
           → (el T) [ f ] == el (tr Tm U-[] (T [ f ]ₜ))
+
+  private
+    module definitions where
+      instance
+        U-coercion : ∀ {Γ Δ} {f : Sub Δ Γ} → Coerceable (Tm (U [ f ])) (Tm U)
+        coerce {{U-coercion}} = tr Tm U-[]
+
+  open definitions public
