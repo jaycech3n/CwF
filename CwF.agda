@@ -72,6 +72,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   field {{T}} : TyTmStructure C
   open TyTmStructure T public
   
+  infixl 20 _∷_
   infixl 30 _,,_
   field
     _∷_  : (Γ : Con) (σ : Ty Γ) → Con
@@ -402,10 +403,6 @@ record UStructure {i}
   where
   open WildCwFStructure cwF
 
-  -- I've parametrized U over contexts instead of fixing it in ◆ and using
-  -- explicit substitutions; I think this should be okay?
-  -- (Note: Nicolai says this might be more complicated for the non-set-
-  -- truncated version of things)
   field
     U   : ∀ {Γ} → Ty Γ
     `_` : ∀ {Γ} → Ty Γ → Tm {Γ} U -- reflect
