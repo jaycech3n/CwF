@@ -177,8 +177,9 @@ SST : ℕ → Con
 Sk : ((b,h,t) : Sieve) → (n : ℕ) → (n ≥ h+1) → Ty (SST n)
 
 They are to be understood as:
-SST n is the context (A₀ : U, A₁ : ..., ..., Aₙ₋₁ : ...)
-Sk 2 (3,2,0) is example (3) above.
+SST n is the context (A₀ : U, A₁ : ..., ..., Aₙ₋₁ : ...).
+Sk (3,2,0) 3 is example (3) above. It is equivalent to
+Sk (3,1,3) 3.
 
 -}
 
