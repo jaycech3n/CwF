@@ -26,18 +26,18 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open WildCategory C renaming
     ( Ob to Con
     ; Hom to Sub ) public
-  
+
   field
     ◆ : Con
     ◆-is-terminal : is-terminal {{C}} ◆
-  
+
   infixl 40 _[_] _[_]ₜ
   field
     Ty    : Con → Type i
     _[_]  : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
-    
+
     []-id : ∀ {Γ} {σ : Ty Γ} → σ [ id ] == σ
-          
+
     []-◦ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ : Ty Ε}
          → σ [ g ◦ f ] == σ [ g ] [ f ]
 
@@ -60,18 +60,18 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
       []ₜ-eq : ∀ {Δ Γ} {f f' : Sub Δ Γ} {σ : Ty Γ} {t : Tm σ} (p : f == f')
              → tr Tm (σ [= p ]) (t [ f ]ₜ) == t [ f' ]ₜ
       []ₜ-eq idp = idp
-      
+
       []ₜ-◦' : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {σ} {t : Tm σ}
              → tr Tm (! []-◦) (t [ g ]ₜ [ f ]ₜ) == t [ g ◦ f ]ₜ
       []ₜ-◦' {Γ} {Δ} {Ε} {f} {g} {σ} {t} =
         tr!=-if-=tr (! ([]ₜ-◦ {Γ} {Δ} {Ε} {f} {g} {σ} {t}))
-      
+
   open definitions public
 
 record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   field {{T}} : TyTmStructure C
   open TyTmStructure T public
-  
+
   infixl 20 _∷_
   infixl 30 _,,_
   field
@@ -87,7 +87,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
     βν : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
        → ν [ f ,, t ]ₜ == tr Tm []-◦ (tr Tm (σ [= ! βp ]) t)
-             
+
     ,,η : ∀ {Γ} {σ : Ty Γ} → (p {Γ} {σ} ,, ν {Γ} {σ}) == id
 
     ,,-◦ : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε}
@@ -103,7 +103,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
             → tr Tm eq t [ f ,, t' ]ₜ
               == tr Tm (ap _[ f ,, t' ] eq) (t [ f ,, t' ]ₜ)
       tr-,, idp = idp
-      
+
       {- Equality of substitutions -}
       ,,-eq : ∀ {Γ Δ} {σ : Ty Γ}
                 {f f' : Sub Δ Γ} {t : Tm (σ [ f ])} {t' : Tm (σ [ f' ])}
@@ -120,7 +120,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                      (eq : t == t')
                  → (f ,, t) == (f ,, t')
       ,,-eq-last idp = idp
-      
+
       {- Uniqueness of comprehension -}
       ,,-uniq : ∀ {Δ Γ} {f : Sub Δ Γ} {σ : Ty Γ} {t : Tm (σ [ f ])}
                   (ϕ : Sub Δ (Γ ∷ σ))
@@ -237,7 +237,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
                ∙ []ₜ-◦
                |in-ctx _[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ ⟩
             a [ p ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ =∎
-            
+
           calc : ν [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
                  == a [ p ]ₜ [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
           calc =
@@ -304,7 +304,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
   field {{W}} : WildCwFStructure (s→w-cat C)
-  
+
   open WildCwFStructure W hiding (T) public
   open StrictCategory C using () renaming
     ( Ob-is-set  to Con-is-set
@@ -332,7 +332,7 @@ record PiStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
   open WildCwFStructure cwF
-  
+
   field
     ̂Π   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
     ̂λ   : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} (b : Tm B) → Tm (̂Π A B)
@@ -358,7 +358,7 @@ record PiStructure {i}
       _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
           → Tm (B [[ a ]])
       f ` a = (app f) [[ a ]]ₜ
-      
+
   open definitions public
 
 record SigmaStructure {i}
@@ -369,22 +369,22 @@ record SigmaStructure {i}
     ̂Σ   : ∀ {Γ} (A : Ty Γ) (B : Ty (Γ ∷ A)) → Ty Γ
     _،_ : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} (a : Tm A) (b : Tm (B [[ a ]]))
         → Tm (̂Σ A B)
-    π1 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} → Tm (̂Σ A B) → Tm A    
+    π1 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} → Tm (̂Σ A B) → Tm A
     π2 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} (p : Tm (̂Σ A B)) → Tm (B [[ π1 p ]])
 
   field
     ،-π1 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {a : Tm A} {b : Tm (B [[ a ]])}
          → π1 (a ، b) == a
-           
+
     ،-π2 : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {a : Tm A} {b : Tm (B [[ a ]])}
          → π2 (a ، b) == b [ Tm ∘ (B [[_]]) ↓ ،-π1 ]
-           
+
     ̂Σ-η : ∀ {Γ} {A} {B : Ty (Γ ∷ A)} {p : Tm (̂Σ A B)} → (π1 p ، π2 p) == p
 
   field
     ̂Σ-[] : ∀ {Δ Γ} {A B} {f : Sub Δ Γ}
          → (̂Σ A B) [ f ] == ̂Σ (A [ f ]) (B [ f ↑ A ])
-           
+
     ،-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
            {a : Tm A} {b : Tm (B [[ a ]])} {f : Sub Δ Γ}
          → (a ، b) [ f ]ₜ == (a [ f ]ₜ ، tr Tm [[]]-[] (b [ f ]ₜ))
@@ -398,6 +398,8 @@ record SigmaStructure {i}
 
   open definitions public
 
+-- The following is the beginning of plausible universe models, but on its own
+-- U is just a base type indexing types in contexts Γ.
 record UStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
@@ -405,11 +407,13 @@ record UStructure {i}
 
   field
     U   : ∀ {Γ} → Ty Γ
-    `_` : ∀ {Γ} → Ty Γ → Tm {Γ} U -- reflect
     el  : ∀ {Γ} → Tm {Γ} U → Ty Γ -- reify
 
+    {- The following effectively introduce "type in type". We don't use it.
+    `_` : ∀ {Γ} → Ty Γ → Tm {Γ} U -- reflect
     βU : ∀ {Γ} {σ : Ty Γ} → el ` σ ` == σ
     ηU : ∀ {Γ} {T : Tm {Γ} U} → ` el T ` == T
+    -}
 
   field
     U-[]  : ∀ {Γ Δ} {f : Sub Δ Γ} → U [ f ] == U
