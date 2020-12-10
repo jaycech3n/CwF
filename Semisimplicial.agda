@@ -16,4 +16,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   open UStructure uStr
 
   SST : ℕ → Con
+  Sk  : {!!}
+
   SST = {!!}
+  Sk  = {!!}
