@@ -28,18 +28,19 @@ Recall that (A₀, A₁, A₂) encodes a (strict) contravariant
 functor from an initial segment of the category Δ₊ to the
 category of types. Let's write A for this functor
   A : Δ₊ → U.
-From this point of view, the full triangle (1) encodes a
-natural transformation
+From this point of view, the full triangle (1) encodes the
+type of natural transformations
   Δ² → A,
 where Δ² is the obvious representable functor a.k.a.
-Yoneda[2] a.k.a. the 2-simplex.  The functor Λ²₁ is a
-subfunctor of Δ². Intuitively, it is the simplex Δ² with the
+Yoneda[2] a.k.a. the 2-simplex. The functor Λ²₁ is a
+subfunctor of Δ²: intuitively, it is the simplex Δ² with the
 filler and one face removed.
-The example (2) above encodes a natural transformation
+The example (2) above encodes the type of natural
+transformations
   Λ²₁ → A.
 ∂Δ² is the subfunctor of Δ² with only the filler removed. We
 call it the "2-simplex boundary". The unfilled triangle (3)
-encodes a functor
+encodes the type of natural transformations
   ∂Δ² → A.
 Regarding example (4), Δ¹ is also a subfunctor of Δ², but
 not in a unique way - a triangle has three edges.
@@ -53,13 +54,13 @@ exactly that a component can only be present if all its
 faces are.
 
 Thinking of Δ², Λ²₁, and ∂Δ² as sieves also makes it easy to
-describe the canonical injections that we have between
-them. The sequence of injections
+describe the canonical injections that we have between them.
+The sequence of injections
   Λ²₁ ↪ ∂Δ² ↪ Δ²
 adds one component (morphism) to the sieve in each of the
 two steps.
 
-The sieves of Δ₊ describe "raw shapes" of subsimplices.  We
+The sieves of Δ₊ describe "raw shapes" of subsimplices. We
 can develop some theory of these sieves without talking
 about semisimplicial types.
 
@@ -129,7 +130,7 @@ The cases are:
       (b',h',t') = (b,h,binom b h+1) ∩ f
     in
       if t' == binom b' h'+1 then (b',h'+1,0) else (b',h',t')
-      -- note that thesubsieves (b,h+1,0) and
+      -- note that the subsieves (b,h+1,0) and
       (b,h,binom b h+1) are the same. Probably we don't need
       to distinguish cases here, we can just return
       (b,h,binom b h+1) ∩ f  directly.
@@ -154,7 +155,7 @@ convert them. Maybe we can abstract a bit by using a
 quotient.
 
 In any case, we need to check carefully whether that
-algortihm calculates the intersection. We don't need to
+algorithm calculates the intersection. We don't need to
 formalise this proof; but if it's not true, then the later
 development won't work.
 
@@ -171,7 +172,7 @@ Note: (h+1,h,0) represents the sieve ∂Δʰ.
 ## How to use this
 
 The intended usage of sieves (not in this file) is as
-follows.  Given a CwF, we construct simultaneously:
+follows. Given a CwF, we construct simultaneously:
 
 SST : ℕ → Con
 Sk : ((b,h,t) : Sieve) → (n : ℕ) → (n ≥ h+1) → Ty (SST n)
