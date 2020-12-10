@@ -29,18 +29,19 @@ Recall that (A₀, A₁, A₂) encodes a (strict) contravariant
 functor from an initial segment of the category Δ₊ to the
 category of types. Let's write A for this functor
   A : Δ₊ → U.
-From this point of view, the full triangle (1) encodes a
-natural transformation
+From this point of view, the full triangle (1) encodes the
+type of natural transformations
   Δ² → A,
 where Δ² is the obvious representable functor a.k.a.
 yoneda[2] a.k.a. the 2-simplex.
 The functor Λ²₁ is a subfunctor of Δ²: Intuitively, it
 is the simplex Δ² with the filler and one face removed.
-The example (2) above encodes a natural transformation
+The example (2) above encodes the type of natural 
+transformations
   Λ²₁ → A.
 ∂Δ² is the subfunctor of Δ² with only the filler
 removed. We call it the "2-simplex boundary". The unfilled
-triangle (3) encodes a functor
+triangle (3) encodes the type of functors
   ∂Δ² → A.
 Regarding example (4), Δ¹ is also a subfunctor of Δ², but 
 not in a unique way - a triangle has three edges.
