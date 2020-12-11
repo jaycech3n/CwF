@@ -4,7 +4,7 @@
 
 module Semisimplicial where
 
-open import CwF
+open import CwF Sieves
 
 module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   (piStr : PiStructure cwF) (sigmaStr : SigmaStructure cwF)
