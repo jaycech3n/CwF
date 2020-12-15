@@ -1,11 +1,12 @@
-{-
-# Sieves in Δ₊
+{-# OPTIONS --without-K #-}
+
+{--- Sieves in Δ₊ ---
 
 The development of shapes is completely independent of
 CwF's. It provides a combinatorial setting that enables us
 to later define boundaries and subsimplices.
 
-## Idea
+# Idea
 
 Assume a semisimplicial type (A₀, A₁, A₂) is given. Some
 examples of "triangle complexes" that we can consider are:
@@ -64,14 +65,14 @@ The sieves of Δ₊ describe "raw shapes" of subsimplices. We
 can develop some theory of these sieves without talking
 about semisimplicial types.
 
-## Main challenge
+# Main challenge
 
 Sieves are naturally structured in a non-linear way, but we
 eventually want to use them to describe the shapes of nested
 Σ-types (see examples 1-4), which are linear. Thus, we need
 to "linearise" the sieves in some form.
 
-## Preliminaries
+# Preliminaries
 
 For natural numbers k,m, let
   φ : Fin (binom m k) → (Fin k →⁺ Fin m)
@@ -80,12 +81,12 @@ by →⁺) and their cardinality; this gives a linear order.
 From now on, we write `Fin k` for the object [k-1] of Δ₊. We
 only consider k ≥ 1.
 
-## The sieves of interest
+# The sieves of interest
 
 The sieves that we are interested in can be described as
 triples
   (b,h,t)
-of natural numbers, where h ≤ b and t ≤ binom b (h+1). The
+of natural numbers, where h ≤ b and t ≤ binom b h. The
 triple (b,h,t) is to be interpreted as follows:
 
 b (for "base") is the number of points (0-cells).
@@ -96,14 +97,14 @@ h (for "height") describes how many levels of the sieve are
   complete. For 1 ≤ i ≤ h, every morphism (Fin i) →⁺ (Fin h)
   is in the sieve (b,h,t).
 t (for "top", although there could be a better name)
-  describes how many of the morphisms (Fin h+1) →⁺ (Fin b)
-  are in the sieve. That's why 0 ≤ t ≤ binom b (h+1), since
+  describes how many of the morphisms (Fin h) →⁺ (Fin b)
+  are in the sieve. That's why 0 ≤ t ≤ binom b h, since
   the binominal coefficient describes the number of
   morphisms (Fin h) →⁺ (Fin b). The bijection φ (see
   Preliminaries above) tells us which t morphisms are in the
   sieve, namely φ(0), ..., φ(t-1).
 
-## Calculations on sieves
+# Calculations on sieves
 
 We need to be able to calculate a subsieve of a given sieve.
 Again, we only need special subsieves of the special sieves
@@ -159,7 +160,7 @@ algorithm calculates the intersection. We don't need to
 formalise this proof; but if it's not true, then the later
 development won't work.
 
-## Properties
+# Properties
 
 We need the following:
 
@@ -169,7 +170,7 @@ such that t ≤ φ⁻¹(f), we have
 
 Note: (h+1,h,0) represents the sieve ∂Δʰ.
 
-## How to use this
+# How to use this
 
 The intended usage of sieves (not in this file) is as
 follows. Given a CwF, we construct simultaneously:
@@ -182,6 +183,28 @@ SST n is the context (A₀ : U, A₁ : ..., ..., Aₙ₋₁ : ...).
 Sk (3,2,0) 3 is example (3) above. It is equivalent to
 Sk (3,1,3) 3.
 
--}
+---}
 
 module Sieves where
+
+open import Prelude
+
+record Sieve (n : ℕ) : Type₀ where
+  {- Sieves on [n] ∈ Δ₊
+    [0] ⇉ [1] ⇶ [2] ...
+
+  Fields:
+    h < n                 ─ All arrows into [h] are present.
+    t ≤ binom (n+1) (h+1) ─ No. of arrows (ordered lexicographically) on the
+                             top level [h] → [n].
+
+  Note 0 ≤ h, so we're actually encoding *nonempty* sieves ([0] and its identity
+  arrow are always included).
+
+  In the notation of the introductory comments at the start of this file,
+  b, h = n+1, h+1.
+  -}
+  constructor _,_
+  field
+    h : Fin n
+    t : Fin (S (S n ch S (h ↗)))

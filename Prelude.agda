@@ -178,4 +178,4 @@ FinSeq+ : (l n : ℕ) → List (Vec ℕ l)
 FinSeq+ l 0 = nil
 FinSeq+ l (S n) = ℕSeq+ l 0 n
 
---example = {! FinSeq+ 5 10 !}
+-- example = {!FinSeq+ 5 12!}
