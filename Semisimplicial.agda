@@ -32,11 +32,24 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   SST   : ℕ → Con
   X     : (n : ℕ) → Ty (SST n)
   A     : (n : ℕ) → Tm (X n)
+
+  {- Nicolai: adding this TERMINATING pragma has allowed me 
+     to fill what was hole #0. This is of course not a good solution,
+     we need to convince the termination checker honestly and remove
+     this pragma. For that, it's probably enough to curry the function
+     `shape`.
+     When one wants to define
+       f : ℕ → ℕ → whatever
+       g : ℕ × ℕ → whatever
+     by recursion on both ℕ's, then Agda has a much harder time to
+     see that g terminates than f.
+  -}
+  {-# TERMINATING #-}
   shape : (n : ℕ) → Sieve n → Ty (SST₋ n)
   Sk    : (n : ℕ) → Ty (SST₋ n)
 
   SST₋ O = ◆
-  SST₋ 1 = ◆ ∷ U
+  SST₋ (S O) = ◆ ∷ U
   SST₋ (S (S n)) = SST₋ (S n) ∷ (Sk (S n) ̂→ U)
 
   SST n = SST₋ (S n)
@@ -49,8 +62,8 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
 
   shape O ()
   shape 1 ((O , _) , (O , _))
-    = {!tr Tm U-[] (A O)
-      -- !!! Strange error blocks acceptance; normalization issue?!}
+    = el (tr Tm (U-[] {f = p}) (A O)) -- former hole ?0
+      -- !!! Strange error blocks acceptance; normalization issue?
   shape 1 ((O , 0<1) , (S t , St<2))
     = shape 1 ((O , 0<1) , (t , <-dec-l St<2)) ̂× {!!}
       -- !!! Termination checking fails, I think because of how Sieve is
