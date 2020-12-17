@@ -194,9 +194,9 @@ record Sieve (n : ℕ) : Type₀ where
     [0] ⇉ [1] ⇶ [2] ...
 
   Fields:
-    h < n                 ─ All arrows into [h] are present.
-    t ≤ binom (n+1) (h+1) ─ No. of arrows (ordered lexicographically) on the
-                             top level [h] → [n].
+    0 ≤ h < n                 ─ All arrows into [h] are present.
+    0 ≤ t < binom (n+1) (h+1) ─ Index of largest arrow (in lexicographic order)
+                                on the top level [h] → [n].
 
   Note 0 ≤ h, so we're actually encoding *nonempty* sieves ([0] and its identity
   arrow are always included).
@@ -207,4 +207,4 @@ record Sieve (n : ℕ) : Type₀ where
   constructor _,_
   field
     h : Fin n
-    t : Fin (S (S n ch S (h ↗)))
+    t : Fin (S n ch S (h ↗))

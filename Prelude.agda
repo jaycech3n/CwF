@@ -100,6 +100,11 @@ module _ {A : Type i} {B : Type i} where
   0 + n =⟨ q |in-ctx (0 +_) ⟩
   0 =∎
 
+{- Inequalities -}
+
+<-dec-l : {m n : ℕ} → S m < n → m < n
+<-dec-l = <-cancel-S ∘ ltSR
+
 {- Combinations -}
 
 instance

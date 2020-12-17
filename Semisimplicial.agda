@@ -21,11 +21,12 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
     SST n   ─ The context (A₀ : U, A₁ : A₀ × A₀ → U, ..., Aₙ : ... → U).
     A n     ─ Aₙ as above.
     X n     ─ The type of Aₙ.
-    shape n ─ Partial subskeletons of Δⁿ, indexed by sieves on [n]. Used to
-              define Sk n.
+    shape n ─ Partial subskeletons of Δⁿ as Σ-types indexed by sieves on [n].
+              Used to define Sk n.
     Sk n    ─ (n-1)-skeleton of Δⁿ.
 
   SST₋ is an intermediate construct to more conveniently type shape and Sk.
+  By definition, SST₋ n = SST (n-1) for n ≥ 1.
   -}
   SST₋  : ℕ → Con
   SST   : ℕ → Con
@@ -34,24 +35,29 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   shape : (n : ℕ) → Sieve n → Ty (SST₋ n)
   Sk    : (n : ℕ) → Ty (SST₋ n)
 
-  SST₋ 0 = ◆
+  SST₋ O = ◆
   SST₋ 1 = ◆ ∷ U
-  SST₋ (S n) = SST₋ n ∷ (Sk n ̂→ U)
+  SST₋ (S (S n)) = SST₋ (S n) ∷ (Sk (S n) ̂→ U)
 
   SST n = SST₋ (S n)
 
-  X 0 = U [ p ]
+  X O = U [ p ]
   X (S n) = (Sk (S n) ̂→ U) [ p ]
 
-  A 0 = ν
+  A O = ν
   A (S n) = ν
 
-  -- NOTE I think the indexing is a bit wonky, possibly also in Sieves.agda.
-  -- Fix this.
-  shape 0 ()
-  shape 1 ((0 , _) , (0 , _)) = {!!}
-  shape 1 ((0 , _) , (S t , _)) = {!!}
-  shape 1 ((S fst₁ , snd₁) , t) = {!!}
-  shape (S (S n)) x = {!!}
+  shape O ()
+  shape 1 ((O , _) , (O , _))
+    = {!tr Tm U-[] (A O)
+      -- !!! Strange error blocks acceptance; normalization issue?!}
+  shape 1 ((O , 0<1) , (S t , St<2))
+    = shape 1 ((O , 0<1) , (t , <-dec-l St<2)) ̂× {!!}
+      -- !!! Termination checking fails, I think because of how Sieve is
+      -- formulated?
+  shape 1 ((S h , _) , t)
+    = {!!}
+  shape (S (S n)) x
+    = {!!}
 
   Sk n = shape n {!correct maximum sieve index!}
