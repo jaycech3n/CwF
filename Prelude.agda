@@ -105,6 +105,11 @@ module _ {A : Type i} {B : Type i} where
 <-dec-l : {m n : ℕ} → S m < n → m < n
 <-dec-l = <-cancel-S ∘ ltSR
 
+-- Autosolve
+instance
+  solve-O<S : {n : ℕ} → O < S n
+  solve-O<S {n} = O<S n
+
 {- Combinations -}
 
 instance
