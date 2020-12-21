@@ -396,10 +396,15 @@ record SigmaStructure {i}
       _̂×_ : ∀ {Γ} (A B : Ty Γ) → Ty Γ
       A ̂× B = ̂Σ A (B [ p ])
 
+      -- n-fold nonempty product
+      _ˣ_ : ∀ {Γ} (A : Ty Γ) (n : ℕ) {{p : O < n}} → Ty Γ
+      A ˣ S O = A
+      A ˣ S (S n) = (A ˣ (S n)) ̂× A
+
   open definitions public
 
 -- The following is the beginning of plausible universe models, but on its own
--- U is just a base type indexing types in contexts Γ.
+-- U just introduces types in contexts Γ.
 record UStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where

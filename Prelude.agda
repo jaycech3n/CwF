@@ -105,6 +105,10 @@ module _ {A : Type i} {B : Type i} where
 <-dec-l : {m n : ℕ} → S m < n → m < n
 <-dec-l = <-cancel-S ∘ ltSR
 
+S<S-dec-r : (m n : ℕ) → S m < S n → S m ≤ n
+S<S-dec-r m .(S m) ltS = inl idp
+S<S-dec-r m n (ltSR x) = inr x
+
 -- Autosolve
 instance
   solve-O<S : {n : ℕ} → O < S n
