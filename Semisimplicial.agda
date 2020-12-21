@@ -22,7 +22,8 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
     A n     ─ Aₙ as above.
     X n     ─ The type of Aₙ.
     shape n ─ Partial subskeletons of Δⁿ as Σ-types indexed by sieves on [n].
-              Used to define Sk n.
+              Used to define Sk n. Its type as written below is isomorphic to
+              (n : ℕ) → Sieve n → Ty (SST₋ n).
     Sk n    ─ (n-1)-skeleton of Δⁿ.
 
   SST₋ is an intermediate construct to more conveniently type shape and Sk.
@@ -33,7 +34,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   X     : (n : ℕ) → Ty (SST n)
   A     : (n : ℕ) → Tm (X n)
   shape : (n h t : ℕ) → h < n → t < S n ch S h → Ty (SST₋ n)
-  Sk    : (n : ℕ) → Ty (SST₋ n)
+  Sk    : (n : ℕ) → {{0 < n}} → Ty (SST₋ n)
 
   SST₋ O = ◆
   SST₋ (S O) = ◆ ∷ U
@@ -48,11 +49,12 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   A (S n) = ν
 
   shape O _ _ ()
-  shape 1 0 0 _ _ = el (A O ↗)
-  shape 1 O (S t) p q = shape 1 O t p (<-dec-l q) ̂× el (A O ↗)
-  shape 1 (S h) t _ _
-    = {!!}
-  shape (S (S n)) h t _ _
-    = {!!}
+  shape 1 (S h) t (ltSR ())
+  shape 1 0 0 = λ _ _ →  el (A O ↗)
+  shape 1 O (S t) = λ p q → shape 1 O t p (<-dec-l q) ̂× el (A O ↗)
+  shape (S (S n)) O t = λ p q → {!shape (S n) 0 !}
+  shape (S (S n)) (S h) t _ _ = {!!}
 
-  Sk n = shape n {!h!} {!t!} {!!} {!!}
+  Sk (S n) = shape (S n) n (S n)
+                   ltS
+                   (tr (S n <_) (! (Sn-ch-n (S n))) (<-ap-S ltS))
