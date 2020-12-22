@@ -44,11 +44,11 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   X (S m) (S n) {inl Sm==Sn} = (Sk (S n) n ltS ̂→ U) [ p ]
   X (S m) (S n) {inr Sm<Sn} = X (S m) n {S<S-dec-r m n Sm<Sn} [ p ]
 
-  A O O = ν :> Tm (X O O {inl idp})
+  A O O = ν :> Tm (X O O {lteE})
   A O (S n) = A O n [ p ]ₜ
   A (S m) (S n) {inl Sm==Sn} = ν :> Tm (X (S m) (S n) {inl Sm==Sn})
   A (S m) (S n) {inr Sm<Sn} = A (S m) n {S<S-dec-r m n Sm<Sn} [ p ]ₜ
 
-  Sk (S O) O _ = {!!}
-  Sk (S (S n)) O _ = {!!}
+  Sk (S O) O _ = el (A O O {lteE} ↗) ̂× el (A O O {lteE} ↗)
+  Sk (S (S n)) O _ = (Sk (S n) O (O<S n)) [ p ] ̂× {!el (A O (S n))!}
   Sk n (S k) = {!!}
