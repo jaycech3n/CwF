@@ -44,7 +44,7 @@ record StrictCategory {i} : Type (lsuc i) where
 -- We need the notion of isomorphism in order to define (univalent) categories.
 module _ {i} {{C : WildCategory {i}}} where
   open WildCategory C
-  
+
   record is-iso  {x y : Ob} (f : Hom x y) : Type i where
     field
       g : Hom y x
@@ -86,6 +86,6 @@ module _ {i} {{C : WildCategory {i}}} where
 
   is-initial : (x : Ob) → Type i
   is-initial x = (y : Ob) → is-contr (Hom x y)
-  
+
   is-terminal : (x : Ob) → Type i
   is-terminal x = (y : Ob) → is-contr (Hom y x)

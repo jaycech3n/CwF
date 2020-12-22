@@ -300,6 +300,22 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
               → B [[ a ]] [ f ] == B [ f ↑ A ] [[ a [ f ]ₜ ]]
       [[]]-[] = ! []-[[]]
 
+      {- Contexts with explicit extension index
+
+      Experimental! Con+ Γ n is the type of contexts that can be formed by
+      extending Γ n times.
+      -}
+      data Con+ : Con → ℕ → Type i
+      to-Con : {Γ : Con} {n : ℕ} → Con+ Γ n → Con
+
+      infixl 20 _∷+_
+      data Con+ where
+        ◆+   : (Γ : Con) → Con+ Γ O
+        _∷+_ : ∀ {Γ} {n} (Γ+ : Con+ Γ n) (σ : Ty (to-Con Γ+)) → Con+ Γ (S n)
+
+      to-Con (◆+ Γ) = Γ
+      to-Con (Γ+ ∷+ σ) = to-Con Γ+ ∷ σ
+
   open definitions public
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
@@ -403,8 +419,8 @@ record SigmaStructure {i}
 
   open definitions public
 
--- The following is the beginning of plausible universe models, but on its own
--- U just introduces types in contexts Γ.
+-- "Universe" of types. This is not exactly the universe internalizing all
+-- types in Γ; rather, a base type family.
 record UStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
@@ -430,5 +446,26 @@ record UStructure {i}
       instance
         U-coercion : ∀ {Γ Δ} {f : Sub Δ Γ} → Coerceable (Tm (U [ f ])) (Tm U)
         coerce {{U-coercion}} = tr Tm U-[]
+
+      {- Lifted universes
+
+      Experimental! Working with universes substituted along projections.
+      -}
+      U^ : ∀ {Γ} (n : ℕ) (Γ+ : Con+ Γ n) → Ty (to-Con Γ+)
+        -- Note to self: can potentially make Γ+ an implicit tactic argument
+        -- by solving `to-Con Γ+ = <return type>`.
+      U^ O _ = U
+      U^ (S n) (Γ+ ∷+ σ) = U^ n Γ+ [ p ]
+
+      U^==U : ∀ {Γ} {n : ℕ} {Γ+ : Con+ Γ n} → U^ n Γ+ == U {to-Con Γ+}
+      U^==U {n = O} = idp
+      U^==U {n = S n} {Γ+ ∷+ σ} =
+        U^ n Γ+ [ p ] =⟨ U^==U {n = n} {Γ+} |in-ctx _[ p ] ⟩
+        U [ p ] =⟨ U-[] ⟩
+        U =∎
+
+      -- TODO: The point of the above definitions is to generalize e.g.:
+      example : Tm (U {◆} [ p ] [ p ]) → Tm U
+      example A = tr Tm U-[] ((tr (Tm ∘ _[ p {_ ∷ U} {σ = U} ]) U-[] A))
 
   open definitions public

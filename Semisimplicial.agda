@@ -50,5 +50,5 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   A (S m) (S n) {inr Sm<Sn} = A (S m) n {S<S-dec-r m n Sm<Sn} [ p ]ₜ
 
   Sk (S O) O _ = el (A O O {lteE} ↗) ̂× el (A O O {lteE} ↗)
-  Sk (S (S n)) O _ = (Sk (S n) O (O<S n)) [ p ] ̂× {!el (A O (S n))!}
+  Sk (S (S n)) O _ = (Sk (S n) O (O<S n)) [ p ] ̂× {!morally, another `el (A O)`!}
   Sk n (S k) = {!!}
