@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --overlapping-instances #-}
 
 {--- Semisimplicial types in internal CwFs ---}
 
@@ -29,34 +29,40 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   -}
   SST₋  : ℕ → Con
   SST   : ℕ → Con
-  X     : (m n : ℕ) → {m ≤ n} → Ty (SST n)
+  X     : (m n : ℕ) → {m ≤ n} → Ty (SST₋ (S n))
   A     : (m n : ℕ) {h : m ≤ n} → Tm (X m n {h})
-  Sk    : (n k : ℕ) → {{O < n}} → k < n → Ty (SST₋ n)
+  Sk    : (k n : ℕ) → ⦃ O < n ⦄ → k < n → Ty (SST₋ n)
 
   SST₋ O = ◆
   SST₋ (S O) = ◆ ∷ U
-  SST₋ (S (S n)) = SST₋ (S n) ∷ (Sk (S n) n ltS ̂→ U)
+  SST₋ (S (S n)) = SST₋ (S n) ∷ (Sk n (S n) ltS ̂→ U)
 
   SST n = SST₋ (S n)
 
   X O O = U [ p ]
   X O (S n) = X O n {O≤ n} [ p ]
-  X (S m) (S n) {inl Sm==Sn} = (Sk (S n) n ltS ̂→ U) [ p ]
+  X (S m) (S n) {inl Sm==Sn} = (Sk n (S n) ltS ̂→ U) [ p ]
   X (S m) (S n) {inr Sm<Sn} = X (S m) n {S<S-dec-r m n Sm<Sn} [ p ]
 
-  -- {-# TERMINATING #-}
-  XO=U : {n : ℕ} → X O n {O≤ n} == U
+  XO=U : {n : ℕ} → X O n {O≤ n} == U {SST₋ (S n)}
+  XO=U {O} = U-[]
+  XO=U {S n} =
+    -- Superfluous path inverse to look for the source of termination check
+    -- failure.
+    ! {{!!}} {{!!}} {U {SST₋ (S (S n))}} {X O n {_} [ p ]} {!!}
+  {-
   XO=U {O} = U-[]
   XO=U {S n} = X O n [ p ] =⟨ XO=U {n} |in-ctx _[ p ] ⟩
                U [ p ] =⟨ U-[] ⟩
                U =∎
+  -}
 
   A O O = ν :> Tm (X O O {lteE})
   A O (S n) = A O n [ p ]ₜ
   A (S m) (S n) {inl Sm==Sn} = ν :> Tm (X (S m) (S n) {inl Sm==Sn})
   A (S m) (S n) {inr Sm<Sn} = A (S m) n {S<S-dec-r m n Sm<Sn} [ p ]ₜ
 
-  Sk (S O) O _ = el (A O O {lteE} ↗) ̂× el (A O O {lteE} ↗)
-  Sk (S (S n)) O _ = (Sk (S n) O (O<S n)) [ p ]
+  Sk O (S O) _ = el (A O O {lteE} ↗) ̂× el (A O O {lteE} ↗)
+  Sk O (S (S n)) _ = (Sk O (S n) (O<S n)) [ p ]
                      ̂× el (tr Tm (XO=U {S n}) (A O (S n) {O≤ (S n)}))
-  Sk n (S k) = {!!}
+  Sk (S k) (S n) ⦃ h ⦄ Sk<Sn = ̂Σ (Sk k (S n) ⦃ h ⦄ (<-dec-l Sk<Sn)) {!!}
