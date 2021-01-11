@@ -28,7 +28,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   -}
 
   shape : (n h t : ℕ) ⦃ nz : O < n ⦄ ⦃ hz : O < h ⦄ ⦃ le : h ≤ n ⦄ → Ty (SST₋ n)
-  ∂face : (n h t : ℕ) → {!!}
+  coord : (n h t : ℕ) ⦃ nz : O < n ⦄ ⦃ hz : O < h ⦄ ⦃ le : h ≤ n ⦄ → {!!}
 
   SST₋ O = ◆
   SST₋ (S n) = SST n

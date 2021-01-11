@@ -9,10 +9,10 @@ module Prelude where
 
 open import HoTT
   renaming
-  ( lsucc     to lsuc
-  ; transport to tr
-  ; transp-∙  to tr-∙
-  ; to-transp to to-tr
+  ( lsucc       to lsuc
+  ; transport   to tr
+  ; transp-∙    to tr-∙
+  ; to-transp   to to-tr
   ; from-transp to from-tr )
   public
 
@@ -188,7 +188,22 @@ range O (S n) = snoc (range O n) (S n)
 range (S m) O = nil
 range (S m) (S n) = map S (range m n)
 
-{- Vectors -}
+{- ℕ-sequences -}
+
+Seq : Type₀
+Seq = List ℕ
+
+-- Increasing sequences of length l in {m,...,n} in lexicographic order
+Seq+ : (l m n : ℕ) → List Seq
+Seq+ O _ _ = nil :: nil
+Seq+ (S l) m n = flatten (map (λ k → map (k ::_) (Seq+ l (S k) n)) (range m n))
+
+-- Strict subsequence relation
+data _⊂_ : Seq → Seq → Type₁ where
+  head : ∀ {n} {ns} {ns'} → ns ⊂ ns' → n :: ns ⊂ n :: ns'
+  skip : ∀ {n} {ns} {ns'} → (ns == ns') ⊔ (ns ⊂ ns') → ns ⊂ n :: ns'
+
+{- Old formulation using vectors
 
 infixr 60 _::_
 data Vec (A : Type i) : ℕ → Type (lsuc i) where
@@ -200,16 +215,10 @@ module _ {A : Type i} {B : Type i} where
   vmap _ ⟦⟧ = ⟦⟧
   vmap f (a :: as) = f a :: vmap f as
 
-{- ℕ-sequences -}
+Seq' : ℕ → Type₁
+Seq' = Vec ℕ
 
-Seq : ℕ → Type₁
-Seq = Vec ℕ
-
--- Increasing sequences of length l in {m,...,n}, in lexicographic order (slow!)
-Seq+ : (l m n : ℕ) → List (Seq l)
-Seq+ O _ _ = ⟦⟧ :: nil
-Seq+ (S l) m n = flatten (map (λ k → map (k ::_) (Seq+ l (S k) n)) (range m n))
-
--- example = {!Seq+ 3 5 12!}
-
--- Bijection between binom (n+1) (k+1) and sequences
+Seq'+ : (l m n : ℕ) → List (Seq' l)
+Seq'+ O _ _ = ⟦⟧ :: nil
+Seq'+ (S l) m n = flatten (map (λ k → map (k ::_) (Seq'+ l (S k) n)) (range m n))
+-}
