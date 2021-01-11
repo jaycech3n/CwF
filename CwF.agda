@@ -29,7 +29,7 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
   field
     ◆ : Con
-    ◆-is-terminal : is-terminal {{C}} ◆
+    ◆-is-terminal : is-terminal ⦃ C ⦄ ◆
 
   infixl 40 _[_] _[_]ₜ
   field
@@ -69,7 +69,7 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open definitions public
 
 record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
-  field {{T}} : TyTmStructure C
+  field ⦃ T ⦄ : TyTmStructure C
   open TyTmStructure T public
 
   infixl 20 _∷_
@@ -319,7 +319,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open definitions public
 
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
-  field {{W}} : WildCwFStructure (s→w-cat C)
+  field ⦃ W ⦄ : WildCwFStructure (s→w-cat C)
 
   open WildCwFStructure W hiding (T) public
   open StrictCategory C using () renaming
@@ -334,7 +334,7 @@ record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
 
 {- Coercion -}
 wild-of-strict : ∀ {i} {C : StrictCategory {i}}
-                   {{T : TyTmStructure (s→w-cat C)}}
+                   ⦃ T : TyTmStructure (s→w-cat C) ⦄
                → StrictCwFStructure C
                → WildCwFStructure (s→w-cat C)
 wild-of-strict = StrictCwFStructure.W
@@ -413,7 +413,7 @@ record SigmaStructure {i}
       A ̂× B = ̂Σ A (B [ p ])
 
       -- n-fold nonempty product
-      _ˣ_ : ∀ {Γ} (A : Ty Γ) (n : ℕ) {{p : O < n}} → Ty Γ
+      _ˣ_ : ∀ {Γ} (A : Ty Γ) (n : ℕ) ⦃ nz : O < n ⦄ → Ty Γ
       A ˣ S O = A
       A ˣ S (S n) = (A ˣ (S n)) ̂× A
 
@@ -445,7 +445,7 @@ record UStructure {i}
     module definitions where
       instance
         U-coercion : ∀ {Γ Δ} {f : Sub Δ Γ} → Coerceable (Tm (U [ f ])) (Tm U)
-        coerce {{U-coercion}} = tr Tm U-[]
+        coerce ⦃ U-coercion ⦄ = tr Tm U-[]
 
       {- Lifted universes
 

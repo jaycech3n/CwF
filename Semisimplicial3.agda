@@ -1,8 +1,8 @@
 {-# OPTIONS --without-K #-}
 
-{--- Semisimplicial types in internal CwFs---}
+{--- Semisimplicial types in internal CwFs, Take 3 ---}
 
-module Semisimplicial where
+module Semisimplicial3 where
 
 open import CwF
 open import Sieves
@@ -16,25 +16,32 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   open SigmaStructure sigmaStr
   open UStructure uStr
 
-  SST    : ℕ → Con
-  SST₋   : ℕ → Con
-  X      : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Ty (SST n)
-  A      : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Tm (X i n)
-  sk     : (k n : ℕ) ⦃ nz : O < n ⦄ ⦃ lt : k < n ⦄ → Ty (SST₋ n)
-  coords : (k n : ℕ) ⦃ nz : O < n ⦄ ⦃ lt : k < n ⦄ → List {!!}
+  SST   : ℕ → Con
+  SST₋  : ℕ → Con
+  X     : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Ty (SST n)
+  A     : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Tm (X i n)
+
+  {- Sieves indexed by n, h, t:
+     n -- 0 < n; sieves into [n] aka shapes in Δⁿ
+     h -- 1 ≤ h ≤ n; all arrows [i] → [n] for 0 ≤ i < h are present
+     t -- number of arrows [h] → [n] (0 ≤ t ≤ binom (n+1) (h+1))
+  -}
+
+  shape : (n h t : ℕ) ⦃ nz : O < n ⦄ ⦃ hz : O < h ⦄ ⦃ le : h ≤ n ⦄ → Ty (SST₋ n)
+  ∂face : (n h t : ℕ) → {!!}
 
   SST₋ O = ◆
   SST₋ (S n) = SST n
 
   SST O = ◆ ∷ U
-  SST (S n) = SST n ∷ (sk n (S n) ̂→ U)
+  SST (S n) = SST n ∷ (shape (S n) (S n) O ⦃ le = lteE ⦄ ̂→ U)
 
   X O O = U [ p ]
   X O (S n) = X O n [ p ]
   -- For i < n:
   X (S i) (S n) ⦃ inr x ⦄ = X (S i) n ⦃ S<S-dec-r x ⦄ [ p ]
   -- For i = n:
-  X (S i) (S n) ⦃ inl _ ⦄ = (sk n (S n) ̂→ U)[ p ]
+  X (S i) (S n) ⦃ inl _ ⦄ = (shape (S n) (S n) O ̂→ U)[ p ]
 
   XO=U : (n : ℕ) → X O n == U
   XO=U O     = U-[]
@@ -57,5 +64,8 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   A (S i) (S n) ⦃ inr x ⦄ = A (S i) n ⦃ S<S-dec-r x ⦄ [ p ]ₜ
   A (S i) (S n) ⦃ inl _ ⦄ = ν
 
-  sk k n = {!!}
-  coords k n = {!!}
+  shape (S n) (S O) O = el (coerce ⦃ XO-coercion {n} ⦄ (A O n)) ˣ S (S n)
+  shape (S n) (S O) (S t) = {!!}
+  shape (S n) (S (S h)) t = {!!}
+
+  ∂face = {!!}

@@ -34,9 +34,9 @@ record Coerceable {i j} (A : Type i) (B : Type j) : Type (lmax i j) where
   field
     coerce : A → B
 
-open Coerceable {{...}} public
+open Coerceable ⦃ ... ⦄ public
 
-_↗ : ∀ {i j} {A B} {{coerceable : Coerceable {i} {j} A B}} → A → B
+_↗ : ∀ {i j} {A B} ⦃ coerceable : Coerceable {i} {j} A B ⦄ → A → B
 t ↗  = coerce t
 
 {- Rewriting transports -}
@@ -69,75 +69,78 @@ tr-ap-∙ : {B : Type j} {f : A → B} {C : B → Type k}
         → tr C (ap f (p ∙ q)) c == tr C (ap f q) (tr C (ap f p) c)
 tr-ap-∙ idp idp c = idp
 
-{- Lists and vectors -}
-
-flatten : {A : Type i} → List (List A) → List A
-flatten nil = nil
-flatten (x :: xs) = x ++ flatten xs
-
-infixr 60 _::_
-data Vec (A : Type i) : ℕ → Type (lsuc i) where
-  ⟦⟧   : Vec A O
-  _::_ : {n : ℕ} → A → Vec A n → Vec A (S n)
-
-module _ {A : Type i} {B : Type i} where
-  vmap : ∀ {n} (f : A → B) → Vec A n → Vec B n
-  vmap _ ⟦⟧ = ⟦⟧
-  vmap f (a :: as) = f a :: vmap f as
-
 {- Natural numbers -}
 
-ℕ-+=O  : {m n : ℕ} → m + n == 0 → m == 0
+ℕ-+=O  : {m n : ℕ} → m + n == O → m == O
 ℕ-+=O {m = O} _ = idp
 
-ℕ-+=O' : {m n : ℕ} → m + n == 0 → n == 0
+ℕ-+=O' : {m n : ℕ} → m + n == O → n == O
 ℕ-+=O' {m = O} p = p
 ℕ-+=O' {m = S m} {n} p = ex-falso (ℕ-S≠O (m + n) p)
 
-ℕ-O+O : {m n : ℕ} → m == 0 → n == 0 → m + n == 0
+ℕ-O+O : {m n : ℕ} → m == O → n == O → m + n == O
 ℕ-O+O {m} {n} p q =
   m + n =⟨ p |in-ctx (_+ n) ⟩
-  0 + n =⟨ q |in-ctx (0 +_) ⟩
-  0 =∎
-
-{- Inequalities -}
+  O + n =⟨ q |in-ctx (O +_) ⟩
+  O =∎
 
 <-dec-l : {m n : ℕ} → S m < n → m < n
 <-dec-l = <-cancel-S ∘ ltSR
 
-S<S-dec-r : (m n : ℕ) → S m < S n → S m ≤ n
-S<S-dec-r m .(S m) ltS = inl idp
-S<S-dec-r m n (ltSR x) = inr x
+S<S-dec-r : {m n : ℕ} → S m < S n → S m ≤ n
+S<S-dec-r ltS = inl idp
+S<S-dec-r (ltSR x) = inr x
 
--- Autosolve
+-- Quick and dirty hack for solving inequality conditions in Semisimplicial.agda
 instance
   solve-O<S : {n : ℕ} → O < S n
   solve-O<S {n} = O<S n
+
+instance
+  solve-S<S : {m n : ℕ} {h : m < n} → S m < S n
+  solve-S<S {h = m<n} = <-ap-S m<n
+
+instance
+  solve-n<S : {n : ℕ} → n < S n
+  solve-n<S = ltS
+
+instance
+  solve-O≤ : {n : ℕ} → O ≤ n
+  solve-O≤ {n} = O≤ n
+
+instance
+  solve-S≤S : {m n : ℕ} {h : m ≤ n} → S m ≤ S n
+  solve-S≤S {h = m≤n} = ≤-ap-S m≤n
+
+-- Subtraction
+diff : (m n : ℕ) ⦃ lt : m < n ⦄ → ℕ
+diff O n = n
+diff (S m) (S n) ⦃ lt ⦄ = diff m n ⦃ <-cancel-S lt ⦄
 
 {- Combinations -}
 
 instance
   Fin-coercion : ∀ {n} → Coerceable (Fin n) ℕ
-  coerce {{Fin-coercion}} = fst
+  coerce ⦃ Fin-coercion ⦄ = fst
 
 infix 50 _ch_
 _ch_ : (n k : ℕ) → ℕ
-0 ch 0 = 1
-0 ch (S k) = 0
-(S n) ch 0 = 1
+O ch O = 1
+O ch (S k) = O
+(S n) ch O = 1
 (S n) ch (S k) = (n ch k) + (n ch S k)
 
-n-ch-0 : (n : ℕ) → n ch 0 == 1
-n-ch-0 O = idp
-n-ch-0 (S n) = idp
+n-ch-O : (n : ℕ) → n ch O == 1
+n-ch-O O = idp
+n-ch-O (S n) = idp
 
 n-ch-1 : (n : ℕ) → n ch 1 == n
 n-ch-1 O = idp
-n-ch-1 (S n) = ap (_+ (n ch 1)) (n-ch-0 n) ∙ ap S (n-ch-1 n)
+n-ch-1 (S n) = ap (_+ (n ch 1)) (n-ch-O n) ∙ ap S (n-ch-1 n)
 
 instance
   Fin-ch-1-coercion : ∀ {n} → Coerceable (Fin (n ch 1)) (Fin n)
-  coerce {{Fin-ch-1-coercion {n}}} = tr Fin (n-ch-1 n)
+  coerce ⦃ Fin-ch-1-coercion {n} ⦄ = tr Fin (n-ch-1 n)
 
 abstract
   ch=O-rec : {k : ℕ} (n : ℕ) → n ch k == O → n ch S k == O
@@ -155,7 +158,7 @@ n-ch-n : (n : ℕ) → n ch n == 1
 n-ch-n O = idp
 n-ch-n (S n) =
   (n ch n) + (n ch S n) =⟨ n-ch-Sn n |in-ctx ((n ch n) +_) ⟩
-  (n ch n) + 0 =⟨ +-comm _ 0 ∙ n-ch-n n ⟩
+  (n ch n) + O =⟨ +-comm _ O ∙ n-ch-n n ⟩
   1 =∎
 
 Sn-ch-n : (n : ℕ) → S n ch n == S n
@@ -166,30 +169,47 @@ Sn-ch-n (S n) =
      ∙ ap (λ ◻ → S n + (◻ + (n ch S n))) (n-ch-n n)
      ∙ ap (λ ◻ → S n + (1 + ◻)) (n-ch-Sn n)
      ⟩
-  S n + (1 + 0) =⟨ +-comm (S n) (1 + 0) ⟩
+  S n + (1 + O) =⟨ +-comm (S n) (1 + O) ⟩
   S (S n) =∎
 
 n-<-Sn-ch-n : (n : ℕ) → n < (S n) ch n
 n-<-Sn-ch-n n = tr (n <_) (! (Sn-ch-n n)) ltS
 
-{- Ranges over ℕ -}
+{- Lists -}
 
+flatten : {A : Type i} → List (List A) → List A
+flatten nil = nil
+flatten (x :: xs) = x ++ flatten xs
+
+-- Ranges over ℕ
 range : (m n : ℕ) → List ℕ
-range O O = 0 :: nil
-range O (S n) = snoc (range 0 n) (S n)
+range O O = O :: nil
+range O (S n) = snoc (range O n) (S n)
 range (S m) O = nil
 range (S m) (S n) = map S (range m n)
 
-{- Strictly increasing sequences of naturals -}
+{- Vectors -}
 
--- Slow!
-ℕSeq+ : (l m n : ℕ) → List (Vec ℕ l)
-ℕSeq+ 0 _ _ = ⟦⟧ :: nil
-ℕSeq+ (S l) m n = flatten (map (λ k → map (k ::_) (ℕSeq+ l (S k) n)) (range m n))
+infixr 60 _::_
+data Vec (A : Type i) : ℕ → Type (lsuc i) where
+  ⟦⟧   : Vec A O
+  _::_ : {n : ℕ} → A → Vec A n → Vec A (S n)
 
--- Increasing sequences of length l in {0, ..., n - 1}
-FinSeq+ : (l n : ℕ) → List (Vec ℕ l)
-FinSeq+ l 0 = nil
-FinSeq+ l (S n) = ℕSeq+ l 0 n
+module _ {A : Type i} {B : Type i} where
+  vmap : ∀ {n} (f : A → B) → Vec A n → Vec B n
+  vmap _ ⟦⟧ = ⟦⟧
+  vmap f (a :: as) = f a :: vmap f as
 
--- example = {!FinSeq+ 5 12!}
+{- ℕ-sequences -}
+
+Seq : ℕ → Type₁
+Seq = Vec ℕ
+
+-- Increasing sequences of length l in {m,...,n}, in lexicographic order (slow!)
+Seq+ : (l m n : ℕ) → List (Seq l)
+Seq+ O _ _ = ⟦⟧ :: nil
+Seq+ (S l) m n = flatten (map (λ k → map (k ::_) (Seq+ l (S k) n)) (range m n))
+
+-- example = {!Seq+ 3 5 12!}
+
+-- Bijection between binom (n+1) (k+1) and sequences
