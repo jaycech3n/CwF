@@ -1,0 +1,49 @@
+\documentclass[notitlepage]{scrartcl}
+
+\usepackage[parfill]{parskip}
+\usepackage{unicode-math}
+\usepackage{fontspec}
+\setmonofont[Scale=0.8]{DejaVu Sans Mono}
+
+\newcommand{\code}{\texttt}
+
+\newcommand{\SST}{\mathrm{SST}}
+\newcommand{\Sk}{\mathrm{Sk}}
+
+\title{The semisimplicial type construction}
+\author{}
+\date{\vspace{-5ex}\today}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+A careful writeup of the gory details of the semisimplicial type construction in this internal CwF development.
+\end{abstract}
+
+We mutually define
+
+\begin{verbatim}
+SST₋ : ℕ → Con
+X    : (m n : ℕ) → {m ≤ n} → Ty (SST₋ (S n))
+A    : (m n : ℕ) {h : m ≤ n} → Tm (X m n {h})
+Sk   : (k n : ℕ) → {{O < n}} → k < n → Ty (SST₋ n)
+\end{verbatim}
+
+and \code{SST : ℕ → Con} where \code{SST n = SST₋ (S n)}.
+
+Intuitively, these are supposed to be the following:
+$$\SST_n = A_0 \colon X_0, \dotsc, A_n \colon X_n$$
+is the context of $k$-simplex fillers $A_k$ for $0 \leq k \leq n$.
+$X_0 = U$ and $X_k = \Sk(k-1, k) \rightarrow U$ for $0 < k \leq n$, where $\Sk(k-1, k)$ is the $(k-1)$-skeleton of $\Delta^k$.
+
+\code{SST n} is meant to be the context
+\begin{verbatim}
+A O n : X O n ∷
+A 1 n : X 1 n ∷
+     ...      ∷
+A n n : X n n
+\end{verbatim}
+
+
+\end{document}
