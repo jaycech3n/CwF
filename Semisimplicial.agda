@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K #-}
 
-{--- Semisimplicial types in internal CwFs---}
+{--- Semisimplicial types in internal CwFs ---}
 
 module Semisimplicial where
 
@@ -9,11 +9,11 @@ open import Sieves
 
 {- The combinatorics of faces
 
-`coords k n`
+coords k n
   Gives the k-faces of Δⁿ for 0 ≤ i ≤ k as a list organized in blocks by
   dimension. A k-face is given by a sequence of k+1 points.
 
-`face-coords n xs`
+face-coords n xs
   xs is a (k+1)-sequence representing a k-face of Δⁿ. face-coords then gives the
   indicators in `coords k n` of the subfaces of xs.
 -}
@@ -36,17 +36,26 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   open SigmaStructure sigmaStr
   open UStructure uStr
 
-  {- Mutually define: -}
+  {-
+  The main definitions are the following (intuitively):
+    SST n   ─ The context (A₀ : U, A₁ : A₀ × A₀ → U, ..., Aₙ : ... → U).
+    A i n   ─ Aᵢ in context SST n as above.
+    X i n   ─ The type of Aᵢ in context SST n.
+    sk k n  ─ k-skeleton of Δⁿ.
 
+  In addition, there are a couple of ancilliary definitions.
+
+  SST₋ is an intermediate construct to more conveniently type shape and Sk.
+  By definition, SST₋ n = SST (n-1) for n ≥ 1.
+
+  face k n xs ν picks out the subtuple of ν : sk k n [ p ] corresponding to
+  the xs-th k-subface and all its subfaces.
+  -}
   SST  : ℕ → Con
   SST₋ : ℕ → Con
   X    : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Ty (SST n)
   A    : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Tm (X i n)
   sk   : (k n : ℕ) ⦃ lt : k < n ⦄ ⦃ nz : O < n ⦄ → Ty (SST₋ n)
-  {-
-  `face k n xs ν` picks out the subtuple of `ν : sk k n [ p ]` corresponding to
-  the xs-th k-subface and all its subfaces.
-  -}
   face : (k n : ℕ) ⦃ lt : k < n ⦄ ⦃ nz : O < n ⦄
        → Seq → Tm (sk k n [ p ]) → {!!}
 
@@ -67,7 +76,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   A (S i) (S n) ⦃ inl _ ⦄ = ν
 
   {-
-  In order to define `sk` we need coercions showing that the Xᵢₙ defined above
+  In order to define sk we need coercions showing that the Xᵢₙ defined above
   have particular forms.
   -}
   XO=U : (n : ℕ) → X O n == U
