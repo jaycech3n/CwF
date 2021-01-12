@@ -14,6 +14,8 @@ open import HoTT
   ; transp-∙    to tr-∙
   ; to-transp   to to-tr
   ; from-transp to from-tr )
+  hiding
+  ( _⊆_ )
   public
 
 private
@@ -215,11 +217,17 @@ Seq+ : (l m n : ℕ) → List Seq
 Seq+ O _ _ = nil :: nil
 Seq+ (S l) m n = flatten (map (λ k → map (k ::_) (Seq+ l (S k) n)) (range m n))
 
+-- Subsequences
+_⊆_ : Seq → Seq → Bool
+nil ⊆ ys = true
+(x :: xs) ⊆ nil = false
+(x :: xs) ⊆ (y :: ys) = (ℕ= x y and (xs ⊆ ys)) or (x :: xs ⊆ ys)
+
 _⊂_ : Seq → Seq → Bool
 nil ⊂ nil = false
 nil ⊂ (x :: ys) = true
 (x :: xs) ⊂ nil = false
-(x :: xs) ⊂ (y :: ys) = (ℕ= x y and (xs ⊂ ys)) or (x :: xs ⊂ ys)
+(x :: xs) ⊂ (y :: ys) = (ℕ= x y and (xs ⊂ ys)) or (x :: xs ⊆ ys)
 
 {- Strict subsequence relation
 data _⊂_ : Seq → Seq → Type₁ where
