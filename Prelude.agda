@@ -117,6 +117,13 @@ diff : (m n : ℕ) ⦃ lt : m < n ⦄ → ℕ
 diff O n = n
 diff (S m) (S n) ⦃ lt ⦄ = diff m n ⦃ <-cancel-S lt ⦄
 
+-- Equality
+ℕ= : ℕ → ℕ → Bool
+ℕ= O O = true
+ℕ= O (S n) = false
+ℕ= (S n) O = false
+ℕ= (S m) (S n) = ℕ= m n
+
 {- Combinations -}
 
 instance
@@ -175,7 +182,17 @@ Sn-ch-n (S n) =
 n-<-Sn-ch-n : (n : ℕ) → n < (S n) ch n
 n-<-Sn-ch-n n = tr (n <_) (! (Sn-ch-n n)) ltS
 
-{- Lists -}
+{- Bool -}
+
+_and_ : Bool → Bool → Bool
+true and x = x
+false and x = false
+
+_or_ : Bool → Bool → Bool
+true or x = true
+false or x = x
+
+{- List -}
 
 flatten : {A : Type i} → List (List A) → List A
 flatten nil = nil
@@ -198,10 +215,17 @@ Seq+ : (l m n : ℕ) → List Seq
 Seq+ O _ _ = nil :: nil
 Seq+ (S l) m n = flatten (map (λ k → map (k ::_) (Seq+ l (S k) n)) (range m n))
 
--- Strict subsequence relation
+_⊂_ : Seq → Seq → Bool
+nil ⊂ nil = false
+nil ⊂ (x :: ys) = true
+(x :: xs) ⊂ nil = false
+(x :: xs) ⊂ (y :: ys) = (ℕ= x y and (xs ⊂ ys)) or (x :: xs ⊂ ys)
+
+{- Strict subsequence relation
 data _⊂_ : Seq → Seq → Type₁ where
   head : ∀ {n} {ns} {ns'} → ns ⊂ ns' → n :: ns ⊂ n :: ns'
   skip : ∀ {n} {ns} {ns'} → (ns == ns') ⊔ (ns ⊂ ns') → ns ⊂ n :: ns'
+-}
 
 {- Old formulation using vectors
 

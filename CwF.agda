@@ -370,6 +370,15 @@ record PiStructure {i}
       _̂→_ : ∀ {Γ} (A B : Ty Γ) → Ty Γ
       A ̂→ B = ̂Π A (B [ p ])
 
+      ̂→-[] : ∀ {Δ Γ} {A B : Ty Γ} {f : Sub Δ Γ}
+           → (A ̂→ B) [ f ] == (A [ f ] ̂→ B [ f ])
+      ̂→-[] {_} {_} {A} {B} {f}
+        = (̂Π A (B [ p ])) [ f ]
+        =⟨ ̂Π-[] ⟩ ̂Π (A [ f ]) (B [ p ] [ f ↑ A ])
+        =⟨ ! []-◦ |in-ctx (λ ◻ → ̂Π _ ◻) ⟩ ̂Π (A [ f ]) (B [ p ◦ (f ↑ A) ])
+        =⟨ ↑-comm |in-ctx (λ ◻ → ̂Π _ (B [ ◻ ])) ⟩ ̂Π (A [ f ]) (B [ f ◦ p ])
+        =⟨ []-◦   |in-ctx (λ ◻ → ̂Π _ ◻) ⟩ ̂Π (A [ f ]) (B [ f ] [ p ]) =∎
+
       -- If we must talk about actually applying functions
       _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
           → Tm (B [[ a ]])
