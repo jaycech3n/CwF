@@ -9,21 +9,28 @@ open import Sieves
 
 {- The combinatorics of faces
 
-coords k n
-  Gives the k-faces of Δⁿ for 0 ≤ i ≤ k as a list organized in blocks by
-  dimension. A k-face is given by a sequence of k+1 points.
+coords n k
+  Gives the i-faces of Δⁿ for 0 ≤ i ≤ k as a list organized in blocks by
+  dimension. An i-face is given by a sequence of i+1 points.
 
 face-coords n xs
   xs is a (k+1)-sequence representing a k-face of Δⁿ. face-coords then gives the
   indicators in `coords k n` of the subfaces of xs.
 -}
 
-coords : (k n : ℕ) → List (List Seq)
-coords O n = Seq+ (S O) O n :: nil
-coords (S k) n = snoc (coords k n) (Seq+ (S (S k)) O n)
+coords : (n k : ℕ) → List (List Seq)
+coords n O = Seq+ (S O) O n :: nil
+coords n (S k) = snoc (coords n k) (Seq+ (S (S k)) O n)
+
+dim : Seq → ℕ
+dim (x ::∎) = O
+dim (x :: xs) = S (dim xs)
 
 face-coords : (n : ℕ) → Seq → List (List Bool)
-face-coords n xs = map (map (_⊂ xs)) (coords (length xs) n)
+face-coords n xs = map (map (_⊆ xs)) (coords n (dim xs))
+
+test = {!coords 3 1!}
+test' = {!face-coords 3 (0 :: 2 :: 3 ::∎)!}
 
 {- Semisimplicial types -}
 
@@ -56,8 +63,8 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   X    : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Ty (SST n)
   A    : (i n : ℕ) ⦃ le : i ≤ n ⦄ → Tm (X i n)
   sk   : (k n : ℕ) ⦃ lt : k < n ⦄ ⦃ nz : O < n ⦄ → Ty (SST₋ n)
-  face : (k n : ℕ) ⦃ lt : k < n ⦄ ⦃ nz : O < n ⦄
-       → Seq → Tm (sk k n [ p ]) → {!!}
+  face : (n : ℕ) (xs : Seq) ⦃ lt : dim xs < n ⦄ ⦃ nz : O < n ⦄
+         → Tm (sk (dim xs) n [ p ]) → {!!}
 
   SST₋ O = ◆
   SST₋ (S n) = SST n
@@ -131,7 +138,8 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
 
   open coercions
 
-  face k n xs ν = {!!}
+  face n (x ::∎) ν = {!!}
+  face n (x :: xs) ν = {!!}
 
   sk O (S n) =
     el (coerce ⦃ XO-coercion {n} ⦄ (A O n)) ˣ S (S n)

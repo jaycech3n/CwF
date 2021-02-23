@@ -71,6 +71,40 @@ tr-ap-∙ : {B : Type j} {f : A → B} {C : B → Type k}
         → tr C (ap f (p ∙ q)) c == tr C (ap f q) (tr C (ap f p) c)
 tr-ap-∙ idp idp c = idp
 
+{- Inequalities -}
+
+<-dec-l : {m n : ℕ} → S m < n → m < n
+<-dec-l = <-cancel-S ∘ ltSR
+
+≤-dec-l : {m n : ℕ} → S m ≤ n → m ≤ n
+≤-dec-l {m} (inl x) = tr (m ≤_) x lteS
+≤-dec-l (inr x) = inr (<-trans ltS x)
+
+S<S-dec-r : {m n : ℕ} → S m < S n → S m ≤ n
+S<S-dec-r ltS = inl idp
+S<S-dec-r (ltSR x) = inr x
+
+-- Automatically solve inequality conditions
+instance
+  solve-O≤ : {n : ℕ} → O ≤ n
+  solve-O≤ {n} = O≤ n
+
+instance
+  solve-O<S : {n : ℕ} → O < S n
+  solve-O<S {n} = O<S n
+
+instance
+  solve-n<S : {n : ℕ} → n < S n
+  solve-n<S = ltS
+
+instance
+  solve-S<S : {m n : ℕ} {h : m < n} → S m < S n
+  solve-S<S {h = m<n} = <-ap-S m<n
+
+instance
+  solve-S≤S : {m n : ℕ} {h : m ≤ n} → S m ≤ S n
+  solve-S≤S {h = m≤n} = ≤-ap-S m≤n
+
 {- Natural numbers -}
 
 ℕ-+=O  : {m n : ℕ} → m + n == O → m == O
@@ -85,34 +119,6 @@ tr-ap-∙ idp idp c = idp
   m + n =⟨ p |in-ctx (_+ n) ⟩
   O + n =⟨ q |in-ctx (O +_) ⟩
   O =∎
-
-<-dec-l : {m n : ℕ} → S m < n → m < n
-<-dec-l = <-cancel-S ∘ ltSR
-
-S<S-dec-r : {m n : ℕ} → S m < S n → S m ≤ n
-S<S-dec-r ltS = inl idp
-S<S-dec-r (ltSR x) = inr x
-
--- Quick and dirty hack for solving inequality conditions in Semisimplicial.agda
-instance
-  solve-O<S : {n : ℕ} → O < S n
-  solve-O<S {n} = O<S n
-
-instance
-  solve-S<S : {m n : ℕ} {h : m < n} → S m < S n
-  solve-S<S {h = m<n} = <-ap-S m<n
-
-instance
-  solve-n<S : {n : ℕ} → n < S n
-  solve-n<S = ltS
-
-instance
-  solve-O≤ : {n : ℕ} → O ≤ n
-  solve-O≤ {n} = O≤ n
-
-instance
-  solve-S≤S : {m n : ℕ} {h : m ≤ n} → S m ≤ S n
-  solve-S≤S {h = m≤n} = ≤-ap-S m≤n
 
 -- Subtraction
 diff : (m n : ℕ) ⦃ lt : m < n ⦄ → ℕ
@@ -209,31 +215,32 @@ range (S m) (S n) = map S (range m n)
 
 {- ℕ-sequences -}
 
-Seq : Type₀
-Seq = List ℕ
+infixr 60 _::_
+infix 61 _::∎
+
+-- Seq is isomorphic to (List ℕ \ nil)
+data Seq : Type₀ where
+  _::∎ : ℕ → Seq
+  _::_ : ℕ → Seq → Seq
 
 -- Increasing sequences of length l in {m,...,n} in lexicographic order
-Seq+ : (l m n : ℕ) → List Seq
-Seq+ O _ _ = nil :: nil
-Seq+ (S l) m n = flatten (map (λ k → map (k ::_) (Seq+ l (S k) n)) (range m n))
+Seq+ : (l m n : ℕ) ⦃ nz : O < l ⦄ → List Seq
+Seq+ (S O) m n = map _::∎ (range m n)
+Seq+ (S (S l)) m n = flatten (map (λ k → map (k ::_) (Seq+ (S l) (S k) n))
+                                  (range m n))
 
 -- Subsequences
 _⊆_ : Seq → Seq → Bool
-nil ⊆ ys = true
-(x :: xs) ⊆ nil = false
+(x ::∎) ⊆ (y ::∎) = ℕ= x y
+(x ::∎) ⊆ (y :: ys) = ℕ= x y or (x ::∎ ⊆ ys)
+(x :: xs) ⊆ (y ::∎) = false
 (x :: xs) ⊆ (y :: ys) = (ℕ= x y and (xs ⊆ ys)) or (x :: xs ⊆ ys)
 
 _⊂_ : Seq → Seq → Bool
-nil ⊂ nil = false
-nil ⊂ (x :: ys) = true
-(x :: xs) ⊂ nil = false
+(x ::∎) ⊂ (y ::∎) = false
+(x ::∎) ⊂ (y :: ys) = ℕ= x y or (x ::∎ ⊂ ys)
+(x :: xs) ⊂ (y ::∎) = false
 (x :: xs) ⊂ (y :: ys) = (ℕ= x y and (xs ⊂ ys)) or (x :: xs ⊆ ys)
-
-{- Strict subsequence relation
-data _⊂_ : Seq → Seq → Type₁ where
-  head : ∀ {n} {ns} {ns'} → ns ⊂ ns' → n :: ns ⊂ n :: ns'
-  skip : ∀ {n} {ns} {ns'} → (ns == ns') ⊔ (ns ⊂ ns') → ns ⊂ n :: ns'
--}
 
 {- Old formulation using vectors
 
