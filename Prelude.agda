@@ -71,18 +71,21 @@ tr-ap-∙ : {B : Type j} {f : A → B} {C : B → Type k}
         → tr C (ap f (p ∙ q)) c == tr C (ap f q) (tr C (ap f p) c)
 tr-ap-∙ idp idp c = idp
 
-{- Inequalities -}
+{- (In)equalities -}
+module _ {m n : ℕ} where
+  =-cancel-S : _==_ {A = ℕ} (S m) (S n) → m == n
+  =-cancel-S idp = idp
 
-<-dec-l : {m n : ℕ} → S m < n → m < n
-<-dec-l = <-cancel-S ∘ ltSR
+  dec-<S : m < S n → m ≤ n
+  dec-<S ltS = inl idp
+  dec-<S (ltSR x) = inr x
 
-≤-dec-l : {m n : ℕ} → S m ≤ n → m ≤ n
-≤-dec-l {m} (inl x) = tr (m ≤_) x lteS
-≤-dec-l (inr x) = inr (<-trans ltS x)
+  dec-S< : S m < S n → m < S n
+  dec-S< Sm<Sn = <-trans ltS Sm<Sn
 
-S<S-dec-r : {m n : ℕ} → S m < S n → S m ≤ n
-S<S-dec-r ltS = inl idp
-S<S-dec-r (ltSR x) = inr x
+  dec-S≤ : S m ≤ n → m < n
+  dec-S≤ (inl x) = tr (_ <_) x ltS
+  dec-S≤ (inr x) = <-trans ltS x
 
 -- Automatically solve inequality conditions
 instance
