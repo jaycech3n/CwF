@@ -103,5 +103,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   sk (S k) (S n) ⦃ Sk<Sn ⦄ ⦃ O<Sn ⦄ =
     ̂Σ (sk k (S n) ⦃ dec-S< Sk<Sn ⦄ ⦃ O<Sn ⦄) -- CHOICE
       (el (coerce ⦃ {!!} ⦄ (coerce ⦃ fillS-coercion {k} {n} ⦃ dec-<S Sk<Sn ⦄ ⦄ -- CHOICE
-        (A {n} (S k) (dec-<S Sk<Sn) [ p ]ₜ) ` {!!} -- CHOICE
+        {!Get the canonically ordered list of k-skeleta of the (k+1)-faces of
+          (ν : sk k (S n)), and apply A (S k)!}
+        -- (old mistake:) (A {n} (S k) (dec-<S Sk<Sn) [ p ]ₜ) ` {!!} -- CHOICE
       )))
