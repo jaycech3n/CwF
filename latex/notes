@@ -1,0 +1,5 @@
+- When formulating `face` seem to have (at least) three options:
+  1. Use lists and a unit type a la Herbelin
+  2. Use vectors to exclude the length 0 case
+  3. Use a new type Seq isomorphic to List N \ nil
+

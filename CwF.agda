@@ -422,7 +422,7 @@ record SigmaStructure {i}
       A ̂× B = ̂Σ A (B [ p ])
 
       -- n-fold nonempty product
-      _ˣ_ : ∀ {Γ} (A : Ty Γ) (n : ℕ) ⦃ nz : O < n ⦄ → Ty Γ
+      _ˣ_ : ∀ {Γ} (A : Ty Γ) (n : ℕ) ⦃ O<n : O < n ⦄ → Ty Γ
       A ˣ S O = A
       A ˣ S (S n) = (A ˣ (S n)) ̂× A
 
