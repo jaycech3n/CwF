@@ -31,6 +31,7 @@ category of types. Let's write A for this functor
   A : Δ₊ → U.
 From this point of view, the full triangle (1) encodes the
 type of natural transformations
+
   Δ² → A,
 where Δ² is the obvious representable functor a.k.a.
 Yoneda[2] a.k.a. the 2-simplex. The functor Λ²₁ is a
@@ -86,7 +87,7 @@ only consider k ≥ 1.
 The sieves that we are interested in can be described as
 triples
   (b,h,t)
-of natural numbers, where h ≤ b and t ≤ binom b h. The
+of natural numbers, where h ≤ b and t ≤ binom b (h+1). The
 triple (b,h,t) is to be interpreted as follows:
 
 b (for "base") is the number of points (0-cells).
@@ -94,13 +95,13 @@ b (for "base") is the number of points (0-cells).
   (Fin b) in Δ₊. This means that the sieve (b,h,t) consists
   of morphisms (Fin i) →⁺ (Fin b) in Δ₊.
 h (for "height") describes how many levels of the sieve are
-  complete. For 1 ≤ i ≤ h, every morphism (Fin i) →⁺ (Fin h)
+  complete. For 1 ≤ i ≤ h, every morphism (Fin i) →⁺ (Fin b)
   is in the sieve (b,h,t).
 t (for "top", although there could be a better name)
-  describes how many of the morphisms (Fin h) →⁺ (Fin b)
-  are in the sieve. That's why 0 ≤ t ≤ binom b h, since
+  describes how many of the morphisms (Fin h+1) →⁺ (Fin b)
+  are in the sieve. That's why 0 ≤ t ≤ binom b (h+1), since
   the binominal coefficient describes the number of
-  morphisms (Fin h) →⁺ (Fin b). The bijection φ (see
+  morphisms (Fin h+1) →⁺ (Fin b). The bijection φ (see
   Preliminaries above) tells us which t morphisms are in the
   sieve, namely φ(0), ..., φ(t-1).
 
@@ -189,22 +190,6 @@ module Sieves where
 
 open import Prelude
 
-record Sieve (n : ℕ) : Type₀ where
-  {- Sieves on [n] ∈ Δ₊
-    [0] ⇉ [1] ⇶ [2] ...
 
-  Fields:
-    0 ≤ h < n                 ─ All arrows into [h] are present.
-    0 ≤ t < binom (n+1) (h+1) ─ Index of largest arrow (in lexicographic order)
-                                on the top level [h] → [n].
 
-  Note 0 ≤ h, so we're actually encoding *nonempty* sieves ([0] and its identity
-  arrow are always included).
-
-  In the notation of the introductory comments at the start of this file,
-  b, h = n+1, h+1.
-  -}
-  constructor _,_
-  field
-    h : Fin n
-    t : Fin (S n ch S (h ↗))
+--  ⟨_,_,_⟩-∩_ : (b h t : ℕ) →
