@@ -189,7 +189,3 @@ Sk (3,1,3) 3.
 module Sieves where
 
 open import Prelude
-
-
-
---  ⟨_,_,_⟩-∩_ : (b h t : ℕ) →

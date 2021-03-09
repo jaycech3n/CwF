@@ -89,6 +89,10 @@ module _ {m n : ℕ} where
 
 -- Automatically solve inequality conditions
 instance
+  solve-≤-refl : {n : ℕ} → n ≤ n
+  solve-≤-refl = lteE
+
+instance
   solve-O≤ : {n : ℕ} → O ≤ n
   solve-O≤ {n} = O≤ n
 
