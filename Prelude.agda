@@ -72,20 +72,21 @@ tr-ap-∙ : {B : Type j} {f : A → B} {C : B → Type k}
 tr-ap-∙ idp idp c = idp
 
 {- (In)equalities -}
+
 module _ {m n : ℕ} where
   =-cancel-S : _==_ {A = ℕ} (S m) (S n) → m == n
   =-cancel-S idp = idp
 
-  dec-<S : m < S n → m ≤ n
-  dec-<S ltS = inl idp
-  dec-<S (ltSR x) = inr x
+  decr-<S : m < S n → m ≤ n
+  decr-<S ltS = inl idp
+  decr-<S (ltSR x) = inr x
 
-  dec-S< : S m < S n → m < S n
-  dec-S< Sm<Sn = <-trans ltS Sm<Sn
+  decr-S< : S m < S n → m < S n
+  decr-S< Sm<Sn = <-trans ltS Sm<Sn
 
-  dec-S≤ : S m ≤ n → m < n
-  dec-S≤ (inl x) = tr (_ <_) x ltS
-  dec-S≤ (inr x) = <-trans ltS x
+  decr-S≤ : S m ≤ n → m < n
+  decr-S≤ (inl x) = tr (_ <_) x ltS
+  decr-S≤ (inr x) = <-trans ltS x
 
 -- Automatically solve inequality conditions
 instance
@@ -112,7 +113,8 @@ instance
   solve-S≤S : {m n : ℕ} {h : m ≤ n} → S m ≤ S n
   solve-S≤S {h = m≤n} = ≤-ap-S m≤n
 
-{- Natural numbers -}
+O<+ : ∀ {m n} → O < m → O < m + n
+O<+ {S m} {n} x = O<S (m + n)
 
 ℕ-+=O  : {m n : ℕ} → m + n == O → m == O
 ℕ-+=O {m = O} _ = idp
@@ -127,12 +129,6 @@ instance
   O + n =⟨ q |in-ctx (O +_) ⟩
   O =∎
 
--- Subtraction
-diff : (m n : ℕ) ⦃ lt : m < n ⦄ → ℕ
-diff O n = n
-diff (S m) (S n) ⦃ lt ⦄ = diff m n ⦃ <-cancel-S lt ⦄
-
--- Equality
 ℕ= : ℕ → ℕ → Bool
 ℕ= O O = true
 ℕ= O (S n) = false
@@ -196,6 +192,12 @@ Sn-ch-n (S n) =
 
 n-<-Sn-ch-n : (n : ℕ) → n < (S n) ch n
 n-<-Sn-ch-n n = tr (n <_) (! (Sn-ch-n n)) ltS
+
+ch>O : ∀ m n → n ≤ m → O < m ch n
+ch>O O O x = ltS
+ch>O O (S n) (inl ())
+ch>O (S m) O x = ltS
+ch>O (S m) (S n) x = O<+ {m ch n} {m ch S n} (ch>O m n (≤-cancel-S x))
 
 {- Bool -}
 
