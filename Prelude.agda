@@ -88,7 +88,7 @@ module _ {m n : ℕ} where
   decr-S≤ (inl x) = tr (_ <_) x ltS
   decr-S≤ (inr x) = <-trans ltS x
 
--- Automatically solve inequality conditions
+-- Automatically solve (in)equality conditions
 instance
   solve-≤-refl : {n : ℕ} → n ≤ n
   solve-≤-refl = lteE
@@ -106,12 +106,12 @@ instance
   solve-n<S = ltS
 
 instance
-  solve-S<S : {m n : ℕ} {h : m < n} → S m < S n
-  solve-S<S {h = m<n} = <-ap-S m<n
+  solve-S<S : {m n : ℕ} ⦃ h : m < n ⦄ → S m < S n
+  solve-S<S ⦃ h = m<n ⦄ = <-ap-S m<n
 
 instance
-  solve-S≤S : {m n : ℕ} {h : m ≤ n} → S m ≤ S n
-  solve-S≤S {h = m≤n} = ≤-ap-S m≤n
+  solve-S≤S : {m n : ℕ} ⦃ h : m ≤ n ⦄ → S m ≤ S n
+  solve-S≤S ⦃ h = m≤n ⦄ = ≤-ap-S m≤n
 
 O<+ : ∀ {m n} → O < m → O < m + n
 O<+ {S m} {n} x = O<S (m + n)

@@ -39,15 +39,17 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
 
   {- Lifted fillers -}
 
-  -- (fill i {n}) is the type of i-fillers, lifted to context SST n
+  -- (fill i {n}) is the type of i-fillers, lifted to context SST n.
+  -- Concretely,
+  --   fill   O   {n} = U [ p ] ... [ p ] (weakened n times)
+  --   fill (S i) {n} = (sk (S n) ̂→ U) [ p ] ... [ p ] (weakened n-i-1 times)
   fill : ∀ (i : ℕ) {n} (i≤n : i ≤ n) → Ty (SST n)
   fill   O   {O}   _ = U [ p ]
   fill (S i) {O}   (inl ())
   fill (S i) {O}   (inr ())
   fill   O   {S n} _ = fill O {n} (O≤ n) [ p ] -- CHOICE
-  fill (S i) {S n} (inl Si=Sn) = (sk (S n) ̂→ U) [ p ] -- i = n
-  fill (S i) {S n} (inr Si<Sn) = fill (S i) {n} (decr-<S Si<Sn) [ p ]
-                                 -- i < n -- CHOICE
+  fill (S i) {S n} (inl Si=Sn) = (sk (S n) ̂→ U) [ p ]
+  fill (S i) {S n} (inr Si<Sn) = fill (S i) {n} (decr-<S Si<Sn) [ p ] -- CHOICE
 
   module fillers where
     -- i-fillers, in context SST n
@@ -115,6 +117,22 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   open fillers
 
 
+  {- Geometry of Δⁿ -}
+
+  data face : (k n : ℕ) → Set
+  head : ∀ {k n} → face k n → ℕ
+
+  infix  61 _:∎[_]
+  infixr 60 _::_
+  data face where
+    _:∎[_]  : (i n : ℕ) → ⦃ i≤n : i ≤ n ⦄ → face O n
+    _::_    : ∀ {k n} (i : ℕ) (f : face k n) ⦃ i≤head : i ≤ head f ⦄
+            → face (S k) n
+
+  head (i :∎[ _ ]) = i
+  head (i :: x) = i
+
+
   {- Skeleton of Δⁿ and shape of the (b,h,t)-sieve
 
   The major difficulty is in formulating the definition of sk as an internal
@@ -137,9 +155,15 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
 
   -- Attempt: simultaneously define the intersection of an element of shape
   -- (b,h,t) with the f-th h-face of Δᵇ.
-  --inter : (b h t : ℕ) ⦃ h≤b : h ≤ b ⦄ ⦃ O<b : O < b ⦄ ⦃ O<t : O < t ⦄
-  --        (σ : Tm (shape b h t)) (f : ℕ) → Tm ?
-  --inter = ?
+  inter : (b h t : ℕ) ⦃ h≤b : h ≤ b ⦄ ⦃ O<b : O < b ⦄ ⦃ O<t : O < t ⦄
+          (σ : Tm (shape b h t))
+          {i : ℕ} ⦃ i≤h : i ≤ h ⦄
+          (f : face (S i) b)
+        → Tm (shape (S i) i (S (S i) ch (S i))
+                    ⦃ lteS ⦄
+                    ⦃ O<S i ⦄
+                    ⦃ ch>O (S (S i)) (S i) lteS ⦄)
+  inter = {!!}
 
   -- CHOICES below
   shape (S b) O (S O) =
@@ -154,7 +178,12 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
              ⦃ inr (decr-S≤ Sh≤Sb) ⦄
              ⦃ O<S b ⦄
              ⦃ ch>O (S (S b)) (S h) (lteSR Sh≤Sb) ⦄ [ p ])
-      {!(A (S h) {S h} lteE [ p ]ₜ)!}
+      (coerce ⦃ {!ν :> Tm (shape (S b) h (S (S b) ch (S h))
+             ⦃ inr (decr-S≤ Sh≤Sb) ⦄
+             ⦃ O<S b ⦄
+             ⦃ ch>O (S (S b)) (S h) (lteSR Sh≤Sb) ⦄ [ p ])!} ⦄ (
+        coerce ⦃ fillS-coercion {h} {S (S h)} ⦃ lteS ⦄ ⦄ (A (S h) {S (S h)} lteS)
+          ` {! This wants a term of fillers.σ ... might have to redo the fillers!}))
 
   shape (S b) (S h) (S (S t)) = {!!}
 
