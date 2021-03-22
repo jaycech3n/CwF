@@ -184,12 +184,12 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
              ⦃ ch>O (S (S b)) (S h) (lteSR Sh≤Sb) ⦄ [ p ])
       (coerce ⦃ {!!} ⦄ (
         coerce ⦃ fillS-coercion {h} {S (S h)} ⦃ lteS ⦄ ⦄ (A (S h) {S (S h)} lteS)
-          ` (inter (S b) h (S (S b) ch S h)
+          ` ({!inter (S b) h (S (S b) ch S h)
                    ⦃ {!!} ⦄
                    ⦃ {!!} ⦄
                    ⦃ {!!} ⦄
-                   {! ν!} ⦃ {!!} ⦄
-                   ({! f!} :> face (S h) (S b)) [ p ]ₜ [ p ]ₜ)))
+                   {!ν!} ⦃ {!!} ⦄
+                   ({!f!} :> face (S h) (S b))!} [ p ]ₜ [ p ]ₜ)))
 
   shape (S b) (S h) (S (S t)) = {!!}
 
