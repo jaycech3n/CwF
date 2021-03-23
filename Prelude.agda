@@ -116,7 +116,7 @@ instance
 O<+ : ∀ {m n} → O < m → O < m + n
 O<+ {S m} {n} x = O<S (m + n)
 
-ℕ-+=O  : {m n : ℕ} → m + n == O → m == O
+ℕ-+=O : {m n : ℕ} → m + n == O → m == O
 ℕ-+=O {m = O} _ = idp
 
 ℕ-+=O' : {m n : ℕ} → m + n == O → n == O
@@ -137,67 +137,58 @@ O<+ {S m} {n} x = O<S (m + n)
 
 {- Combinations -}
 
-instance
-  Fin-coercion : ∀ {n} → Coerceable (Fin n) ℕ
-  coerce ⦃ Fin-coercion ⦄ = fst
+binom : (n k : ℕ) → ℕ
+binom   O     O   = 1
+binom   O   (S k) = O
+binom (S n)   O   = 1
+binom (S n) (S k) = binom n k + binom n (S k)
 
-infix 50 _ch_
-_ch_ : (n k : ℕ) → ℕ
-O ch O = 1
-O ch (S k) = O
-(S n) ch O = 1
-(S n) ch (S k) = (n ch k) + (n ch S k)
+binom-n-O : (n : ℕ) → binom n O == 1
+binom-n-O O = idp
+binom-n-O (S n) = idp
 
-n-ch-O : (n : ℕ) → n ch O == 1
-n-ch-O O = idp
-n-ch-O (S n) = idp
-
-n-ch-1 : (n : ℕ) → n ch 1 == n
-n-ch-1 O = idp
-n-ch-1 (S n) = ap (_+ (n ch 1)) (n-ch-O n) ∙ ap S (n-ch-1 n)
-
-instance
-  Fin-ch-1-coercion : ∀ {n} → Coerceable (Fin (n ch 1)) (Fin n)
-  coerce ⦃ Fin-ch-1-coercion {n} ⦄ = tr Fin (n-ch-1 n)
+binom-n-1 : (n : ℕ) → binom n 1 == n
+binom-n-1 O = idp
+binom-n-1 (S n) = ap (_+ binom n 1) (binom-n-O n) ∙ ap S (binom-n-1 n)
 
 abstract
-  ch=O-rec : {k : ℕ} (n : ℕ) → n ch k == O → n ch S k == O
-  ch=O-rec O _ = idp
-  ch=O-rec {S k} (S n) p = ℕ-O+O n-ch-Sk (ch=O-rec n n-ch-Sk)
+  binom=O-rec : {k : ℕ} (n : ℕ) → binom n k == O → binom n (S k) == O
+  binom=O-rec O _ = idp
+  binom=O-rec {S k} (S n) p = ℕ-O+O binom-n-Sk (binom=O-rec n binom-n-Sk)
     where
-    n-ch-Sk : n ch S k == O
-    n-ch-Sk = ℕ-+=O' p
+    binom-n-Sk : binom n (S k) == O
+    binom-n-Sk = ℕ-+=O' p
 
-n-ch-Sn : (n : ℕ) → n ch S n == O
-n-ch-Sn O = idp
-n-ch-Sn (S n) = ℕ-O+O (n-ch-Sn n) (ch=O-rec n (n-ch-Sn n))
+binom-n-Sn : (n : ℕ) → binom n (S n) == O
+binom-n-Sn O = idp
+binom-n-Sn (S n) = ℕ-O+O (binom-n-Sn n) (binom=O-rec n (binom-n-Sn n))
 
-n-ch-n : (n : ℕ) → n ch n == 1
-n-ch-n O = idp
-n-ch-n (S n) =
-  (n ch n) + (n ch S n) =⟨ n-ch-Sn n |in-ctx ((n ch n) +_) ⟩
-  (n ch n) + O =⟨ +-comm _ O ∙ n-ch-n n ⟩
+binom-n-n : (n : ℕ) → binom n n == 1
+binom-n-n O = idp
+binom-n-n (S n) =
+  (binom n n) + (binom n (S n)) =⟨ binom-n-Sn n |in-ctx ((binom n n) +_) ⟩
+  (binom n n) + O =⟨ +-comm _ O ∙ binom-n-n n ⟩
   1 =∎
 
-Sn-ch-n : (n : ℕ) → S n ch n == S n
-Sn-ch-n O = idp
-Sn-ch-n (S n) =
-  (S n ch n) + ((n ch n) + (n ch S n))
-    =⟨ ap (_+ ((n ch n) + (n ch S n))) (Sn-ch-n n)
-     ∙ ap (λ ◻ → S n + (◻ + (n ch S n))) (n-ch-n n)
-     ∙ ap (λ ◻ → S n + (1 + ◻)) (n-ch-Sn n)
+binom-Sn-n : (n : ℕ) → binom (S n) n == S n
+binom-Sn-n O = idp
+binom-Sn-n (S n) =
+  binom (S n) n + (binom n n + binom n (S n))
+    =⟨ ap (_+ (binom n n + binom n (S n))) (binom-Sn-n n)
+     ∙ ap (λ ◻ → S n + (◻ + (binom n (S n)))) (binom-n-n n)
+     ∙ ap (λ ◻ → S n + (1 + ◻)) (binom-n-Sn n)
      ⟩
   S n + (1 + O) =⟨ +-comm (S n) (1 + O) ⟩
   S (S n) =∎
 
-n-<-Sn-ch-n : (n : ℕ) → n < (S n) ch n
-n-<-Sn-ch-n n = tr (n <_) (! (Sn-ch-n n)) ltS
+n-<-binom-Sn-n : (n : ℕ) → n < binom (S n) n
+n-<-binom-Sn-n n = tr (n <_) (! (binom-Sn-n n)) ltS
 
-ch>O : ∀ m n → n ≤ m → O < m ch n
-ch>O O O x = ltS
-ch>O O (S n) (inl ())
-ch>O (S m) O x = ltS
-ch>O (S m) (S n) x = O<+ {m ch n} {m ch S n} (ch>O m n (≤-cancel-S x))
+binom>O : ∀ m n → n ≤ m → O < binom m n
+binom>O O O x = ltS
+binom>O O (S n) (inl ())
+binom>O (S m) O x = ltS
+binom>O (S m) (S n) x = O<+ {binom m n} {binom m (S n)} (binom>O m n (≤-cancel-S x))
 
 {- Bool -}
 

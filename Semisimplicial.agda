@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --show-implicit #-}
+{-# OPTIONS --without-K #-}
 
 {--- Semisimplicial types in internal CwFs ---}
 
@@ -163,10 +163,10 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
           (σ : Tm (shape b h t))
           {i : ℕ} ⦃ i≤h : i ≤ h ⦄
           (f : face (S i) b)
-        → Tm (shape (S i) i (S (S i) ch (S i))
+        → Tm (shape (S i) i (binom (S (S i)) (S i))
                     ⦃ lteS ⦄
                     ⦃ O<S i ⦄
-                    ⦃ ch>O (S (S i)) (S i) lteS ⦄)
+                    ⦃ binom>O (S (S i)) (S i) lteS ⦄)
   inter = {!!}
 
   -- CHOICES below
@@ -178,20 +178,22 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
     el (coerce ⦃ fillO-coercion {O} {O≤ O} ⦄ (A O (O≤ O)))
 
   shape (S b) (S h) (S O) ⦃ Sh≤Sb ⦄ =
-    ̂Σ (shape (S b) h (S (S b) ch S h)
+    ̂Σ (shape (S b) h (binom (S (S b)) (S h))
              ⦃ inr (decr-S≤ Sh≤Sb) ⦄
              ⦃ O<S b ⦄
-             ⦃ ch>O (S (S b)) (S h) (lteSR Sh≤Sb) ⦄ [ p ])
+             ⦃ binom>O (S (S b)) (S h) (lteSR Sh≤Sb) ⦄ [ p ])
       (coerce ⦃ {!!} ⦄ (
         coerce ⦃ fillS-coercion {h} {S (S h)} ⦃ lteS ⦄ ⦄ (A (S h) {S (S h)} lteS)
-          ` ({!inter (S b) h (S (S b) ch S h)
+          ` ({! inter (S b) h (binom (S (S b)) (S h))
                    ⦃ {!!} ⦄
                    ⦃ {!!} ⦄
                    ⦃ {!!} ⦄
-                   {!ν!} ⦃ {!!} ⦄
-                   ({!f!} :> face (S h) (S b))!} [ p ]ₜ [ p ]ₜ)))
+                   {!ν!}
+                   {h}
+                   ⦃ {!!} ⦄
+                   {!f!} !} [ p ]ₜ [ p ]ₜ)))
 
   shape (S b) (S h) (S (S t)) = {!!}
 
-  sk (S n) = shape (S n) n (S (S n) ch S n)
-                   ⦃ lteS {n} ⦄ ⦃ O<S n ⦄ ⦃ ch>O (S (S n)) (S n) (lteS {S n}) ⦄
+  sk (S n) = shape (S n) n (binom (S (S n)) (S n))
+                   ⦃ lteS {n} ⦄ ⦃ O<S n ⦄ ⦃ binom>O (S (S n)) (S n) (lteS {S n}) ⦄
