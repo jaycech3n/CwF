@@ -45,6 +45,9 @@ module _ {m n : ℕ} where
   decr-S≤ (inl x) = tr (_ <_) x ltS
   decr-S≤ (inr x) = <-trans ltS x
 
+  <-≤S : m < n → m ≤ S n
+  <-≤S x = inr (ltSR x)
+
 O<+ : {m n : ℕ} → O < m → O < m + n
 O<+ {S m} {n} x = O<S (m + n)
 

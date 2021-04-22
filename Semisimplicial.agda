@@ -190,17 +190,17 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
     ̂Σ (shape (S b) h (binom (S (S b)) (S h))
              ⦃ decr-S< Sh<Sb ⦄
              ⦃ O<S b ⦄
-             ⦃ binom>O (S (S b)) (S h) {!!} ⦄ [ p ]
+             ⦃ binom>O (S (S b)) (S h) (<-≤S Sh<Sb) ⦄ [ p ]
       )
       (coerce ⦃ {!!} ⦄
         ( (coerce ⦃ fillS-coercion {h} {S (S h)} ⦃ lteS ⦄ ⦄ (A (S h) {S (S h)} lteS))
         ` (inter (S b) h (binom (S (S b)) (S h))
-                 ⦃ decr-S< Sh<Sb ⦄ ⦃ O<S b ⦄ ⦃ binom>O (S (S b)) (S h) {!!} ⦄
+                 ⦃ decr-S< Sh<Sb ⦄ ⦃ O<S b ⦄ ⦃ binom>O (S (S b)) (S h) (<-≤S Sh<Sb) ⦄
                  ν
                  h ⦃ inl idp ⦄
                  (num→face O (S h) (S b)
                    ⦃ Sh<Sb ⦄
-                   ⦃ binom>O (S (S b)) (S (S h)) {!!} ⦄) [ p ]ₜ [ p ]ₜ
+                   ⦃ binom>O (S (S b)) (S (S h)) (inr (<-ap-S Sh<Sb)) ⦄) [ p ]ₜ [ p ]ₜ
           )
         )
       )
