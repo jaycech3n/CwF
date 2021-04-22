@@ -17,7 +17,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   open UStructure uStr
 
 
-  {-- Formalizing semisemiplicial types internally --
+  {-- Formalizing semisemiplicial types --
 
   We represent a semisimplicial type by a context of fillers: SST n is the
   context (A₀ : U, A₁ : Aₒ × A₀ → U, ..., Aₙ : ... → U). The formalization is
@@ -126,15 +126,21 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   data face : (k n : ℕ) → Set
   head : ∀ {k n} → face k n → ℕ
 
-  infix  61 _:∎[_]
+  infix  61 _:[_]
   infixr 60 _::_
   data face where
-    _:∎[_]  : (i n : ℕ) → ⦃ i≤n : i ≤ n ⦄ → face O n
+    _:[_]  : (i n : ℕ) → ⦃ i≤n : i ≤ n ⦄ → face O n
     _::_    : ∀ {k n} (i : ℕ) (f : face k n) ⦃ i≤head : i ≤ head f ⦄
             → face (S k) n
 
-  head (i :∎[ _ ]) = i
+  head (i :[ _ ]) = i
   head (i :: x) = i
+
+  num→face : (i k n : ℕ) ⦃ k<n : k < n ⦄ ⦃ i<binom : i < binom (S n) (S k) ⦄
+                 → face k n
+  num→face i O n ⦃ i<binom = i<binom ⦄ =
+    _:[_] i n ⦃ decr-<S (tr (i <_) (binom-n-1 (S n)) i<binom) ⦄ -- CHOICE
+  num→face i (S k) n = {!!}
 
 
   {- Skeleton of Δⁿ and shape of the (b,h,t)-sieve
@@ -154,46 +160,49 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   "top" level [h] → [b] has unique representation (b, h-1, binom (b+1) h).
   -}
 
-  shape : (b h t : ℕ) ⦃ h≤b : h ≤ b ⦄ ⦃ O<b : O < b ⦄ ⦃ O<t : O < t ⦄
+  shape : (b h t : ℕ) ⦃ h<b : h < b ⦄ ⦃ O<b : O < b ⦄ ⦃ O<t : O < t ⦄
           → Ty (SST h)
 
   -- Attempt: simultaneously define the intersection of an element of shape
-  -- (b,h,t) with the f-th h-face of Δᵇ.
-  inter : (b h t : ℕ) ⦃ h≤b : h ≤ b ⦄ ⦃ O<b : O < b ⦄ ⦃ O<t : O < t ⦄
-          (σ : Tm (shape b h t))
-          {i : ℕ} ⦃ i≤h : i ≤ h ⦄
+  -- (b,h,t) with an i-face f of Δᵇ.
+  inter : (b h t : ℕ) ⦃ h<b : h < b ⦄ ⦃ O<b : O < b ⦄ ⦃ O<t : O < t ⦄
+          (σ : Tm (shape b h t [ p {σ = shape b h t} ]))
+          (i : ℕ) ⦃ i≤h : i ≤ h ⦄
           (f : face (S i) b)
         → Tm (shape (S i) i (binom (S (S i)) (S i))
-                    ⦃ lteS ⦄
+                    ⦃ ltS ⦄
                     ⦃ O<S i ⦄
                     ⦃ binom>O (S (S i)) (S i) lteS ⦄)
   inter = {!!}
+
+  sk (S n) = shape (S n) n (binom (S (S n)) (S n))
+                   ⦃ ltS ⦄ ⦃ O<S n ⦄ ⦃ binom>O (S (S n)) (S n) (lteS {S n}) ⦄
 
   -- CHOICES below
   shape (S b) O (S O) =
     el (coerce ⦃ fillO-coercion {O} {O≤ O} ⦄ (A O (O≤ O)))
 
   shape (S b) O (S (S t)) =
-    shape (S b) O (S t) ⦃ O≤ (S b) ⦄ ⦃ O<S b ⦄ ̂×
+    shape (S b) O (S t) ⦃ O<S b ⦄ ⦃ O<S b ⦄ ̂×
     el (coerce ⦃ fillO-coercion {O} {O≤ O} ⦄ (A O (O≤ O)))
 
-  shape (S b) (S h) (S O) ⦃ Sh≤Sb ⦄ =
+  shape (S b) (S h) (S O) ⦃ Sh<Sb ⦄ =
     ̂Σ (shape (S b) h (binom (S (S b)) (S h))
-             ⦃ inr (decr-S≤ Sh≤Sb) ⦄
+             ⦃ decr-S< Sh<Sb ⦄
              ⦃ O<S b ⦄
-             ⦃ binom>O (S (S b)) (S h) (lteSR Sh≤Sb) ⦄ [ p ])
-      (coerce ⦃ {!!} ⦄ (
-        coerce ⦃ fillS-coercion {h} {S (S h)} ⦃ lteS ⦄ ⦄ (A (S h) {S (S h)} lteS)
-          ` ({! inter (S b) h (binom (S (S b)) (S h))
-                   ⦃ {!!} ⦄
-                   ⦃ {!!} ⦄
-                   ⦃ {!!} ⦄
-                   {!ν!}
-                   {h}
-                   ⦃ {!!} ⦄
-                   {!f!} !} [ p ]ₜ [ p ]ₜ)))
+             ⦃ binom>O (S (S b)) (S h) {!!} ⦄ [ p ]
+      )
+      (coerce ⦃ {!!} ⦄
+        ( (coerce ⦃ fillS-coercion {h} {S (S h)} ⦃ lteS ⦄ ⦄ (A (S h) {S (S h)} lteS))
+        ` (inter (S b) h (binom (S (S b)) (S h))
+                 ⦃ decr-S< Sh<Sb ⦄ ⦃ O<S b ⦄ ⦃ binom>O (S (S b)) (S h) {!!} ⦄
+                 ν
+                 h ⦃ inl idp ⦄
+                 (num→face O (S h) (S b)
+                   ⦃ Sh<Sb ⦄
+                   ⦃ binom>O (S (S b)) (S (S h)) {!!} ⦄) [ p ]ₜ [ p ]ₜ
+          )
+        )
+      )
 
   shape (S b) (S h) (S (S t)) = {!!}
-
-  sk (S n) = shape (S n) n (binom (S (S n)) (S n))
-                   ⦃ lteS {n} ⦄ ⦃ O<S n ⦄ ⦃ binom>O (S (S n)) (S n) (lteS {S n}) ⦄

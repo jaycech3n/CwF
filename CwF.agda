@@ -16,16 +16,21 @@ These may be broken as necessary. ---}
 
 module CwF where
 
-open import Category renaming
+open import Arith public
+
+open import Category
+  renaming
   ( [_] to ∥_∥
-  ; wild-of-strict to s→w-cat
-  ) public
+  ; wild-of-strict to s→w-cat )
+  public
 
 {- Basic CwF structures -}
 record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
-  open WildCategory C renaming
+  open WildCategory C
+    renaming
     ( Ob to Con
-    ; Hom to Sub ) public
+    ; Hom to Sub )
+    public
 
   field
     ◆ : Con
