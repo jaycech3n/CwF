@@ -17,14 +17,13 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   open UStructure uStr
 
 
-  {-- Formalizing semisemiplicial types --
+  {- Formalizing semisemiplicial types -
 
   We represent a semisimplicial type by a context of fillers: SST n is the
   context (A₀ : U, A₁ : Aₒ × A₀ → U, ..., Aₙ : ... → U). The formalization is
   better with an additional SST₋ (where SST₋ n = SST (n-1)) to conveniently
   refer to constructions that live in an earlier iteration of SST. We also use
-  sk, the codimension-1 skeleton of Δⁿ (more on this below).
-  -}
+  sk, the codimension-1 skeleton of Δⁿ (more on this below). -}
 
   SST  : ℕ → Con
   SST₋ : ℕ → Con
@@ -49,7 +48,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   fill (S i) {O}   (inr ())
   fill   O   {S n} _ = fill O {n} (O≤ n) [ p ] -- CHOICE
   fill (S i) {S n} (inl Si=Sn) = (sk (S n) ̂→ U) [ p ]
-  fill (S i) {S n} (inr Si<Sn) = fill (S i) {n} (decr-<S Si<Sn) [ p ] -- CHOICE
+  fill (S i) {S n} (inr Si<Sn) = fill (S i) {n} (<S-≤ Si<Sn) [ p ] -- CHOICE
 
   -- i-fillers, in context SST n
   A : ∀ (i : ℕ) {n} (i≤n : i ≤ n) → Tm (fill i i≤n)
@@ -58,7 +57,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   A (S i) {O}   (inr ())
   A   O   {S n} _ = A O {n} (O≤ n) [ p ]ₜ -- CHOICE
   A (S i) {S n} (inl Si=Sn) = ν
-  A (S i) {S n} (inr Si<Sn) = A (S i) {n} (decr-<S Si<Sn) [ p ]ₜ -- CHOICE
+  A (S i) {S n} (inr Si<Sn) = A (S i) {n} (<S-≤ Si<Sn) [ p ]ₜ -- CHOICE
 
   -- To actually use the fillers (as U and functions to be applied) they have to
   -- be transported along equalities fillO=U and fillS=Pi, defined in the
@@ -74,20 +73,20 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
     σ i O (inl ())
     σ i O (inr () )
     σ i (S n) (inl _) = sk (S n) [ p ]
-    σ i (S n) (inr Si<Sn) = σ i n (decr-<S Si<Sn) [ p ] -- CHOICE
+    σ i (S n) (inr Si<Sn) = σ i n (<S-≤ Si<Sn) [ p ] -- CHOICE
 
     τ : (i n : ℕ) (Si≤n : S i ≤ n) → Ty (SST n)
     τ i O (inl ())
     τ i O (inr ())
     τ i (S n) (inl _) = U [ p ]
-    τ i (S n) (inr Si<Sn) = τ i n (decr-<S Si<Sn) [ p ] -- CHOICE
+    τ i (S n) (inr Si<Sn) = τ i n (<S-≤ Si<Sn) [ p ] -- CHOICE
 
     τ=U : ∀ {i n} (Si≤n : S i ≤ n) → τ i n Si≤n == U
     τ=U {i} {O} (inl ())
     τ=U {i} {O} (inr ())
     τ=U {i} {S n} (inl _) = U-[]
     τ=U {i} {S n} (inr x) =
-      (τ=U {i} {n} (decr-<S x) |in-ctx _[ p ]) ∙ U-[] -- CHOICE
+      (τ=U {i} {n} (<S-≤ x) |in-ctx _[ p ]) ∙ U-[] -- CHOICE
 
     fillS=Pi' : (i n : ℕ) (Si≤n : S i ≤ n)
               → fill (S i) Si≤n == (σ i n Si≤n ̂→ τ i n Si≤n) :> Ty (SST n)
@@ -97,7 +96,7 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
     fillS=Pi' i (S O) (inr (ltSR ()))
     fillS=Pi' i (S (S .i)) (inr ltS) = (̂→-[] |in-ctx _[ p ]) ∙ ̂→-[]
     fillS=Pi' i (S (S n)) (inr (ltSR x)) =
-      (fillS=Pi' i n (decr-<S x) |in-ctx (λ ◻ → ◻ [ p ] [ p ])) -- CHOICE
+      (fillS=Pi' i n (<S-≤ x) |in-ctx (λ ◻ → ◻ [ p ] [ p ])) -- CHOICE
       ∙ (̂→-[] |in-ctx _[ p ])
       ∙ ̂→-[]
 
@@ -109,12 +108,12 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
     -- Coercions
     instance
       fillO-coercion : ∀ {n} {O≤n : O ≤ n}
-                     → Coerceable (Tm (fill O O≤n)) (Tm U)
+                     → Coerce (Tm (fill O O≤n)) (Tm U)
       coerce ⦃ fillO-coercion {n} {O≤n} ⦄ = tr Tm (fillO=U n {O≤n})
 
     instance
       fillS-coercion : ∀ {i n} ⦃ Si≤n : S i ≤ n ⦄
-                     → Coerceable (Tm (fill (S i) Si≤n))
+                     → Coerce (Tm (fill (S i) Si≤n))
                                   (Tm (σ i n Si≤n ̂→ U))
       coerce ⦃ fillS-coercion {i} {n} ⦃ Si≤n ⦄ ⦄ = tr Tm (fillS=Pi i n Si≤n)
 
@@ -139,11 +138,11 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   num→face : (i k n : ℕ) ⦃ k<n : k < n ⦄ ⦃ i<binom : i < binom (S n) (S k) ⦄
                  → face k n
   num→face i O n ⦃ i<binom = i<binom ⦄ =
-    _:[_] i n ⦃ decr-<S (tr (i <_) (binom-n-1 (S n)) i<binom) ⦄ -- CHOICE
+    _:[_] i n ⦃ <S-≤ (tr (i <_) (binom-n-1 (S n)) i<binom) ⦄ -- CHOICE
   num→face i (S k) n = {!!}
 
 
-  {- Skeleton of Δⁿ and shape of the (b,h,t)-sieve
+  {- Skeleton of Δⁿ and shape of the (b,h,t)-sieve -
 
   The major difficulty is in formulating the definition of sk as an internal
   Σ-type. We use the approach outlined in Sieves.agda to define shapes indexed
@@ -166,14 +165,14 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   -- Attempt: simultaneously define the intersection of an element of shape
   -- (b,h,t) with an i-face f of Δᵇ.
   inter : (b h t : ℕ) ⦃ h<b : h < b ⦄ ⦃ O<b : O < b ⦄ ⦃ O<t : O < t ⦄
-          (σ : Tm (shape b h t [ p {σ = shape b h t} ]))
+          (σ : Tm (shape b h t [ p {A = shape b h t} ]))
           (i : ℕ) ⦃ i≤h : i ≤ h ⦄
           (f : face (S i) b)
         → Tm (shape (S i) i (binom (S (S i)) (S i))
                     ⦃ ltS ⦄
                     ⦃ O<S i ⦄
                     ⦃ binom>O (S (S i)) (S i) lteS ⦄)
-  inter = {!!}
+  inter b h t σ i f = {!!}
 
   sk (S n) = shape (S n) n (binom (S (S n)) (S n))
                    ⦃ ltS ⦄ ⦃ O<S n ⦄ ⦃ binom>O (S (S n)) (S n) (lteS {S n}) ⦄
@@ -188,14 +187,14 @@ module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
 
   shape (S b) (S h) (S O) ⦃ Sh<Sb ⦄ =
     ̂Σ (shape (S b) h (binom (S (S b)) (S h))
-             ⦃ decr-S< Sh<Sb ⦄
+             ⦃ S<-< Sh<Sb ⦄
              ⦃ O<S b ⦄
              ⦃ binom>O (S (S b)) (S h) (<-≤S Sh<Sb) ⦄ [ p ]
       )
       (coerce ⦃ {!!} ⦄
         ( (coerce ⦃ fillS-coercion {h} {S (S h)} ⦃ lteS ⦄ ⦄ (A (S h) {S (S h)} lteS))
         ` (inter (S b) h (binom (S (S b)) (S h))
-                 ⦃ decr-S< Sh<Sb ⦄ ⦃ O<S b ⦄ ⦃ binom>O (S (S b)) (S h) (<-≤S Sh<Sb) ⦄
+                 ⦃ S<-< Sh<Sb ⦄ ⦃ O<S b ⦄ ⦃ binom>O (S (S b)) (S h) (<-≤S Sh<Sb) ⦄
                  ν
                  h ⦃ inl idp ⦄
                  (num→face O (S h) (S b)
