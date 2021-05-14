@@ -1,21 +1,17 @@
 {-# OPTIONS --without-K #-}
 
-{--- Categories in HoTT ---
-
-This development differs from the
-[agda-categories](https://github.com/agda/agda-categories) library
-in that we don't use setoids. Instead we directly use propositional equality,
-and either truncate or impose higher coherences as needed. ---}
+{--- Categories in HoTT ---}
 
 module Category where
 
 open import Prelude public
 
-{- Various flavors of category
+
+{- Various flavor of category -
 
 "Wild" constructions are those which are neither truncated nor required to be
-coherent.
--}
+coherent. -}
+
 record WildCategory {i} : Type (lsuc i) where
   infixr 40 _◦_
   field
@@ -25,24 +21,24 @@ record WildCategory {i} : Type (lsuc i) where
     id  : ∀ {x} → Hom x x
 
     ass : ∀ {x y z w} {f : Hom z w} {g : Hom y z} {h : Hom x y}
-        → (f ◦ g) ◦ h == f ◦ (g ◦ h)
+          → (f ◦ g) ◦ h == f ◦ (g ◦ h)
     idl : ∀ {x y} {f : Hom x y} → id ◦ f == f
     idr : ∀ {x y} {f : Hom x y} → f ◦ id == f
 
 record PreCategory {i} : Type (lsuc i) where
-  field {{C}} : WildCategory {i}
+  field ⦃ C ⦄ : WildCategory {i}
   open WildCategory C public
   field
     Hom-is-set : ∀ {x y} → is-set (Hom x y)
 
 record StrictCategory {i} : Type (lsuc i) where
-  field {{C}} : PreCategory {i}
+  field ⦃ C ⦄ : PreCategory {i}
   open PreCategory C hiding (C) public
   field
     Ob-is-set  : is-set Ob
 
--- We need the notion of isomorphism in order to define (univalent) categories.
-module _ {i} {{C : WildCategory {i}}} where
+-- Isomorphism
+module _ {i} ⦃ C : WildCategory {i} ⦄ where
   open WildCategory C
 
   record is-iso  {x y : Ob} (f : Hom x y) : Type i where
@@ -58,18 +54,21 @@ module _ {i} {{C : WildCategory {i}}} where
       f-is-iso : is-iso f
 
   id-to-iso : ∀ {x y} → x == y → x ≅ y
-  id-to-iso {x} {.x} idp = record
+  id-to-iso idp = record
     { f = id
     ; f-is-iso = record { g = id ; g-f = idl ; f-g = idl }
     }
 
+-- Univalent category
 record Category {i} : Type (lsuc i) where
-  field {{C}} : PreCategory {i}
+  field ⦃ C ⦄ : PreCategory {i}
   open PreCategory C hiding (C) public
   field
     id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso {i} {x} {y})
 
+
 {- Coercions -}
+
 wild-of-pre = PreCategory.C
 pre-of-strict = StrictCategory.C
 pre-of-cat = Category.C
@@ -80,8 +79,10 @@ wild-of-strict = wild-of-pre ∘ pre-of-strict
 wild-of-cat : ∀ {i} → Category {i} → WildCategory {i}
 wild-of-cat = wild-of-pre ∘ pre-of-cat
 
+
 {- Properties of objects -}
-module _ {i} {{C : WildCategory {i}}} where
+
+module _ {i} ⦃ C : WildCategory {i} ⦄ where
   open WildCategory C
 
   is-initial : (x : Ob) → Type i

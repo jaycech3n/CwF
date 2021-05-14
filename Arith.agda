@@ -1,14 +1,22 @@
 {-# OPTIONS --without-K #-}
 
 module Arith where
+
 open import Prelude
+
 
 {- (In)equalities -}
 
 -- Automatically solve inequality conditions
+{-
 instance
   solve-≤-refl : {n : ℕ} → n ≤ n
   solve-≤-refl = lteE
+
+instance
+  solve-n<S : {n : ℕ} → n < S n
+  solve-n<S = ltS
+-}
 
 instance
   solve-O≤ : {n : ℕ} → O ≤ n
@@ -17,10 +25,6 @@ instance
 instance
   solve-O<S : {n : ℕ} → O < S n
   solve-O<S {n} = O<S n
-
-instance
-  solve-n<S : {n : ℕ} → n < S n
-  solve-n<S = ltS
 
 instance
   solve-S<S : {m n : ℕ} ⦃ h : m < n ⦄ → S m < S n
@@ -34,19 +38,20 @@ module _ {m n : ℕ} where
   =-cancel-S : _==_ {A = ℕ} (S m) (S n) → m == n
   =-cancel-S idp = idp
 
-  decr-<S : m < S n → m ≤ n
-  decr-<S ltS = inl idp
-  decr-<S (ltSR x) = inr x
+  <S-≤ : m < S n → m ≤ n
+  <S-≤ ltS = inl idp
+  <S-≤ (ltSR x) = inr x
 
-  decr-S< : S m < S n → m < S n
-  decr-S< Sm<Sn = <-trans ltS Sm<Sn
+  S<-< : S m < n → m < n
+  S<-< Sm<n = <-trans ltS Sm<n
 
-  decr-S≤ : S m ≤ n → m < n
-  decr-S≤ (inl x) = tr (_ <_) x ltS
-  decr-S≤ (inr x) = <-trans ltS x
+  S≤-< : S m ≤ n → m < n
+  S≤-< (inl x) = tr (_ <_) x ltS
+  S≤-< (inr x) = <-trans ltS x
 
-  <-≤S : m < n → m ≤ S n
-  <-≤S x = inr (ltSR x)
+  <-S≤ : m < n → S m ≤ n
+  <-S≤ ltS = inl idp
+  <-S≤ (ltSR x) = inr (<-ap-S x)
 
 O<+ : {m n : ℕ} → O < m → O < m + n
 O<+ {S m} {n} x = O<S (m + n)
@@ -65,7 +70,7 @@ O<+ {S m} {n} x = O<S (m + n)
   O =∎
 
 
-{- Combinations -}
+{- Binomial coefficients -}
 
 binom : (n k : ℕ) → ℕ
 binom   O     O   = 1
@@ -111,8 +116,8 @@ binom-Sn-n (S n) =
   S n + (1 + O) =⟨ +-comm (S n) (1 + O) ⟩
   S (S n) =∎
 
-n-<-binom-Sn-n : (n : ℕ) → n < binom (S n) n
-n-<-binom-Sn-n n = tr (n <_) (! (binom-Sn-n n)) ltS
+n<binom-Sn-n : (n : ℕ) → n < binom (S n) n
+n<binom-Sn-n n = tr (n <_) (! (binom-Sn-n n)) ltS
 
 binom>O : ∀ m n → n ≤ m → O < binom m n
 binom>O O O x = ltS
@@ -121,6 +126,7 @@ binom>O (S m) O x = ltS
 binom>O (S m) (S n) x = O<+ {binom m n} {binom m (S n)} (binom>O m n (≤-cancel-S x))
 
 
+{-
 {- ℕ equality -}
 
 ℕ= : ℕ → ℕ → Bool
@@ -128,3 +134,4 @@ binom>O (S m) (S n) x = O<+ {binom m n} {binom m (S n)} (binom>O m n (≤-cancel
 ℕ= O (S n) = false
 ℕ= (S n) O = false
 ℕ= (S m) (S n) = ℕ= m n
+-}
