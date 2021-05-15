@@ -442,7 +442,12 @@ record PiStructure {i}
 
   private
     module definitions where
-      infixr 25 _̂→_
+      ̂Π' : ∀ {Γ} (A : Ty Γ) (B : Tm {Γ ∷ A} (A [ p ]) → Ty (Γ ∷ A)) → Ty Γ
+      ̂Π' A B = ̂Π A (B ν)
+
+      syntax ̂Π' A (λ x → B) = ̂Π[ x ∈ A ] B
+
+      infixr 35 _̂→_
       _̂→_ : ∀ {Γ} (A B : Ty Γ) → Ty Γ
       A ̂→ B = ̂Π A (B [ p ])
 
@@ -498,7 +503,7 @@ record SigmaStructure {i}
 
       syntax ̂Σ' A (λ x → B) = ̂Σ[ x ∈ A ] B
 
-      infixl 20 _̂×_
+      infixl 35 _̂×_
       _̂×_ : ∀ {Γ} (A B : Ty Γ) → Ty Γ
       A ̂× B = ̂Σ A (B [ p ])
 

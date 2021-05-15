@@ -28,11 +28,11 @@ instance
 
 instance
   solve-S<S : {m n : ℕ} ⦃ h : m < n ⦄ → S m < S n
-  solve-S<S ⦃ h = m<n ⦄ = <-ap-S m<n
+  solve-S<S ⦃ h ⦄ = <-ap-S h
 
 instance
   solve-S≤S : {m n : ℕ} ⦃ h : m ≤ n ⦄ → S m ≤ S n
-  solve-S≤S ⦃ h = m≤n ⦄ = ≤-ap-S m≤n
+  solve-S≤S ⦃ h ⦄ = ≤-ap-S h
 
 module _ {m n : ℕ} where
   =-cancel-S : _==_ {A = ℕ} (S m) (S n) → m == n
@@ -43,7 +43,10 @@ module _ {m n : ℕ} where
   <S-≤ (ltSR x) = inr x
 
   S<-< : S m < n → m < n
-  S<-< Sm<n = <-trans ltS Sm<n
+  S<-< h = <-trans ltS h
+
+  S<-≤ : S m < n → m ≤ n
+  S<-≤ h = inr (S<-< h)
 
   S≤-< : S m ≤ n → m < n
   S≤-< (inl x) = tr (_ <_) x ltS
