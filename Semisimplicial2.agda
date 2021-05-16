@@ -30,7 +30,7 @@ data Face : (n k : ℕ) → Type₀
 last-vertex : ∀ {n k} → Face n k → ℕ
 
 data Face where
-  face : (i : ℕ) {n : ℕ} → Face n O
+  face : {n : ℕ} (i : ℕ) → Face n O
   _,_ : ∀ {m k} (f : Face m k)
           (i : ℕ) ⦃ e : last-vertex f < i ⦄
           {n : ℕ} ⦃ e' : i ≤ n ⦄
@@ -90,7 +90,7 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
       solve-S≤-≤ {m} {n} ⦃ inl x ⦄ = tr (m ≤_) x lteS
       solve-S≤-≤ ⦃ inr x ⦄ = S<-≤ x
 
-  --{-# TERMINATING #-}
+  {-# TERMINATING #-} -- reformulate Face later to remove this
   Sk-rec .O n x (face O , S O) =
     el ((
       (tr Tm (
@@ -111,8 +111,13 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
       ` {!the (0,1)-subtuple of x!}
     ) ↑)
 
-  Sk-rec .O n x (face O , S (S j)) = Sk-rec O n x (face O , S j) ̂× {!!}
-  Sk-rec .O n x (face (S i) , j) = {!!}
+  Sk-rec .O n x (_,_ (face O) (S (S j)) ⦃ e' = SSj≤n ⦄) =
+    Sk-rec O n x (_,_ (face {n} O) (S j) ⦃ e' = S≤-≤ SSj≤n ⦄)
+    ̂× {!the (0,j+1)-subtuple of x!}
+
+  Sk-rec .0 n x ((face (S i) , S O) ⦃ ltSR () ⦄)
+  Sk-rec .0 n x ((face (S i) , S (S j)) ⦃ Si<SSj ⦄) = {!!}
+
   Sk-rec .(S _) n x ((f , i) , j) = {!!}
 
   --Sk→ = {!!}
