@@ -6,22 +6,6 @@ open import Face
 open import CwF
   hiding ( Fin )
 
--- Keeping Fin around, just in case
-data Fin : ℕ → Type₀ where
-  fz : {n : ℕ} → Fin (S n)
-  fs : {n : ℕ} → Fin n → Fin (S n)
-
-_<Fin_ : {n : ℕ} → Fin n → Fin n → Type₀
-i <Fin fz = ⊥
-fz <Fin fs _ = ⊤
-fs i <Fin fs j = i <Fin j
-
-is-increasing : {m n : ℕ} → (Fin m → Fin n) → Type₀
-is-increasing {m} f = {i j : Fin m} → i <Fin j → f i <Fin f j
-
-_→+_ : ℕ → ℕ → Type₀
-m →+ n = Σ (Fin m → Fin n) is-increasing
-
 
 {- Semisimplicial types -}
 
@@ -37,11 +21,13 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
 
   SST  : (n : ℕ) → WFCon (S n)
   Sk   : (k n : ℕ) ⦃ k<n : k < n ⦄ → Ty (to-Con (SST k))
-  --Sk→  : (k : ℕ) {m n : ℕ} → m →+ n → Tm (Sk k n) → Tm (Sk k m)
+  Sk→  : (k : ℕ) {m n : ℕ} ⦃ eₘ : k < m ⦄ ⦃ eₙ : k < n ⦄
+         {i : ℕ} → Face n m i → Tm (Sk k n) → Tm (Sk k m)
 
   SST O = ◆₊ ∷₊ U
   SST (S k) = SST k ∷₊ Sk k (S k) ⦃ ltS ⦄ ̂→ U
 
+  -- This is the `Π(f : Δ₊(k+1, n)). Y(SK→(f, x))` part of SK in ACK '16.
   Sk-rec : (k n : ℕ) ⦃ k<n : k < n ⦄
            (x : Tm {to-Con (SST (S k) ∷₊ Sk k n [ p ])} (Sk k n [ p ] [ p ]))
            {i : ℕ} (f : Face n (S k) i)
@@ -62,7 +48,11 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
   have a ̂Σ in place of ACK's Π. This is to be constructed by recursion over the
   faces, externally. -}
 
-  Sk-rec .O n ⦃ O<n ⦄ x (ext (vtx i)) =
+  Sk-rec O n x (ext vtx) = {!!}
+  Sk-rec O n x (nxt f) = {!!}
+  Sk-rec O n x (ext (nxt f)) = {!!}
+  Sk-rec (S k) n x f = {!!}
+{-
     el ((
       (tr Tm (
           ((el (tr Tm U-[] ν) ̂× el (tr Tm U-[] ν)) ̂→ U) [ p ] [ p ]
@@ -81,8 +71,6 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
       )
       ` {!the (i, i+1)-subtuple of x!}
     ) ↑)
-  Sk-rec .(S _) n x (ext (ext f)) = {!!}
-  Sk-rec k n x (ext (nxt f)) = {!!}
-  Sk-rec k n x (nxt f) = {!!}
+-}
 
-  --Sk→ = {!!}
+  Sk→ = {!!}
