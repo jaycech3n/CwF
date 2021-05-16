@@ -2,7 +2,7 @@
 
 module Arith where
 
-open import Prelude
+open import Prelude public
 
 
 {- (In)equalities -}
@@ -44,6 +44,9 @@ module _ {m n : ℕ} where
 
   S<-< : S m < n → m < n
   S<-< h = <-trans ltS h
+
+  S≤-≤ : S m ≤ n → m ≤ n
+  S≤-≤ h = ≤-trans lteS h
 
   S<-≤ : S m < n → m ≤ n
   S<-≤ h = inr (S<-< h)

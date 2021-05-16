@@ -8,7 +8,8 @@ open import HoTT
   ; transport   to tr
   ; transp-∙    to tr-∙
   ; to-transp   to to-tr
-  ; from-transp to from-tr )
+  ; from-transp to from-tr
+  ; [_] to ∥_∥ )
   public
 
 private

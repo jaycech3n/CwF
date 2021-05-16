@@ -18,8 +18,6 @@ module CwF where
 
 open import Arith public
 open import Category
-  renaming
-  ( [_] to ∥_∥ )
   hiding
   ( wild-of-strict )
   public
