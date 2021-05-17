@@ -69,9 +69,9 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
     ) ↑)
 
   {- This next hole should be ((Sk-rec f) ̂× (a filler of the subtuple of x
-  indexed by (nxt f))). (Terminology: given a semisimplicial type (A₀, ...), a
-  *filler for k-faces* is a function F : Aₖ. A *filler of a particular
-  (concrete) k-face f* is an element of F(f).) -}
+  indexed by (nxt f))). (Recall terminology: given a semisimplicial type (A₀,
+  ...), Aₖ is the type of k-fillers, i.e. fillers of k-faces, i.e. a filler of a
+  k-face f is an element of Aₖ(f). -}
   Sk-rec O n x {i = S i} (nxt f) =
     {!!}
 
