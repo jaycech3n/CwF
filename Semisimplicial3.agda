@@ -48,11 +48,7 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
   have a ̂Σ in place of ACK's Π. This is to be constructed by recursion over the
   faces, externally. -}
 
-  Sk-rec O n x (ext vtx) = {!!}
-  Sk-rec O n x (nxt f) = {!!}
-  Sk-rec O n x (ext (nxt f)) = {!!}
-  Sk-rec (S k) n x f = {!!}
-{-
+  Sk-rec O n ⦃ O<n ⦄ x (ext vtx) = -- Base case; fill the [0,1]-face
     el ((
       (tr Tm (
           ((el (tr Tm U-[] ν) ̂× el (tr Tm U-[] ν)) ̂→ U) [ p ] [ p ]
@@ -69,8 +65,25 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
           =∎)
           (υ (SST O ∷₊ Sk O 1 ⦃ ltS ⦄ ̂→ U ∷₊ Sk O n ⦃ O<n ⦄ [ p ]) 1)
       )
-      ` {!the (i, i+1)-subtuple of x!}
+      ` {!the (0,1)-subtuple of x!}
     ) ↑)
--}
+
+  {- This next hole should be ((Sk-rec f) ̂× (a filler of the subtuple of x
+  indexed by (nxt f))). (Terminology: given a semisimplicial type (A₀, ...), a
+  *filler for k-faces* is a function F : Aₖ. A *filler of a particular
+  (concrete) k-face f* is an element of F(f).) -}
+  Sk-rec O n x {i = S i} (nxt f) =
+    {!!}
+
+  {- Here f = [i,] is a single vertex, and we want ((Sk-rec [i,n]) ̂× (a filler
+  of the subtuple of x indexed by (ext (nxt f)). -}
+  Sk-rec O n x {i = S (S i)} (ext (nxt f)) =
+    {!!}
+
+  -- ((Sk-rec f) ̂× (a filler of the subtuple of x indexed by (nxt f)))
+  Sk-rec (S k) n x (nxt f) = {!!}
+
+  Sk-rec (S k) n x (ext (nxt f)) = {!!}
+  Sk-rec (S k) n x (ext (ext f)) = {!!}
 
   Sk→ = {!!}
