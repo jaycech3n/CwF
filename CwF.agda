@@ -392,6 +392,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
   open definitions public
 
+
 record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
   field ⦃ W ⦄ : WildCwFStructure (Category.wild-of-strict C)
 
@@ -406,18 +407,21 @@ record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
     Ty-is-set : ∀ {Γ} → is-set (Ty Γ)
     Tm-is-set : ∀ {Γ} {A : Ty Γ} → is-set (Tm A)
 
+
 {- Coercion -}
+
 wild-of-strict : ∀ {i} {C : StrictCategory {i}}
                    ⦃ T : TyTmStructure (Category.wild-of-strict C) ⦄
                  → StrictCwFStructure C
                  → WildCwFStructure (Category.wild-of-strict C)
 wild-of-strict = StrictCwFStructure.W
 
-{- Additional structure
+
+{- Additional structure -
 
 Many of the following formulations loosely follow those in *Shallow Embedding of
-Type Theory is Morally Correct* (Kaposi, Kovács, Kraus '18).
--}
+Type Theory is Morally Correct* (Kaposi, Kovács, Kraus '18). -}
+
 record PiStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
@@ -464,6 +468,7 @@ record PiStructure {i}
       f ` a = (app f) [[ a ]]ₜ
 
   open definitions public
+
 
 record SigmaStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
@@ -512,8 +517,9 @@ record SigmaStructure {i}
 
   open definitions public
 
--- "Universe" of types. This is not exactly the universe internalizing all
--- types in Γ; rather, a base type family.
+
+{- "Universe" of types. This is not the universe internalizing all types in Γ;
+rather, a base type family. -}
 record UStructure {i}
   {C : WildCategory {i}} (cwF : WildCwFStructure C) : Type (lsuc i)
   where
