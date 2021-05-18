@@ -16,7 +16,7 @@ application of the following three operations:
 
 data Face : (n k i : ℕ) → Type₀ where
   vtx : {n : ℕ} → Face n O O
-  nxt : {n k i : ℕ} (f : Face n k i) ⦃ e : i < n ⦄ → Face n k (S i)
+  nxt : {n k i : ℕ} ⦃ e : i < n ⦄ (f : Face n k i) → Face n k (S i)
   ext : {n k i : ℕ} ⦃ e : k < n ⦄ ⦃ e' : i < n ⦄
         (f : Face n k i) → Face n (S k) (S i)
 

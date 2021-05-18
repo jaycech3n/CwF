@@ -1,58 +1,10 @@
-{-# OPTIONS --without-K --termination-depth=4 #-}
+{-# OPTIONS --without-K --termination-depth=2 #-}
 
 module Semisimplicial2 where
 
+open import Face
 open import CwF
   hiding ( Fin )
-
--- Keeping Fin around, just in case
-data Fin : ℕ → Type₀ where
-  fz : {n : ℕ} → Fin (S n)
-  fs : {n : ℕ} → Fin n → Fin (S n)
-
-_<Fin_ : {n : ℕ} → Fin n → Fin n → Type₀
-i <Fin fz = ⊥
-fz <Fin fs _ = ⊤
-fs i <Fin fs j = i <Fin j
-
-is-increasing : {m n : ℕ} → (Fin m → Fin n) → Type₀
-is-increasing {m} f = {i j : Fin m} → i <Fin j → f i <Fin f j
-
-_→+_ : ℕ → ℕ → Type₀
-m →+ n = Σ (Fin m → Fin n) is-increasing
-
-{- Because we don't have Fin in the internal CwF we have to externalize the Π
-type over f : [k] →+ [n] used in the formulation of SK in ACK '16. That is, we
-have a ̂Σ in place of ACK's Π. This is to be constructed by recursion over the
-faces, externally. -}
-
-data Face : (n k : ℕ) → Type₀
-last-vertex : ∀ {n k} → Face n k → ℕ
-
-data Face where
-  face : {n : ℕ} (i : ℕ) → Face n O
-  _,_ : ∀ {m k} (f : Face m k)
-          (i : ℕ) ⦃ e : last-vertex f < i ⦄
-          {n : ℕ} ⦃ e' : i ≤ n ⦄
-        → Face n (S k)
-
-last-vertex (face i) = i
-last-vertex (f , i) = i
-
-last-face : (n k : ℕ) ⦃ k≤n : k ≤ n ⦄ → Face n k
-last-vertex-last-face : (n k : ℕ) ⦃ k≤n : k ≤ n ⦄
-                        → last-vertex (last-face n k) == n
-
-last-face n O = face n
-last-face O (S k) ⦃ inr () ⦄
-last-face (S n) (S k) ⦃ Sk≤Sn ⦄ =
-  _,_ (last-face n k ⦃ ≤-cancel-S Sk≤Sn ⦄) (S n)
-      ⦃ tr (_< S n) (! (last-vertex-last-face n k ⦃ ≤-cancel-S Sk≤Sn ⦄)) ltS ⦄
-      ⦃ lteE ⦄
-
-last-vertex-last-face n O = idp
-last-vertex-last-face O (S k) ⦃ inr () ⦄
-last-vertex-last-face (S n) (S k) = idp
 
 
 {- Semisimplicial types -}
@@ -67,31 +19,38 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
   open SigmaStructure sigmaStr
   open UStructure uStr
 
+  open import CwFTools piStr
+
   SST  : (n : ℕ) → WFCon (S n)
   Sk   : (k n : ℕ) ⦃ k<n : k < n ⦄ → Ty (to-Con (SST k))
-  --Sk→  : (k : ℕ) {m n : ℕ} → m →+ n → Tm (Sk k n) → Tm (Sk k m)
+  Sk→  : (k : ℕ) (m n : ℕ) ⦃ eₘ : k < m ⦄ ⦃ eₙ : k < n ⦄
+         {i : ℕ} → Face n m i → Tm (Sk k n) → Tm (Sk k m)
 
   SST O = ◆₊ ∷₊ U
   SST (S k) = SST k ∷₊ Sk k (S k) ⦃ ltS ⦄ ̂→ U
 
+  -- This is the `Π(f : Δ₊(k+1, n)). Y(SK→(f, x))` part of SK in ACK '16.
   Sk-rec : (k n : ℕ) ⦃ k<n : k < n ⦄
            (x : Tm {to-Con (SST (S k) ∷₊ Sk k n [ p ])} (Sk k n [ p ] [ p ]))
-           (f : Face n (S k))
+           {i : ℕ} (f : Face n (S k) i)
            → Ty (to-Con (SST (S k) ∷₊ Sk k n [ p ]))
 
   Sk O n = (el (υ (SST O) O ↑)) ˣ (S n)
   Sk (S k) n ⦃ Sk<n ⦄ = ̂Σ[ x ∈ Sk k n ⦃ S<-< Sk<n ⦄ [ p ] ]
     (Sk-rec k n ⦃ S<-< Sk<n ⦄ x (last-face n (S k) ⦃ inr Sk<n ⦄))
 
-  -- Define the iterated ̂Σ by recursion over the face map f : Face n (S k).
   private
     instance
       solve-S≤-≤ : {m n : ℕ} ⦃ h : S m ≤ n ⦄ → m ≤ n
       solve-S≤-≤ {m} {n} ⦃ inl x ⦄ = tr (m ≤_) x lteS
       solve-S≤-≤ ⦃ inr x ⦄ = S<-≤ x
 
-  {-# TERMINATING #-} -- reformulate Face later to remove this
-  Sk-rec .O n x (face O , S O) =
+  {- Because we don't have Fin in the internal CwF we have to externalize the Π
+  type over f : [k] →+ [n] used in the formulation of SK in ACK '16. That is, we
+  have a ̂Σ in place of ACK's Π. This is to be constructed by recursion over the
+  faces, externally. -}
+
+  Sk-rec O n ⦃ O<n ⦄ x (ext ⦃ e ⦄ ⦃ e' ⦄ vtx) = -- Base case; fill the [0,1]-face
     el ((
       (tr Tm (
           ((el (tr Tm U-[] ν) ̂× el (tr Tm U-[] ν)) ̂→ U) [ p ] [ p ]
@@ -106,18 +65,28 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
           (̂Π[ x ∈ (el (tr Tm U-[] ν) ̂× el (tr Tm U-[] ν)) [ p ] [ p ] ] U)
 
           =∎)
-          (υ (SST O ∷₊ Sk O 1 ⦃ ltS ⦄ ̂→ U ∷₊ Sk O n [ p ]) 1)
+          (υ (SST O ∷₊ Sk O 1 ⦃ ltS ⦄ ̂→ U ∷₊ Sk O n ⦃ O<n ⦄ [ p ]) 1)
       )
-      ` {!the (0,1)-subtuple of x!}
+      ` (wkₒ (wkₒ (Sk→ O 1 n ⦃ (O<S O) ⦄ ⦃ O<n ⦄ (ext ⦃ e ⦄ ⦃ e' ⦄ vtx))) x)
     ) ↑)
 
-  Sk-rec .O n x (_,_ (face O) (S (S j)) ⦃ e' = SSj≤n ⦄) =
-    Sk-rec O n x (_,_ (face {n} O) (S j) ⦃ e' = S≤-≤ SSj≤n ⦄)
-    ̂× {!the (0,j+1)-subtuple of x!}
+  {- This next hole should be ((Sk-rec f) ̂× (a filler of the subtuple of x
+  indexed by (nxt f))). -}
+  Sk-rec O n x {i = S i} (nxt f) =
+    {!!}
 
-  Sk-rec .0 n x ((face (S i) , S O) ⦃ ltSR () ⦄)
-  Sk-rec .0 n x ((face (S i) , S (S j)) ⦃ Si<SSj ⦄) = {!!}
+  {- Here f = [i,] is a single vertex, and we want ((Sk-rec [i,n]) ̂× (a filler
+  of the subtuple of x indexed by (ext (nxt f)). -}
+  Sk-rec O n x {i = S (S i)} (ext (nxt f)) =
+    {!!}
 
-  Sk-rec .(S _) n x ((f , i) , j) = {!!}
+  -- ((Sk-rec f) ̂× (a filler of the subtuple of x indexed by (nxt f)))
+  Sk-rec (S k) n x (nxt f) = {!!}
 
-  --Sk→ = {!!}
+  Sk-rec (S k) n x (ext (nxt f)) = {!!}
+
+  Sk-rec (S k) n x (ext (ext f)) = {!!}
+
+  Sk→ O m n (nxt f) g = {!!}
+  Sk→ O .(S _) n (ext f) g = {!!}
+  Sk→ (S k) m n f g = {!!}
