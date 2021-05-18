@@ -9,7 +9,10 @@ module CwFTools {i} {C : WildCategory {i}} {cwf : WildCwFStructure C}
 open WildCwFStructure cwf
 open PiStructure piStr
 
-wk : ∀ {Γ} {A B C D : Ty Γ}
+-- wk : Tm (A ̂→ B) → Tm (A [ p ] ̂→ B [ p ])
+
+wkₒ : ∀ {Γ} {A B C D : Ty Γ}
      → (f : Tm A → Tm B)
      → Tm (A [ p {Γ} {C} ]) → Tm (B [ p {Γ} {D} ])
-wk {Γ} {A} {B} f x = {!̂λ!}
+wkₒ {Γ} {A} {B} {C} {D} f x =
+  {!!}

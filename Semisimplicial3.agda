@@ -67,7 +67,7 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
           =∎)
           (υ (SST O ∷₊ Sk O 1 ⦃ ltS ⦄ ̂→ U ∷₊ Sk O n ⦃ O<n ⦄ [ p ]) 1)
       )
-      ` (wk (wk (Sk→ O 1 n ⦃ (O<S O) ⦄ ⦃ O<n ⦄ (ext ⦃ e ⦄ ⦃ e' ⦄ vtx))) x)
+      ` (wkₒ (wkₒ (Sk→ O 1 n ⦃ (O<S O) ⦄ ⦃ O<n ⦄ (ext ⦃ e ⦄ ⦃ e' ⦄ vtx))) x)
     ) ↑)
 
   {- This next hole should be ((Sk-rec f) ̂× (a filler of the subtuple of x
@@ -87,4 +87,6 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
 
   Sk-rec (S k) n x (ext (ext f)) = {!!}
 
-  Sk→ = {!!}
+  Sk→ O m n (nxt f) g = {!!}
+  Sk→ O .(S _) n (ext f) g = {!!}
+  Sk→ (S k) m n f g = {!!}
