@@ -546,26 +546,4 @@ record UStructure {i}
         U-coerce : ∀ {Γ Δ} {f : Sub Δ Γ} → Coerce (Tm (U [ f ])) (Tm U)
         coerce ⦃ U-coerce ⦄ = tr Tm U-[]
 
-      {- Lifted universes
-
-      Experimental! Working with universes substituted along projections.
-      -}
-      {-
-      U^ : ∀ {Γ} (n : ℕ) (Γ+ : Con+ Γ n) → Ty (to-Con Γ+)
-        -- Note to self: can potentially make Γ+ an implicit tactic argument
-        -- by solving `to-Con Γ+ = <return type>`.
-      U^ O _ = U
-      U^ (S n) (Γ+ ∷+ A) = U^ n Γ+ [ p ]
-
-      U^==U : ∀ {Γ} {n : ℕ} {Γ+ : Con+ Γ n} → U^ n Γ+ == U {to-Con Γ+}
-      U^==U {n = O} = idp
-      U^==U {n = S n} {Γ+ ∷+ A} =
-        U^ n Γ+ [ p ] =⟨ U^==U {n = n} {Γ+} |in-ctx _[ p ] ⟩
-        U [ p ] =⟨ U-[] ⟩
-        U =∎
-      -}
-      -- TODO: The point of the above definitions is to generalize e.g.:
-      example : Tm (U {◆} [ p ] [ p ]) → Tm U
-      example A = tr Tm U-[] ((tr (Tm ∘ _[ p {_ ∷ U} {A = U} ]) U-[] A))
-
   open definitions public

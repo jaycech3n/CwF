@@ -4,7 +4,6 @@ module Semisimplicial2 where
 
 open import Face
 open import CwF
-  hiding ( Fin )
 
 
 {- Semisimplicial types -}
@@ -39,11 +38,11 @@ module _ {i} (C : WildCategory {i}) (cwf : WildCwFStructure C)
   Sk (S k) n ⦃ Sk<n ⦄ = ̂Σ[ x ∈ Sk k n ⦃ S<-< Sk<n ⦄ [ p ] ]
     (Sk-rec k n ⦃ S<-< Sk<n ⦄ x (last-face n (S k) ⦃ inr Sk<n ⦄))
 
-  private
+  {-private
     instance
       solve-S≤-≤ : {m n : ℕ} ⦃ h : S m ≤ n ⦄ → m ≤ n
       solve-S≤-≤ {m} {n} ⦃ inl x ⦄ = tr (m ≤_) x lteS
-      solve-S≤-≤ ⦃ inr x ⦄ = S<-≤ x
+      solve-S≤-≤ ⦃ inr x ⦄ = S<-≤ x-}
 
   {- Because we don't have Fin in the internal CwF we have to externalize the Π
   type over f : [k] →+ [n] used in the formulation of SK in ACK '16. That is, we
