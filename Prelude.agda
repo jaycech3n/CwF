@@ -3,6 +3,7 @@
 module Prelude where
 
 open import HoTT
+  hiding ( pred )
   renaming
   ( lsucc       to lsuc
   ; transport   to tr
