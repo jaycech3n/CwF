@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --without-K #-}
 
 module Face2 where
 
@@ -65,12 +65,22 @@ private
 
 
 -- (Co)lexicographically last k-face of Δⁿ ending in i
--- last-face : ...
+--last-face : ∀ {n} (k i : ℕ) → Σ Bool (λ h → Face {h} {z}
 
 -- Colexicographic predecessor (of length k)
-prev-face : ∀ {z} (n k : ℕ)
-            → Face {has-prev = true} {z} n k
-            → Σ Bool (λ has-prev → Σ ℕ (λ y → Face {has-prev} {y} n k))
+prev-face :
+  ∀ {z} (n k : ℕ)
+  → Face {has-prev = true} {z} n k
+  → Σ Bool (λ has-prev → Σ ℕ (λ y → Face {has-prev} {y} n k))
+fst-snd-prev-face :
+  ∀ {h} {z n k} (i : ℕ) (f : Face {h} {z} n k)
+    ⦃ e : i ≤ n ⦄ ⦃ e' : z < i ⦄
+  → fst (snd (prev-face n (S k) (ext i f))) ≤ i
+
 prev-face n .(S _) (ext (S i) (ff _)) = {!!}
-prev-face n .(S (S _)) (ext j (ext i x)) = _ , _ ,
-  ext j ⦃ e' = {!!} ⦄ (snd (snd (prev-face _ _ (ext i x))))
+prev-face n .(S (S _)) (ext j ⦃ e' = e'' ⦄ (ext i ⦃ e ⦄ ⦃ e' ⦄ f)) = _ , _ ,
+  ext j ⦃ e' = ≤-<-< (fst-snd-prev-face i f ⦃ e ⦄ ⦃ e' ⦄) e'' ⦄
+      (snd (snd (prev-face _ _ (ext i f))))
+
+fst-snd-prev-face {.false} {z} {n} {.z} i (ff .z) ⦃ e ⦄ ⦃ e' ⦄ = {!!}
+fst-snd-prev-face {.true} {z} {n} {.(S _)} i (ext .z f) ⦃ e ⦄ ⦃ e' ⦄ = {!!}
