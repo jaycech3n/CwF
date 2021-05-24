@@ -1,4 +1,4 @@
 depend: hott-core
 include:
   .
-  core
+  ../core

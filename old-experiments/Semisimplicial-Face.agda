@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K --termination-depth=2 #-}
 
-module Semisimplicial2 where
+module Semisimplicial-Face where
 
 open import Face
 open import CwF

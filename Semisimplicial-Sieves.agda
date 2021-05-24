@@ -2,7 +2,7 @@
 
 {--- Semisimplicial types in internal CwFs ---}
 
-module Semisimplicial where
+module Semisimplicial-Sieves where
 
 open import CwF
 open import Sieves
