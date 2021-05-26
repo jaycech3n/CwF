@@ -189,3 +189,30 @@ Sk (3,1,3) 3.
 module Sieves where
 
 open import Prelude
+open import Arith
+open import lib.types.Fin
+
+
+-- would want to work with this, but termination issues
+-- https://github.com/agda/agda/issues/995
+record Sieve' : Set where
+  field
+    b : ℕ -- base
+    h : ℕ -- height
+    t : ℕ -- top
+    h≤b : h ≤ b
+    t≤binom : {!!}
+
+-- maybe this will termination check more often:
+Sieve = ℕ × ℕ × ℕ
+-- (but most likely still not often enough)
+
+{-
+_∩_ : Sieve → {k n : ℕ} → (Fin (S k))
+_∩_ = {!!}
+-}
+
+
+
+[_,_,_]∩_ : (b h t : ℕ) → {k : ℕ} → (Fin k → Fin b) → ℕ × ℕ × ℕ
+[_,_,_]∩_ b h t {k} f = {!!}
