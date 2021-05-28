@@ -191,6 +191,18 @@ module Sieves where
 open import Prelude
 open import Arith
 open import lib.types.Fin
+open import lib.types.Nat
+open import HoTT
+
+
+is-left? : ∀ {i j} → {A : Set i} → {B : Set j} → A ⊔ B → Bool
+is-left? (inl _) = true
+is-left? (inr _) = false
+
+-- increasing functions
+_→⁺_ : ℕ → ℕ → Set
+m →⁺ n = Σ (Fin m → Fin n)
+           λ f → (i j : Fin m) → (fst i < fst j) → fst (f i) < fst (f j)
 
 
 -- would want to work with this, but termination issues
@@ -201,7 +213,7 @@ record Sieve' : Set where
     h : ℕ -- height
     t : ℕ -- top
     h≤b : h ≤ b
-    t≤binom : {!!}
+    t≤binom : t ≤ binom b (S h)
 
 -- maybe this will termination check more often:
 Sieve = ℕ × ℕ × ℕ
@@ -213,6 +225,50 @@ _∩_ = {!!}
 -}
 
 
+normalise : ℕ × ℕ × ℕ → ℕ × ℕ × ℕ
+normalise (b , O , t) = (b , O , t)
+normalise (b , S h , O) = (b , h , binom b (S h))
+normalise (b , S h , S t) = (b , S h , S t)
+-- for other direction of normalisation: use ℕ-has-dec-eq
 
-[_,_,_]∩_ : (b h t : ℕ) → {k : ℕ} → (Fin k → Fin b) → ℕ × ℕ × ℕ
-[_,_,_]∩_ b h t {k} f = {!!}
+-- # switching between natural numbers and increasing functions.
+-- the "increasing" is implicit here.
+
+decode : ∀ {b h} → ℕ → (S h) →⁺ b
+decode = {!!}
+
+encode : ∀ {b h} → ((S h) →⁺ b) → ℕ
+encode = {!!}
+
+-- check whether the image of one function is contained in the image of another:
+_⊆?_ : ∀ {m n b} → (m →⁺ b) → (n →⁺ b) → Bool
+_⊆?_ = {!!}
+-- formulate above as a decidable property instead.
+
+
+-- Note: we don't require the inequalities here:
+
+[_,_,_]∩_ : (b h t : ℕ) → {k : ℕ} → (k →⁺ b) → ℕ × ℕ × ℕ
+
+[_,_,_]∩_ b O O {k} f = k , 0 , 0
+[ b , S h , O ]∩ f = [ b , h , binom b (S h) ]∩ f -- but maybe it's better to ALWAYS return the one with S h ?
+[ b , h , S t ]∩ f =
+  let
+    add-new? : Bool
+    add-new? = (decode {b} {S h} t) ⊆? f
+    (b' , h' , t') = [ b , h , t ]∩ f
+    t'-max? : Coprod (t' == binom b (S h')) (¬ (t' == binom b (S h')))
+    t'-max? = ℕ-has-dec-eq t' (binom b (S h'))
+  in
+    if
+      add-new?
+    then
+      if
+        is-left? t'-max?
+       then
+         (b' , S h' , 1)
+       else
+         (b' , h' , S t')
+    else
+      (b' , h' , t')
+
