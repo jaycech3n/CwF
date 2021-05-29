@@ -246,7 +246,7 @@ decode∘encode : ∀ {k m} (f : k →⁺ m) → decode (encode f) == f
 decode∘encode = {!!}
 
 -- Pretty sure that this is needed:
-encode∘decode : ∀ {k m} (t : Fin (binom m k)) → encode (decode t) == t
+encode∘decode : ∀ {k m} (t : Fin (binom m k)) → encode {m = m} (decode t) == t
 encode∘decode = {!!}
 
 -- Note: decode∘encode needs funext. But this is actually weird, semisimplicial types shouldn't depend on funext.
