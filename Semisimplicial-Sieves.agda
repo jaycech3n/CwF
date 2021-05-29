@@ -5,7 +5,7 @@
 module Semisimplicial-Sieves where
 
 open import CwF
-open import Sieves
+-- open import bht.Sieves
 
 module _ {i} (C : WildCategory {i}) (cwF : WildCwFStructure C)
   (piStr : PiStructure cwF) (sigmaStr : SigmaStructure cwF)
