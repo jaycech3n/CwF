@@ -190,14 +190,16 @@ module Sieves where
 
 open import Prelude
 open import Arith
+open import HoTT
 open import lib.types.Fin
 open import lib.types.Nat
-open import HoTT
+open import lib.types.Coproduct
 
-
+{- avoid this hack
 is-left? : ∀ {i j} → {A : Set i} → {B : Set j} → A ⊔ B → Bool
 is-left? (inl _) = true
 is-left? (inr _) = false
+-}
 
 -- increasing functions
 _→⁺_ : ℕ → ℕ → Set
@@ -207,6 +209,7 @@ m →⁺ n = Σ (Fin m → Fin n)
 
 -- would want to work with this, but termination issues
 -- https://github.com/agda/agda/issues/995
+{-
 record Sieve' : Set where
   field
     b : ℕ -- base
@@ -218,57 +221,98 @@ record Sieve' : Set where
 -- maybe this will termination check more often:
 Sieve = ℕ × ℕ × ℕ
 -- (but most likely still not often enough)
-
-{-
-_∩_ : Sieve → {k n : ℕ} → (Fin (S k))
-_∩_ = {!!}
 -}
 
+isSieve : ℕ × ℕ × ℕ → Set
+isSieve (b , h , t) = (h ≤ b) × (t ≤ binom b (S h))
 
+Sieve = Σ (ℕ × ℕ × ℕ) isSieve
+
+get-b get-h get-t : Sieve → ℕ
+get-b ((b , h , t) , p) = b
+get-h ((b , h , t) , p) = h
+get-t ((b , h , t) , p) = t
+
+-- normalise "down". todo: formulate for Sieves.
 normalise : ℕ × ℕ × ℕ → ℕ × ℕ × ℕ
 normalise (b , O , t) = (b , O , t)
 normalise (b , S h , O) = (b , h , binom b (S h))
 normalise (b , S h , S t) = (b , S h , S t)
--- for other direction of normalisation: use ℕ-has-dec-eq
+
+-- we can also "normalise up" by using use ℕ-has-dec-eq.
+-- Not sure whether we need it though (probably we do).
+
 
 -- # switching between natural numbers and increasing functions.
--- the "increasing" is implicit here.
 
-decode : ∀ {b h} → ℕ → (S h) →⁺ b
+decode : ∀ {k m} → Fin (binom m k) → k →⁺ m
 decode = {!!}
 
-encode : ∀ {b h} → ((S h) →⁺ b) → ℕ
+encode : ∀ {k m} → (k →⁺ m) → Fin (binom m k)
 encode = {!!}
 
--- check whether the image of one function is contained in the image of another:
-_⊆?_ : ∀ {m n b} → (m →⁺ b) → (n →⁺ b) → Bool
-_⊆?_ = {!!}
--- formulate above as a decidable property instead.
+-- The functions above should be inverses. We'll probably need that at some point. Can also state as a single equivalence.
 
 
--- Note: we don't require the inequalities here:
+module _ {m n b : ℕ} (g : m →⁺ b) (f : n →⁺ b) where
 
-[_,_,_]∩_ : (b h t : ℕ) → {k : ℕ} → (k →⁺ b) → ℕ × ℕ × ℕ
+  -- Is the image of g contained in the image of f?
+  _⊆₊_ : Set
+  _⊆₊_ = (i : Fin m) → Σ (Fin n) λ j → (fst g i) == (fst f j)
 
-[_,_,_]∩_ b O O {k} f = k , 0 , 0
-[ b , S h , O ]∩ f = [ b , h , binom b (S h) ]∩ f -- but maybe it's better to ALWAYS return the one with S h ?
-[ b , h , S t ]∩ f =
+  -- This property is decidable:
+  _⊆₊?_ : Dec _⊆₊_
+  _⊆₊?_ = {!!}
+
+
+-- Adding a single component to a sieve. In most cases, this just increases `t` by one.
+add-component : Sieve → Sieve
+add-component ((b , h , t) , p) = --  {!!}
   let
-    add-new? : Bool
-    add-new? = (decode {b} {S h} t) ⊆? f
-    (b' , h' , t') = [ b , h , t ]∩ f
-    t'-max? : Coprod (t' == binom b (S h')) (¬ (t' == binom b (S h')))
-    t'-max? = ℕ-has-dec-eq t' (binom b (S h'))
+    t-max? : Dec (t == binom b (S h))
+    t-max? = ℕ-has-dec-eq t (binom b (S h))
+    h-max? : Dec (h == b)
+    h-max? = ℕ-has-dec-eq h b
   in
-    if
-      add-new?
-    then
-      if
-        is-left? t'-max?
-       then
-         (b' , S h' , 1)
-       else
-         (b' , h' , S t')
-    else
-      (b' , h' , t')
+    Coprod-rec
+      (λ  t-max → Coprod-rec
+                    (λ  h-max → (b , h , t) , p) -- weird case: the sieve is already full. Don't add anything.
+                    (λ ¬h-max → (b , S h , 1) , ({!use (fst p) and ¬h-max!} , {!!}))
+                    h-max?)
+      (λ ¬t-max → (b , h , S t) , (fst p , {!use (snd p) and ¬t-max!}))
+      t-max?
 
+
+-- making all arguments explicit (makes the definition a bit nicer, but probably not the usage):
+
+[_,_,_,_]∩[_,_] : (b h t : ℕ) → (isSieve (b , h , t)) → (k : ℕ) → (k →⁺ b) → Sieve
+
+[ _ ,   O ,   O , _ ]∩[ k , f ] = (k , O , O) , {!!}
+[ b , S h ,   O , p ]∩[ k , f ] = [ b , h , binom b (S h) , ({!fst p!} , inl idp) ]∩[ {!!} , f ]
+[ b ,   h , S t , p ]∩[ k , f ] =
+  let
+    last-component : S h →⁺ b
+    last-component = decode {S h} {b} (t , {!snd p!}) -- note: t, not S t.
+    sieve-without-last : Sieve
+    sieve-without-last = [ b , h , t , (fst p , {!snd p!}) ]∩[ k , f ]
+    add-new? : Dec (last-component ⊆₊ f)
+    add-new? = last-component ⊆₊? f
+  in
+     Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
+       (λ  last⊆₊f → add-component sieve-without-last)
+       (λ ¬last⊆₊f → sieve-without-last)
+       add-new?
+
+{- Lemma: If we have a big enough (but not too big!) bht-sieve and intersect it
+   with a small enough representable sieve, we get a "matching object" (i.e. a
+   "tetrahedron with a single component missing").
+   Concretely:
+   Given a sieve (b,h,t,_) and f : S h →⁺ b
+   such that f is not part of (b , h , t , _), then
+   (b,h,t) ∩ f == (h+1,h,0).
+-}
+
+∩-gives-matching : (((b , h , t) , p) : Sieve) (f : S h →⁺ b) → t ≤ S (fst (encode f)) →
+  [ b , h , t , p ]∩[ S h , f ] == (S h , h , O) , (lteS , O≤ _)
+
+∩-gives-matching = {!!} -- difficult but very important
