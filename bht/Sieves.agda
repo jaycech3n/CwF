@@ -186,7 +186,7 @@ Sk (3,1,3) 3.
 
 ---}
 
-module Sieves where
+module bht.Sieves where
 
 open import Prelude
 open import Arith
@@ -194,12 +194,6 @@ open import HoTT
 open import lib.types.Fin
 open import lib.types.Nat
 open import lib.types.Coproduct
-
-{- avoid this hack
-is-left? : ∀ {i j} → {A : Set i} → {B : Set j} → A ⊔ B → Bool
-is-left? (inl _) = true
-is-left? (inr _) = false
--}
 
 -- increasing functions
 _→⁺_ : ℕ → ℕ → Set
@@ -217,10 +211,6 @@ record Sieve' : Set where
     t : ℕ -- top
     h≤b : h ≤ b
     t≤binom : t ≤ binom b (S h)
-
--- maybe this will termination check more often:
-Sieve = ℕ × ℕ × ℕ
--- (but most likely still not often enough)
 -}
 
 isSieve : ℕ × ℕ × ℕ → Set
@@ -251,8 +241,16 @@ decode = {!!}
 encode : ∀ {k m} → (k →⁺ m) → Fin (binom m k)
 encode = {!!}
 
--- The functions above should be inverses. We'll probably need that at some point. Can also state as a single equivalence.
+-- Probably not needed:
+decode∘encode : ∀ {k m} (f : k →⁺ m) → decode (encode f) == f
+decode∘encode = {!!}
 
+-- Pretty sure that this is needed:
+encode∘decode : ∀ {k m} (t : Fin (binom m k)) → encode (decode t) == t
+encode∘decode = {!!}
+
+-- Note: decode∘encode needs funext. But this is actually weird, semisimplicial types shouldn't depend on funext.
+-- I think we might not need decode∘encode at all!
 
 module _ {m n b : ℕ} (g : m →⁺ b) (f : n →⁺ b) where
 
@@ -287,12 +285,12 @@ add-component ((b , h , t) , p) = --  {!!}
 
 [_,_,_,_]∩[_,_] : (b h t : ℕ) → (isSieve (b , h , t)) → (k : ℕ) → (k →⁺ b) → Sieve
 
-[ _ ,   O ,   O , _ ]∩[ k , f ] = (k , O , O) , {!!}
+[ _ ,   O ,   O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
 [ b , S h ,   O , p ]∩[ k , f ] = [ b , h , binom b (S h) , ({!fst p!} , inl idp) ]∩[ {!!} , f ]
 [ b ,   h , S t , p ]∩[ k , f ] =
   let
     last-component : S h →⁺ b
-    last-component = decode {S h} {b} (t , {!snd p!}) -- note: t, not S t.
+    last-component = decode {S h} {b} (t , {!snd p!}) -- note: not a mistake. It's `t`, not `S t`.
     sieve-without-last : Sieve
     sieve-without-last = [ b , h , t , (fst p , {!snd p!}) ]∩[ k , f ]
     add-new? : Dec (last-component ⊆₊ f)
