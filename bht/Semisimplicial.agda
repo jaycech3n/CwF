@@ -18,6 +18,11 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   -- Sk gives, for every sieve s, the type of "partial boundaries" with shape given by s.
   Sk   : (b h t : ℕ) → isSieve(b , h , t) → Ty (SST (S h))
 
+  -- is there a more principle way of doing this?
+  uncurried-Sk : (s : Sieve) → Ty (SST (S (get-h s)))
+  uncurried-Sk ((b , h , t) , p) = Sk b h t p
+
+
   {- Matching Object -
 
   TL;DR: The matching object (at level n) is just the skeleton Sk Sn n Sn.
@@ -34,6 +39,23 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
 
   M₊ : (n : ℕ) → Ty (SST (S n))
   M₊ n = Sk (S (S n)) n (binom (S (S n)) (S n)) (≤-trans lteS lteS , inl idp)
+
+
+  Skm  : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
+         → (f : k →⁺ b) → Tm (Sk b h t p)  → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
+  Skm = {!!}
+
+  -- Given a term in a "partial skeleton" over the sieve `(b , h , t)`,
+  -- we want to project out the components to get a term in the
+  -- "partial skeleton" over `(b, b-2, max)`.
+  -- There's a 95% risk that I've made some +-1 error here.
+  -- ???????
+  
+  -- calc-matching : (b h t : ℕ) (p : isSieve (b , h , t)) (S h ≤ b) (sk : Tm (Sk b h t p)) → {!Tm (M₊ !}
+  -- calc-matching = {!!}
+
+
+
 
   SST O = ◆
   SST 1 = ◆ ∷ U -- Assuming a unit type in the CwF structure would avoid this special case. Does it cause problems later?

@@ -310,7 +310,20 @@ add-component ((b , h , t) , p) = --  {!!}
    (b,h,t) ∩ f == (h+1,h,0).
 -}
 
+{-
 ∩-gives-matching : (((b , h , t) , p) : Sieve) (f : S h →⁺ b) → t ≤ S (fst (encode f)) →
   [ b , h , t , p ]∩[ S h , f ] == (S h , h , O) , (lteS , O≤ _)
 
 ∩-gives-matching = {!!} -- difficult but very important
+
+I don't like the 'patternInTele0' that Agda prints; that's why I do the curried version instead.
+-}
+
+-- Note: The assumption here is that h is "much" smaller than S b; which cases exactly work? (todo)
+∩-gives-matching : (b h t : ℕ) (p : isSieve (b , S h , t)) (f : S (S h) →⁺ b) → t ≤ S (fst (encode f)) →
+  [ b , S h , t , p ]∩[ S (S h) , f ] ==
+  --(S (S h) , S h , O) , (lteS , O≤ _)
+    (S (S h) , h , binom (S (S h)) h) , {!!}
+    -- TODO: probably it would be better to decide: should we normalise up or down?
+
+∩-gives-matching = {!!}
