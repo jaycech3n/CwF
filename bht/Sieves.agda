@@ -315,5 +315,6 @@ I don't like the 'patternInTele0' that Agda prints; that's why I do the curried 
   --(S (S h) , S h , O) , (lteS , O≤ _)
     (S (S h) , h , binom (S (S h)) h) , {!!}
     -- TODO: probably it would be better to decide: should we normalise up or down?
+    -- CAVEAT: It matters because the contexts are different in `Sk b h max-t` and `Sk b Sh O`!
 
 ∩-gives-matching = {!!}
