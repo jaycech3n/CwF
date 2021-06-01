@@ -117,7 +117,7 @@ The cases are:
       -- note that the subsieves (b,h+1,0) and
       (b,h,binom b h+1) are the same. Probably we don't need
       to distinguish cases here, we can just return
-      (b,h,binom b h+1) ∩ f  directly.
+      (b,h,binom b h+1) ∩ f directly.
   (b,h,t+1) ∩ f =
     let
       (b',h',t') = (b,h,t) ∩ f
@@ -250,12 +250,12 @@ add-component ((b , h , t) , p) =
     Coprod-rec
       (λ t-max →
         Coprod-rec
-          (λ h-max → (b , h , t) , p) -- The sieve (b, b, 0) is already
-                                      -- full. Don't add anything.
+          (λ  h-max → (b , h , t) , p) -- The sieve (b, b, 0) is already
+                                       -- full. Don't add anything.
           (λ ¬h-max →
              Coprod-rec
-               (λ Sh=b → (b , h , t) , p) -- Sieve (b, b-1, binom b b) is full;
-                                          -- don't add anything.
+               (λ  Sh=b → (b ,   h , t) , p) -- Sieve (b, b-1, binom b b) is full;
+                                             -- don't add anything.
                (λ ¬Sh=b → (b , S h , 1) ,
                             ( <-S≤ (≤-¬=-< (fst p) ¬h-max)
                             , <-S≤
@@ -273,34 +273,37 @@ add-component ((b , h , t) , p) =
 -- not the usage):
 [_,_,_,_]∩[_,_] : (b h t : ℕ) → (isSieve (b , h , t)) → (k : ℕ) → (k →⁺ b) → Sieve
 
-[ b ,   h , S t , p ]∩[ k , f ] =
+[ b , h , S t , p ]∩[ k , f ] =
   let
     last-component : S h →⁺ b
-    last-component = decode {S h} {b} (t , {!snd p!}) -- Note: not a
-                                                      -- mistake. It's `t`, not
-                                                      -- `S t`.
+    last-component = decode {S h} {b} (t , S≤-< (snd p)) -- Not a mistake: t
+                                                         -- instead of (S t) as
+                                                         -- arg to `decode`.
     sieve-without-last : Sieve
-    sieve-without-last = [ b , h , t , (fst p , {!snd p!}) ]∩[ k , f ]
+    sieve-without-last = [ b , h , t , (fst p , S≤-≤ (snd p)) ]∩[ k , f ]
     add-new? : Dec (last-component ⊆₊ f)
     add-new? = last-component ⊆₊? f
   in
      Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
-       (λ  last⊆₊f → add-component sieve-without-last)
+       (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
        (λ ¬last⊆₊f → sieve-without-last)
        add-new?
-[ _ ,   O ,   O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
-[ b , S h ,   O , p ]∩[ k , f ] = [ b , h , binom b (S h) , (S≤-≤ (fst p) , inl idp) ]∩[ {!!} , f ]
+[ _ ,   O , O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
+[ b , S h , O , p ]∩[ k , f ] =
+  [ b , h , binom b (S h) , (S≤-≤ (fst p) , inl idp) ]∩[ k , f ]
 
-{- Lemma: If we have a big enough (but not too big!) bht-sieve and intersect it
-   with a small enough representable sieve, we get a "matching object" (i.e. a
-   "tetrahedron with a single component missing").
-   Concretely:
-   Given a sieve (b,h,t,_) and f : S h →⁺ b
-   such that f is not part of (b , h , t , _), then
-   (b,h,t) ∩ f == (h+1,h,0).
--}
+{- Lemma:
 
-∩-gives-matching : (((b , h , t) , p) : Sieve) (f : S h →⁺ b) → t ≤ S (fst (encode f)) →
-  [ b , h , t , p ]∩[ S h , f ] == (S h , h , O) , (lteS , O≤ _)
+If we have a big enough (but not too big!) bht-sieve and intersect it with a
+small enough representable sieve, we get a "matching object" (i.e. a
+"tetrahedron with a single component missing").
+
+Concretely: Given a sieve (b,h,t,_) and f : S h →⁺ b such that f is not part of
+(b , h , t , _), then (b,h,t) ∩ f == (h+1,h,0). -}
+
+∩-gives-matching :
+  (((b , h , t) , p) : Sieve) (f : S h →⁺ b)
+  → t ≤ S (fst (encode f))
+  → [ b , h , t , p ]∩[ S h , f ] == (S h , h , O) , (lteS , O≤ _)
 
 ∩-gives-matching = {!!} -- difficult but very important
