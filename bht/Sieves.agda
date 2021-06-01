@@ -2,14 +2,14 @@
 
 {--- Sieves in Δ₊ ---
 
-The development of shapes is completely independent of
-CwF's. It provides a combinatorial setting that enables us
-to later define boundaries and subsimplices.
+The development of shapes is completely independent of CwF's. It provides a
+combinatorial setting that enables us to later define boundaries and
+subsimplices.
 
 # Idea
 
-Assume a semisimplicial type (A₀, A₁, A₂) is given. Some
-examples of "triangle complexes" that we can consider are:
+Assume a semisimplicial type (A₀, A₁, A₂) is given. Some examples of "triangle
+complexes" that we can consider are:
 
 (1) Σ(x y z : A₀).
      Σ(f : A₁ x y). Σ(g : A₁ y z). Σ(h : A₁ x z).
@@ -25,103 +25,85 @@ examples of "triangle complexes" that we can consider are:
 (4) Σ(x y : A₀). A₁ x y
     This is a single line.
 
-Recall that (A₀, A₁, A₂) encodes a (strict) contravariant
-functor from an initial segment of the category Δ₊ to the
-category of types. Let's write A for this functor
-  A : Δ₊ → U.
-From this point of view, the full triangle (1) encodes the
-type of natural transformations
+Recall that (A₀, A₁, A₂) encodes a (strict) contravariant functor from an
+initial segment of the category Δ₊ to the category of types. Let's write A for
+this functor A : Δ₊ → U. From this point of view, the full triangle (1) encodes
+the type of natural transformations Δ² → A, where Δ² is the obvious
+representable functor a.k.a. Yoneda[2] a.k.a. the 2-simplex. The functor Λ²₁ is
+a subfunctor of Δ²: intuitively, it is the simplex Δ² with the filler and one
+face removed.
 
-  Δ² → A,
-where Δ² is the obvious representable functor a.k.a.
-Yoneda[2] a.k.a. the 2-simplex. The functor Λ²₁ is a
-subfunctor of Δ²: intuitively, it is the simplex Δ² with the
-filler and one face removed.
-The example (2) above encodes the type of natural
-transformations
-  Λ²₁ → A.
-∂Δ² is the subfunctor of Δ² with only the filler removed. We
-call it the "2-simplex boundary". The unfilled triangle (3)
-encodes the type of natural transformations
-  ∂Δ² → A.
-Regarding example (4), Δ¹ is also a subfunctor of Δ², but
-not in a unique way - a triangle has three edges.
+The example (2) above encodes the type of natural transformations Λ²₁ → A.
+
+∂Δ² is the subfunctor of Δ² with only the filler removed. We call it the
+"2-simplex boundary". The unfilled triangle (3) encodes the type of natural
+transformations ∂Δ² → A.
+
+Regarding example (4), Δ¹ is also a subfunctor of Δ², but not in a unique way -
+a triangle has three edges.
 
 Subfunctors of yoneda[2] can also be described as *sieves*
   https://ncatlab.org/nlab/show/sieve
-under the object [2] (= Fin 3) in Δ₊. This is probably the
-easier way to think about them. Every morphism into [2]
-gives one "component" and the sieve condition expresses
-exactly that a component can only be present if all its
+under the object [2] (= Fin 3) in Δ₊. This is probably the easier way to think
+about them. Every morphism into [2] gives one "component" and the sieve
+condition expresses exactly that a component can only be present if all its
 faces are.
 
-Thinking of Δ², Λ²₁, and ∂Δ² as sieves also makes it easy to
-describe the canonical injections that we have between them.
-The sequence of injections
+Thinking of Δ², Λ²₁, and ∂Δ² as sieves also makes it easy to describe the
+canonical injections that we have between them.  The sequence of injections
   Λ²₁ ↪ ∂Δ² ↪ Δ²
-adds one component (morphism) to the sieve in each of the
-two steps.
+adds one component (morphism) to the sieve in each of the two steps.
 
-The sieves of Δ₊ describe "raw shapes" of subsimplices. We
-can develop some theory of these sieves without talking
-about semisimplicial types.
+The sieves of Δ₊ describe "raw shapes" of subsimplices. We can develop some
+theory of these sieves without talking about semisimplicial types.
 
 # Main challenge
 
-Sieves are naturally structured in a non-linear way, but we
-eventually want to use them to describe the shapes of nested
-Σ-types (see examples 1-4), which are linear. Thus, we need
-to "linearise" the sieves in some form.
+Sieves are naturally structured in a non-linear way, but we eventually want to
+use them to describe the shapes of nested Σ-types (see examples 1-4), which are
+linear. Thus, we need to "linearise" the sieves in some form.
 
 # Preliminaries
 
-For natural numbers k,m, let
-  φ : Fin (binom m k) → (Fin k →⁺ Fin m)
-be the bijection between strictly increasing maps (denoted
-by →⁺) and their cardinality; this gives a linear order.
-From now on, we write `Fin k` for the object [k-1] of Δ₊. We
-only consider k ≥ 1.
+For natural numbers k,m, let φ : Fin (binom m k) → (Fin k →⁺ Fin m) be the
+bijection between strictly increasing maps (denoted by →⁺) and their
+cardinality; this gives a linear order.  From now on, we write `Fin k` for the
+object [k-1] of Δ₊. We only consider k ≥ 1.
 
 # The sieves of interest
 
-The sieves that we are interested in can be described as
-triples
-  (b,h,t)
-of natural numbers, where h ≤ b and t ≤ binom b (h+1). The
-triple (b,h,t) is to be interpreted as follows:
+The sieves that we are interested in can be described as triples (b,h,t) of
+natural numbers, where h ≤ b and t ≤ binom b (h+1). The triple (b,h,t) is to be
+interpreted as follows:
 
-b (for "base") is the number of points (0-cells).
-  In other words, (b,h,t) describes a sieve under the object
-  (Fin b) in Δ₊. This means that the sieve (b,h,t) consists
-  of morphisms (Fin i) →⁺ (Fin b) in Δ₊.
-h (for "height") describes how many levels of the sieve are
-  complete. For 1 ≤ i ≤ h, every morphism (Fin i) →⁺ (Fin b)
-  is in the sieve (b,h,t).
-t (for "top", although there could be a better name)
-  describes how many of the morphisms (Fin h+1) →⁺ (Fin b)
-  are in the sieve. That's why 0 ≤ t ≤ binom b (h+1), since
-  the binominal coefficient describes the number of
-  morphisms (Fin h+1) →⁺ (Fin b). The bijection φ (see
-  Preliminaries above) tells us which t morphisms are in the
-  sieve, namely φ(0), ..., φ(t-1).
+b (for "base") is the number of points (0-cells). In other words, (b,h,t)
+  describes a sieve under the object (Fin b) in Δ₊. This means that the sieve
+  (b,h,t) consists of morphisms (Fin i) →⁺ (Fin b) in Δ₊.
+
+h (for "height") describes how many levels of the sieve are complete. For
+  1 ≤ i ≤ h, every morphism (Fin i) →⁺ (Fin b) is in the sieve (b,h,t).
+
+t (for "top", although there could be a better name) describes how many of the
+  morphisms (Fin h+1) →⁺ (Fin b) are in the sieve. That's why
+  0 ≤ t ≤ binom b (h+1), since the binominal coefficient describes the number of
+  morphisms (Fin h+1) →⁺ (Fin b). The bijection φ (see Preliminaries above)
+  tells us which t morphisms are in the sieve, namely φ(0), ..., φ(t-1).
 
 # Calculations on sieves
 
-We need to be able to calculate a subsieve of a given sieve.
-Again, we only need special subsieves of the special sieves
-of the form (b,h,t).
+We need to be able to calculate a subsieve of a given sieve.  Again, we only
+need special subsieves of the special sieves of the form (b,h,t).
 
-Note that the simplex Δⁱ⁻¹ is a (iterated) face, and thus a
-subsieve, of the simplex Δᵇ⁻¹ as long as i < b, but not in a
-unique way; a morphism (Fin i) →⁺ (Fin b) determines the
-embedding of Δⁱ⁻¹ into Δᵇ⁻¹. Using the notation above, Δᵇ⁻¹
-can be written as (b,b,0) and Δⁱ⁻¹ as (i,i,0).  (b,h,t) is a
-subsieve of (b,b,0) in a unique way.
+Note that the simplex Δⁱ⁻¹ is a (iterated) face, and thus a subsieve, of the
+simplex Δᵇ⁻¹ as long as i < b, but not in a unique way; a morphism
+  (Fin i) →⁺ (Fin b)
+determines the embedding of Δⁱ⁻¹ into Δᵇ⁻¹. Using the notation above, Δᵇ⁻¹ can
+be written as (b,b,0) and Δⁱ⁻¹ as (i,i,0). (b,h,t) is a subsieve of (b,b,0) in a
+unique way.
 
-Given (b,h,t) and f : (Fin i) →⁺ (Fin b), we want to
-calculate the intersection of (b,h,t) and (i,i,0) as
-subsieves of Δᵇ⁻¹. We denote this intersection by
-  (b,h,t) ∩ f.
+Given (b,h,t) and f : (Fin i) →⁺ (Fin b), we want to calculate the intersection
+of (b,h,t) and (i,i,0) as subsieves of Δᵇ⁻¹. We denote this intersection by
+(b,h,t) ∩ f.
 
 The cases are:
   (b,0,0) ∩ f = (i,0,0) -- degenerate case: (b,0,0) is empty.
@@ -149,32 +131,28 @@ The cases are:
      whether that additional component should in fact be in
      the intersection.
 
-At this point, it is non-obvious whether ∩ really calculates
-the intersection of subsieves (and I probably got it wrong).
-One issue is that (b,h,binom b h+1) and (b,h+1,0) represent
-the same sieve, and it's quite unfortunate that we need to
-convert them. Maybe we can abstract a bit by using a
-quotient.
+At this point, it is non-obvious whether ∩ really calculates the intersection of
+subsieves (and I probably got it wrong).  One issue is that (b,h,binom b h+1)
+and (b,h+1,0) represent the same sieve, and it's quite unfortunate that we need
+to convert them. Maybe we can abstract a bit by using a quotient.
 
-In any case, we need to check carefully whether that
-algorithm calculates the intersection. We don't need to
-formalise this proof; but if it's not true, then the later
-development won't work.
+In any case, we need to check carefully whether that algorithm calculates the
+intersection. We don't need to formalise this proof; but if it's not true, then
+the later development won't work.
 
 # Properties
 
 We need the following:
 
-Lemma. Given a sieve (b,h,t) and an f : (Fin h+1 →⁺ Fin b)
-such that t ≤ φ⁻¹(f), we have
-  (b,h,t) ∩ f == (h+1,h,0).
+Lemma. Given a sieve (b,h,t) and an f : (Fin h+1 →⁺ Fin b) such that t ≤ φ⁻¹(f),
+we have (b,h,t) ∩ f == (h+1,h,0).
 
 Note: (h+1,h,0) represents the sieve ∂Δʰ.
 
 # How to use this
 
-The intended usage of sieves (not in this file) is as
-follows. Given a CwF, we construct simultaneously:
+The intended usage of sieves (not in this file) is as follows. Given a CwF, we
+construct simultaneously:
 
 SST : ℕ → Con
 Sk : ((b,h,t) : Sieve) → (n : ℕ) → (n ≥ h+1) → Ty (SST n)
@@ -188,20 +166,14 @@ Sk (3,1,3) 3.
 
 module bht.Sieves where
 
-open import Prelude
 open import Arith
-open import HoTT
-open import lib.types.Fin
-open import lib.types.Nat
-open import lib.types.Coproduct
 
--- increasing functions
+-- Increasing functions
 _→⁺_ : ℕ → ℕ → Set
 m →⁺ n = Σ (Fin m → Fin n)
            λ f → (i j : Fin m) → (fst i < fst j) → fst (f i) < fst (f j)
 
-
--- would want to work with this, but termination issues
+-- Would want to work with this, but termination issues.
 -- https://github.com/agda/agda/issues/995
 {-
 record Sieve' : Set where
@@ -223,18 +195,17 @@ get-b ((b , h , t) , p) = b
 get-h ((b , h , t) , p) = h
 get-t ((b , h , t) , p) = t
 
--- normalise "down". todo: formulate for Sieves.
+-- Normalise "down". Todo: formulate for Sieves.
 normalise : ℕ × ℕ × ℕ → ℕ × ℕ × ℕ
 normalise (b , O , t) = (b , O , t)
 normalise (b , S h , O) = (b , h , binom b (S h))
 normalise (b , S h , S t) = (b , S h , S t)
 
--- we can also "normalise up" by using use ℕ-has-dec-eq.
+-- We can also "normalise up" by using use ℕ-has-dec-eq.
 -- Not sure whether we need it though (probably we do).
 
 
--- # switching between natural numbers and increasing functions.
-
+-- Switching between natural numbers and increasing functions.
 decode : ∀ {k m} → Fin (binom m k) → k →⁺ m
 decode = {!!}
 
@@ -249,8 +220,9 @@ decode∘encode = {!!}
 encode∘decode : ∀ {k m} (t : Fin (binom m k)) → encode {m = m} (decode t) == t
 encode∘decode = {!!}
 
--- Note: decode∘encode needs funext. But this is actually weird, semisimplicial types shouldn't depend on funext.
--- I think we might not need decode∘encode at all!
+-- Note: decode∘encode needs funext. But this is actually weird, semisimplicial
+-- types shouldn't depend on funext. I think we might not need decode∘encode at
+-- all!
 
 module _ {m n b : ℕ} (g : m →⁺ b) (f : n →⁺ b) where
 
@@ -263,7 +235,8 @@ module _ {m n b : ℕ} (g : m →⁺ b) (f : n →⁺ b) where
   _⊆₊?_ = {!!}
 
 
--- Adding a single component to a sieve. In most cases, this just increases `t` by one.
+-- Adding a single component to a sieve. In most cases, this just increases t by
+-- one.
 add-component : Sieve → Sieve
 add-component ((b , h , t) , p) =
   let
@@ -277,27 +250,35 @@ add-component ((b , h , t) , p) =
     Coprod-rec
       (λ t-max →
         Coprod-rec
-          (λ h-max → (b , h , t) , p) -- weird case: the sieve is
-                                      -- already full. Don't add
-                                      -- anything.
+          (λ h-max → (b , h , t) , p) -- The sieve (b, b, 0) is already
+                                      -- full. Don't add anything.
           (λ ¬h-max →
              Coprod-rec
-               (λ Sh=b → (b , h , t) , p)
-               (λ ¬Sh=b → (b , S h , 1) , (<-S≤ (≤-¬=-< (fst p) ¬h-max) , {!<-S≤ ?!}))
+               (λ Sh=b → (b , h , t) , p) -- Sieve (b, b-1, binom b b) is full;
+                                          -- don't add anything.
+               (λ ¬Sh=b → (b , S h , 1) ,
+                            ( <-S≤ (≤-¬=-< (fst p) ¬h-max)
+                            , <-S≤
+                                (binom>O b (S (S h))
+                                  (<-S≤
+                                    (≤-¬=-<
+                                      (<-S≤ (≤-¬=-< (fst p) ¬h-max)) ¬Sh=b)))))
                Sh=b?)
           h-max?)
-      (λ ¬t-max → (b , h , S t) , (fst p , {!use (snd p) and ¬t-max!}))
+      (λ ¬t-max → (b , h , S t) , (fst p , <-S≤ (≤-¬=-< (snd p) ¬t-max)))
       t-max?
 
 
--- making all arguments explicit (makes the definition a bit nicer, but probably not the usage):
-
+-- Making all arguments explicit (makes the definition a bit nicer, but probably
+-- not the usage):
 [_,_,_,_]∩[_,_] : (b h t : ℕ) → (isSieve (b , h , t)) → (k : ℕ) → (k →⁺ b) → Sieve
 
 [ b ,   h , S t , p ]∩[ k , f ] =
   let
     last-component : S h →⁺ b
-    last-component = decode {S h} {b} (t , {!snd p!}) -- note: not a mistake. It's `t`, not `S t`.
+    last-component = decode {S h} {b} (t , {!snd p!}) -- Note: not a
+                                                      -- mistake. It's `t`, not
+                                                      -- `S t`.
     sieve-without-last : Sieve
     sieve-without-last = [ b , h , t , (fst p , {!snd p!}) ]∩[ k , f ]
     add-new? : Dec (last-component ⊆₊ f)
