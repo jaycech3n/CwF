@@ -59,6 +59,10 @@ module _ {m n : ℕ} where
   <-S≤ ltS = inl idp
   <-S≤ (ltSR x) = inr (<-ap-S x)
 
+  ≤-¬=-< : m ≤ n → ¬ (m == n) → m < n
+  ≤-¬=-< (inl x) y = ex-falso (y x)
+  ≤-¬=-< (inr x) _ = x
+
 ≤-<-< : ∀ {k m n} → k ≤ m → m < n → k < n
 ≤-<-< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
 ≤-<-< (inr e) h = <-trans e h

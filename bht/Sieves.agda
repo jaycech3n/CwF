@@ -265,18 +265,27 @@ module _ {m n b : ℕ} (g : m →⁺ b) (f : n →⁺ b) where
 
 -- Adding a single component to a sieve. In most cases, this just increases `t` by one.
 add-component : Sieve → Sieve
-add-component ((b , h , t) , p) = --  {!!}
+add-component ((b , h , t) , p) =
   let
     t-max? : Dec (t == binom b (S h))
     t-max? = ℕ-has-dec-eq t (binom b (S h))
     h-max? : Dec (h == b)
     h-max? = ℕ-has-dec-eq h b
+    Sh=b?  : Dec (S h == b)
+    Sh=b?  = ℕ-has-dec-eq (S h) b
   in
     Coprod-rec
-      (λ  t-max → Coprod-rec
-                    (λ  h-max → (b , h , t) , p) -- weird case: the sieve is already full. Don't add anything.
-                    (λ ¬h-max → (b , S h , 1) , ({!use (fst p) and ¬h-max!} , {!!}))
-                    h-max?)
+      (λ t-max →
+        Coprod-rec
+          (λ h-max → (b , h , t) , p) -- weird case: the sieve is
+                                      -- already full. Don't add
+                                      -- anything.
+          (λ ¬h-max →
+             Coprod-rec
+               (λ Sh=b → (b , h , t) , p)
+               (λ ¬Sh=b → (b , S h , 1) , (<-S≤ (≤-¬=-< (fst p) ¬h-max) , {!<-S≤ ?!}))
+               Sh=b?)
+          h-max?)
       (λ ¬t-max → (b , h , S t) , (fst p , {!use (snd p) and ¬t-max!}))
       t-max?
 
@@ -285,8 +294,6 @@ add-component ((b , h , t) , p) = --  {!!}
 
 [_,_,_,_]∩[_,_] : (b h t : ℕ) → (isSieve (b , h , t)) → (k : ℕ) → (k →⁺ b) → Sieve
 
-[ _ ,   O ,   O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
-[ b , S h ,   O , p ]∩[ k , f ] = [ b , h , binom b (S h) , ({!fst p!} , inl idp) ]∩[ {!!} , f ]
 [ b ,   h , S t , p ]∩[ k , f ] =
   let
     last-component : S h →⁺ b
@@ -300,6 +307,8 @@ add-component ((b , h , t) , p) = --  {!!}
        (λ  last⊆₊f → add-component sieve-without-last)
        (λ ¬last⊆₊f → sieve-without-last)
        add-new?
+[ _ ,   O ,   O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
+[ b , S h ,   O , p ]∩[ k , f ] = [ b , h , binom b (S h) , (S≤-≤ (fst p) , inl idp) ]∩[ {!!} , f ]
 
 {- Lemma: If we have a big enough (but not too big!) bht-sieve and intersect it
    with a small enough representable sieve, we get a "matching object" (i.e. a
