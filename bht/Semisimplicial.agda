@@ -46,11 +46,6 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   M₊ : (n : ℕ) → Ty (SST (S n))
   M₊ n = Sk (S (S n)) n (binom (S (S n)) (S n)) (≤-trans lteS lteS , inl idp)
 
-  -- Josh: Don't need this level of generality, really only need the k = h+1 case?
-  --Skm : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
-  --      → (f : k →⁺ b) → Tm (Sk b h t p) → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
-  --Skm = {!!}
-
   Skm  : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
          → (f : k →⁺ b) → Tm (Sk b h t p)  → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
 
@@ -65,32 +60,20 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
       add-new? = last-component ⊆₊? f
     in
        {!!}
-       {- Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
+       {- definition of [_,_,_,_]∩[_,_]:
+       Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
          (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
          (λ ¬last⊆₊f → sieve-without-last)
          add-new? -}
 
-  Skm b    O    O  p k f = {!!}
+  -- Meaningless case which is never called from larger cases. Can return whatever we want.
+  -- If there was a unit type, then Sk b O O would be unit.
+  Skm b    O    O  p k f = λ X → {!X -- need to substitute!}
 
   Skm b (S h)   O  p k f = {!!}
 
 
 {- replicate:
-[ b , h , S t , p ]∩[ k , f ] =
-  let
-    last-component : S h →⁺ b
-    last-component = decode {S h} {b} (t , S≤-< (snd p)) -- Not a mistake: t
-                                                         -- instead of (S t) as
-                                                         -- arg to `decode`.
-    sieve-without-last : Sieve
-    sieve-without-last = [ b , h , t , (fst p , S≤-≤ (snd p)) ]∩[ k , f ]
-    add-new? : Dec (last-component ⊆₊ f)
-    add-new? = last-component ⊆₊? f
-  in
-     Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
-       (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
-       (λ ¬last⊆₊f → sieve-without-last)
-       add-new?
 [ _ ,   O , O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
 [ b , S h , O , p ]∩[ k , f ] =
   [ b , h , binom b (S h) , (S≤-≤ (fst p) , inl idp) ]∩[ k , f ]
