@@ -68,9 +68,14 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
 
   -- Meaningless case which is never called from larger cases. Can return whatever we want.
   -- If there was a unit type, then Sk b O O would be unit.
-  Skm b    O    O  p k f = λ X → {!X -- need to substitute!}
+  -- We possibly could define `Skm` on a smaller domain to exclude this case
+  -- (i.e. put into the type an argument (h,t) ≠ (O,O)). This
+  -- would probably be the cleaner solution here. Maybe it would be easier as well (we would
+  -- have to prove the condition for every recursively called case, but maybe we need to
+  -- do that anyway).
+  Skm b    O    O  p k f sk = {!sk -- need to substitute!}
 
-  Skm b (S h)   O  p k f = {!!}
+  Skm b (S h)   O  p k f sk = Skm b h (binom b (S h)) (≤-trans lteS (fst p) , inl idp) k f {!sk!} -- We have `sk` in a longer context, so it's a priori a problem. It should still be ok since `sk` doesn't make use of the last context entry. What exactly is the argument?
 
 
 {- replicate:
