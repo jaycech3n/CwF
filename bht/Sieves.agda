@@ -311,19 +311,20 @@ Concretely: Given a sieve (b,h,t,_) and f : S h →⁺ b such that f is not part
   (((b , h , t) , p) : Sieve) (f : S h →⁺ b)
   → t ≤ S (fst (encode f))
   → [ b , h , t , p ]∩[ S h , f ] == (S h , h , O) , (lteS , O≤ _)
-
 ∩-gives-matching = {!!} -- difficult but very important
 
 I don't like the 'patternInTele0' that Agda prints; that's why I do the curried version instead.
 -}
 
--- Note: The assumption here is that h is "much" smaller than S b; which cases exactly work? (todo)
--- Caveat: As everywhere, the lowest bit is a special case since we're avoiding Unit!
+-- Note: The assumption here is that h is "much" smaller than S b; which cases
+-- exactly work? (todo)
+-- Caveat: As everywhere, the lowest bit is a special case since we're avoiding
+-- Unit!
 ∩-gives-matching :
   (b h t : ℕ) (p : isSieve (b , S h , t)) (f : S (S h) →⁺ b)
   → t ≤ fst (encode f)
   → [ b , S h , t , p ]∩[ S (S h) , f ] ==
-    (S (S h) , h , binom (S (S h)) h) , ≤-trans lteS lteS , {!!}
+    (S (S h) , h , binom (S (S h)) (S h)) , ≤-trans lteS lteS , inl idp
     -- CAVEAT: It would (probably) be wrong to use
     -- (S (S h) , S h , O) , (lteS , O≤ _)
     -- in the last line; these triples represent the same sieve, but we (probably)
