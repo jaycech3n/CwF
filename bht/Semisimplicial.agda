@@ -76,4 +76,4 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   Sk b    O (S (S t)) iS = Sk b O (S t) (prev-is-sieve iS) ̂× el (ν {◆} {U} ↑)
   -- Next case is easy because (b,Sh,O) is the same as (b,h,max)
   Sk b (S h)      O   iS = (Sk b h (binom b (S h)) (≤-trans lteS (fst iS) , inl idp)) [ p ]
-  Sk b (S h)   (S t)  iS = ̂Σ[ x ∈ Sk b (S h) t (prev-is-sieve iS) ] {!use calc-matching; here we run into the previously discussed question of weakening A → B to A [ p_A ] → B [ p_A ]!}
+  Sk b (S h)   (S t)  iS = ̂Σ[ x ∈ Sk b (S h) t (prev-is-sieve iS) ] {!use calc-matching; here we run into the previously discussed question of weakening Tm A → Tm B to Tm (A [ p_A ]) → Tm (B [ p_A ]) (here → is outer!)!}
