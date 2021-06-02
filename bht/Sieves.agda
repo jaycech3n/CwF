@@ -205,6 +205,10 @@ normalise (b , S h , S t) = (b , S h , S t)
 -- Not sure whether we need it though (probably we do).
 
 
+prev-is-sieve : ∀ {b h t} → isSieve (b , h , S t) → isSieve (b , h , t)
+prev-is-sieve x = (fst x) , (S≤-≤ (snd x))
+
+
 -- Switching between natural numbers and increasing functions.
 decode : ∀ {k m} → Fin (binom m k) → k →⁺ m
 decode = {!!}
@@ -260,9 +264,10 @@ add-component ((b , h , t) , p) =
                               ( <-S≤ (≤-¬=-< (fst p) ¬h-max)
                               , <-S≤
                                   (binom>O b (S (S h))
-                                    (<-S≤
-                                      (≤-¬=-<
-                                        (<-S≤ (≤-¬=-< (fst p) ¬h-max)) ¬Sh-max)))))
+                                    (<-S≤ (≤-¬=-<
+                                            (<-S≤ (≤-¬=-< (fst p) ¬h-max))
+                                            ¬Sh-max)))
+                              ))
                Sh-max?)
           h-max?)
       (λ ¬t-max → (b , h , S t) , (fst p , <-S≤ (≤-¬=-< (snd p) ¬t-max)))
@@ -285,7 +290,7 @@ add-component ((b , h , t) , p) =
     add-new? = last-component ⊆₊? f
   in
      Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
-       (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
+       (λ  last⊆₊f → add-component sieve-without-last)
        (λ ¬last⊆₊f → sieve-without-last)
        add-new?
 [ _ ,   O , O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
@@ -306,23 +311,26 @@ Concretely: Given a sieve (b,h,t,_) and f : S h →⁺ b such that f is not part
   (((b , h , t) , p) : Sieve) (f : S h →⁺ b)
   → t ≤ S (fst (encode f))
   → [ b , h , t , p ]∩[ S h , f ] == (S h , h , O) , (lteS , O≤ _)
-
 ∩-gives-matching = {!!} -- difficult but very important
 
-I don't like the 'patternInTele0' that Agda prints; that's why I do the curried version instead.
+I don't like the 'patternInTele0' that Agda prints; that's why I do the curried
+version instead.
 -}
 
--- Note: The assumption here is that h is "much" smaller than S b; which cases exactly work? (todo)
--- Caveat: As everywhere, the lowest bit is a special case since we're avoiding Unit!
+-- Note: The assumption here is that h is "much" smaller than S b; which cases
+-- exactly work? (todo)
+-- Caveat: As everywhere, the lowest bit is a special case since we're avoiding
+-- Unit!
 ∩-gives-matching :
   (b h t : ℕ) (p : isSieve (b , S h , t)) (f : S (S h) →⁺ b)
   → t ≤ fst (encode f)
   → [ b , S h , t , p ]∩[ S (S h) , f ] ==
-    (S (S h) , h , binom (S (S h)) h) , ≤-trans lteS lteS , {!!}
+    (S (S h) , h , binom (S (S h)) (S h)) , ≤-trans lteS lteS , inl idp
     -- CAVEAT: It would (probably) be wrong to use
     -- (S (S h) , S h , O) , (lteS , O≤ _)
-    -- in the last line; these triples represent the same sieve, but we (probably)
-    -- always want to normalise down.
-    -- It matters because the contexts are different in `Sk b h max-t` and `Sk b Sh O`.
+    -- in the last line; these triples represent the same sieve, but we
+    -- (probably) always want to normalise down.
+    -- It matters because the contexts are different in `Sk b h max-t` and
+    -- `Sk b Sh O`.
 
 ∩-gives-matching = {!!}
