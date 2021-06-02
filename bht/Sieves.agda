@@ -205,6 +205,10 @@ normalise (b , S h , S t) = (b , S h , S t)
 -- Not sure whether we need it though (probably we do).
 
 
+prev-is-sieve : ∀ {b h t} → isSieve (b , h , S t) → isSieve (b , h , t)
+prev-is-sieve x = (fst x) , (S≤-≤ (snd x))
+
+
 -- Switching between natural numbers and increasing functions.
 decode : ∀ {k m} → Fin (binom m k) → k →⁺ m
 decode = {!!}
@@ -260,9 +264,10 @@ add-component ((b , h , t) , p) =
                               ( <-S≤ (≤-¬=-< (fst p) ¬h-max)
                               , <-S≤
                                   (binom>O b (S (S h))
-                                    (<-S≤
-                                      (≤-¬=-<
-                                        (<-S≤ (≤-¬=-< (fst p) ¬h-max)) ¬Sh-max)))))
+                                    (<-S≤ (≤-¬=-<
+                                            (<-S≤ (≤-¬=-< (fst p) ¬h-max))
+                                            ¬Sh-max)))
+                              ))
                Sh-max?)
           h-max?)
       (λ ¬t-max → (b , h , S t) , (fst p , <-S≤ (≤-¬=-< (snd p) ¬t-max)))
@@ -285,7 +290,7 @@ add-component ((b , h , t) , p) =
     add-new? = last-component ⊆₊? f
   in
      Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
-       (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
+       (λ  last⊆₊f → add-component sieve-without-last)
        (λ ¬last⊆₊f → sieve-without-last)
        add-new?
 [ _ ,   O , O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
