@@ -76,4 +76,15 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   Sk b    O (S (S t)) iS = Sk b O (S t) (prev-is-sieve iS) ̂× el (ν {◆} {U} ↑)
   -- Next case is easy because (b,Sh,O) is the same as (b,h,max)
   Sk b (S h)      O   iS = (Sk b h (binom b (S h)) (≤-trans lteS (fst iS) , inl idp)) [ p ]
-  Sk b (S h)   (S t)  iS = ̂Σ[ x ∈ Sk b (S h) t (prev-is-sieve iS) ] {!use calc-matching; here we run into the previously discussed question of weakening Tm A → Tm B to Tm (A [ p_A ]) → Tm (B [ p_A ]) (here → is outer!)!}
+  Sk b (S h)   (S t)  iS =
+    ̂Σ[ sk ∈ Sk b (S h) t (prev-is-sieve iS) ]
+      (el
+        (tr Tm (U [ p ] [ id ,, _ ] =⟨ {!!} ⟩ U =∎)
+            ((tr Tm ((M₊ h ̂→ U) [ p ] =⟨ {!!} ⟩ (M₊ h) [ p ] ̂→ U =∎) (ν {_} {M₊ h ̂→ U}))
+            `
+            {!calc-matching b h t (prev-is-sieve iS)
+                           (decode {S (S h)} {b} (t , S≤-< (snd iS)))
+                           {! idp !}
+                           -- last argument should be sk, but the function
+                           -- calc-matching needs to be lifted?!})) [ p ])
+            -- NOTE the context extension is by the type (M₊ h ̂→ U)
