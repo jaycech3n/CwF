@@ -46,16 +46,19 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   M₊ : (n : ℕ) → Ty (SST (S n))
   M₊ n = Sk (S (S n)) n (binom (S (S n)) (S n)) (≤-trans lteS lteS , inl idp)
 
-
-  Skm : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
-        → (f : k →⁺ b) → Tm (Sk b h t p) → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
-  Skm = {!!}
+  -- Josh: Don't need this level of generality, really only need the k = h+1 case?
+  --Skm : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
+  --      → (f : k →⁺ b) → Tm (Sk b h t p) → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
+  --Skm = {!!}
 
   -- Given a term in a "partial skeleton" over the sieve (b, h, t), we want to
   -- project out the components to get a term in the partial skeleton over (b,
   -- b-2, max).
-  -- calc-matching : (b h t : ℕ) (p : isSieve (b , h , t)) (S h ≤ b) (sk : Tm (Sk b h t p)) → {!Tm (M₊ !}
-  -- calc-matching = {!!}
+  calc-matching : (b h t : ℕ) (p : isSieve (b , S h , t)) (f : S (S h) →⁺ b)
+                  → t ≤ fst (encode f)
+                  → Tm (Sk b (S h) t p)
+                  → Tm (M₊ h)
+  calc-matching = {!!}
 
 
   SST O = ◆

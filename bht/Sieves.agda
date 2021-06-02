@@ -313,7 +313,8 @@ Concretely: Given a sieve (b,h,t,_) and f : S h →⁺ b such that f is not part
   → [ b , h , t , p ]∩[ S h , f ] == (S h , h , O) , (lteS , O≤ _)
 ∩-gives-matching = {!!} -- difficult but very important
 
-I don't like the 'patternInTele0' that Agda prints; that's why I do the curried version instead.
+I don't like the 'patternInTele0' that Agda prints; that's why I do the curried
+version instead.
 -}
 
 -- Note: The assumption here is that h is "much" smaller than S b; which cases
@@ -327,8 +328,9 @@ I don't like the 'patternInTele0' that Agda prints; that's why I do the curried 
     (S (S h) , h , binom (S (S h)) (S h)) , ≤-trans lteS lteS , inl idp
     -- CAVEAT: It would (probably) be wrong to use
     -- (S (S h) , S h , O) , (lteS , O≤ _)
-    -- in the last line; these triples represent the same sieve, but we (probably)
-    -- always want to normalise down.
-    -- It matters because the contexts are different in `Sk b h max-t` and `Sk b Sh O`.
+    -- in the last line; these triples represent the same sieve, but we
+    -- (probably) always want to normalise down.
+    -- It matters because the contexts are different in `Sk b h max-t` and
+    -- `Sk b Sh O`.
 
 ∩-gives-matching = {!!}
