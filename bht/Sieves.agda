@@ -244,8 +244,8 @@ add-component ((b , h , t) , p) =
     t-max? = ℕ-has-dec-eq t (binom b (S h))
     h-max? : Dec (h == b)
     h-max? = ℕ-has-dec-eq h b
-    Sh=b?  : Dec (S h == b)
-    Sh=b?  = ℕ-has-dec-eq (S h) b
+    Sh-max?  : Dec (S h == b)
+    Sh-max?  = ℕ-has-dec-eq (S h) b
   in
     Coprod-rec
       (λ t-max →
@@ -254,23 +254,23 @@ add-component ((b , h , t) , p) =
                                        -- full. Don't add anything.
           (λ ¬h-max →
              Coprod-rec
-               (λ  Sh=b → (b ,   h , t) , p) -- Sieve (b, b-1, binom b b) is full;
-                                             -- don't add anything.
-               (λ ¬Sh=b → (b , S h , 1) ,
-                            ( <-S≤ (≤-¬=-< (fst p) ¬h-max)
-                            , <-S≤
-                                (binom>O b (S (S h))
-                                  (<-S≤
-                                    (≤-¬=-<
-                                      (<-S≤ (≤-¬=-< (fst p) ¬h-max)) ¬Sh=b)))))
-               Sh=b?)
+               (λ  Sh-max → (b ,   h , t) , p) -- Sieve (b, b-1, binom b b) is full;
+                                               -- don't add anything.
+               (λ ¬Sh-max → (b , S h , 1) ,
+                              ( <-S≤ (≤-¬=-< (fst p) ¬h-max)
+                              , <-S≤
+                                  (binom>O b (S (S h))
+                                    (<-S≤
+                                      (≤-¬=-<
+                                        (<-S≤ (≤-¬=-< (fst p) ¬h-max)) ¬Sh-max)))))
+               Sh-max?)
           h-max?)
       (λ ¬t-max → (b , h , S t) , (fst p , <-S≤ (≤-¬=-< (snd p) ¬t-max)))
       t-max?
 
 
 -- Making all arguments explicit (makes the definition a bit nicer, but probably
--- not the usage):
+-- not the usage:
 [_,_,_,_]∩[_,_] : (b h t : ℕ) → (isSieve (b , h , t)) → (k : ℕ) → (k →⁺ b) → Sieve
 
 [ b , h , S t , p ]∩[ k , f ] =
@@ -313,13 +313,16 @@ I don't like the 'patternInTele0' that Agda prints; that's why I do the curried 
 -}
 
 -- Note: The assumption here is that h is "much" smaller than S b; which cases exactly work? (todo)
+-- Caveat: As everywhere, the lowest bit is a special case since we're avoiding Unit!
 ∩-gives-matching :
-  (b h t : ℕ) (p : isSieve (b , S h , t)) (f : S (S h) →⁺ b) →
-  t ≤ S (fst (encode f))
+  (b h t : ℕ) (p : isSieve (b , S h , t)) (f : S (S h) →⁺ b)
+  → t ≤ fst (encode f)
   → [ b , S h , t , p ]∩[ S (S h) , f ] ==
-  --(S (S h) , S h , O) , (lteS , O≤ _)
-    (S (S h) , h , binom (S (S h)) h) , {!!}
-    -- TODO: probably it would be better to decide: should we normalise up or down?
-    -- CAVEAT: It matters because the contexts are different in `Sk b h max-t` and `Sk b Sh O`!
+    (S (S h) , h , binom (S (S h)) h) , ≤-trans lteS lteS , {!!}
+    -- CAVEAT: It would (probably) be wrong to use
+    -- (S (S h) , S h , O) , (lteS , O≤ _)
+    -- in the last line; these triples represent the same sieve, but we (probably)
+    -- always want to normalise down.
+    -- It matters because the contexts are different in `Sk b h max-t` and `Sk b Sh O`.
 
 ∩-gives-matching = {!!}
