@@ -43,14 +43,70 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
 
   Skm  : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
          → (f : k →⁺ b) → Tm (Sk b h t p)  → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
-  Skm = {!!}
+
+  -- this case copies everything from [_,_,_,_]∩[_,_] and add-component
+  Skm b    h (S t) p k f sk = -- we probably need to split into all the cases of `Sk`.
+    let
+      last-component : S h →⁺ b
+      last-component = decode {S h} {b} (t , S≤-< (snd p))
+      sieve-without-last : Sieve
+      sieve-without-last = [ b , h , t , (fst p , S≤-≤ (snd p)) ]∩[ k , f ]
+      add-new? : Dec (last-component ⊆₊ f)
+      add-new? = last-component ⊆₊? f
+    in
+       {!!}
+       {- Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
+         (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
+         (λ ¬last⊆₊f → sieve-without-last)
+         add-new? -}
+
+  Skm b    O    O  p k f = {!!}
+
+  Skm b (S h)   O  p k f = {!!}
+
+
+{- replicate:
+[ b , h , S t , p ]∩[ k , f ] =
+  let
+    last-component : S h →⁺ b
+    last-component = decode {S h} {b} (t , S≤-< (snd p)) -- Not a mistake: t
+                                                         -- instead of (S t) as
+                                                         -- arg to `decode`.
+    sieve-without-last : Sieve
+    sieve-without-last = [ b , h , t , (fst p , S≤-≤ (snd p)) ]∩[ k , f ]
+    add-new? : Dec (last-component ⊆₊ f)
+    add-new? = last-component ⊆₊? f
+  in
+     Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
+       (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
+       (λ ¬last⊆₊f → sieve-without-last)
+       add-new?
+[ _ ,   O , O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
+[ b , S h , O , p ]∩[ k , f ] =
+  [ b , h , binom b (S h) , (S≤-≤ (fst p) , inl idp) ]∩[ k , f ]
+-}
+
+
+
+
+  {- Note: In
+
+  test : ℕ → ℕ → ℕ
+  test O O = {!!}
+  test (S h) O = {!!}
+  test h (S t) = {!!}
+
+  the last line does not hold definitionally. Why?
+  If we move it two lines up, the problem disappears.
+  Is this a bug?
+  -}
 
   -- Given a term in a "partial skeleton" over the sieve `(b , h , t)`,
   -- we want to project out the components to get a term in the
   -- "partial skeleton" over `(b, b-2, max)`.
   -- There's a 95% risk that I've made some +-1 error here.
   -- ???????
-  
+
   -- calc-matching : (b h t : ℕ) (p : isSieve (b , h , t)) (S h ≤ b) (sk : Tm (Sk b h t p)) → {!Tm (M₊ !}
   -- calc-matching = {!!}
 
@@ -69,6 +125,6 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
 
   -- next case is easy because (b,Sh,O) is the same as (b,h,max)
   Sk b (S h)      O   iS = (Sk b h (binom b (S h)) (≤-trans lteS (fst iS) , inl idp)) [ p ]
-  Sk b    h    (S t)  iS = {!!}
+  Sk b (S h)    (S t)  iS = {!!}
 
 {- TODO: Should we do it without a unit type or with? With is technically weaker, but without is hackier. -}
