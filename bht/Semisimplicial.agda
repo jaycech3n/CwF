@@ -79,8 +79,8 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   Sk b (S h)   (S t)  iS =
     ̂Σ[ sk ∈ Sk b (S h) t (prev-is-sieve iS) ]
       (el
-        (tr Tm (U [ p ] [ id ,, _ ] =⟨ {!!} ⟩ U =∎)
-            ((tr Tm ((M₊ h ̂→ U) [ p ] =⟨ {!!} ⟩ (M₊ h) [ p ] ̂→ U =∎) (ν {_} {M₊ h ̂→ U}))
+        (tr Tm (U [ p ] [[ _ ]] =⟨ eq₁ ⟩ U =∎)
+            ((tr Tm ((M₊ h ̂→ U) [ p ] =⟨ eq₂ ⟩ (M₊ h) [ p ] ̂→ U =∎) (ν {_} {M₊ h ̂→ U}))
             `
             {!calc-matching b h t (prev-is-sieve iS)
                            (decode {S (S h)} {b} (t , S≤-< (snd iS)))
@@ -88,3 +88,8 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
                            -- last argument should be sk, but the function
                            -- calc-matching needs to be lifted?!})) [ p ])
             -- NOTE the context extension is by the type (M₊ h ̂→ U)
+    where
+    eq₁ : U [ p ] [[ _ ]] == U
+    eq₁ = ! []-◦ ∙ U-[]
+    eq₂ : (M₊ h ̂→ U) [ p ] == M₊ h [ p ] ̂→ U
+    eq₂ = ̂→-[] ∙ ap (M₊ h [ p ] ̂→_) U-[]
