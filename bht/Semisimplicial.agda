@@ -46,10 +46,58 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   M₊ : (n : ℕ) → Ty (SST (S n))
   M₊ n = Sk (S (S n)) n (binom (S (S n)) (S n)) (≤-trans lteS lteS , inl idp)
 
-  -- Josh: Don't need this level of generality, really only need the k = h+1 case?
-  --Skm : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
-  --      → (f : k →⁺ b) → Tm (Sk b h t p) → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
-  --Skm = {!!}
+  Skm  : (b h t : ℕ) → (p : isSieve (b , h , t)) → (k : ℕ)
+         → (f : k →⁺ b) → Tm (Sk b h t p)  → Tm (uncurried-Sk [ b , h , t , p ]∩[ k , f ])
+
+  -- this case copies everything from [_,_,_,_]∩[_,_] and add-component
+  Skm b    h (S t) p k f sk = -- we probably need to split into all the cases of `Sk`.
+    let
+      last-component : S h →⁺ b
+      last-component = decode {S h} {b} (t , S≤-< (snd p))
+      sieve-without-last : Sieve
+      sieve-without-last = [ b , h , t , (fst p , S≤-≤ (snd p)) ]∩[ k , f ]
+      add-new? : Dec (last-component ⊆₊ f)
+      add-new? = last-component ⊆₊? f
+    in
+       {!!}
+       {- definition of [_,_,_,_]∩[_,_]:
+       Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)} {C = Sieve}
+         (λ  last⊆₊f → add-component sieve-without-last) -- why not just (b , h , S t) , p?
+         (λ ¬last⊆₊f → sieve-without-last)
+         add-new? -}
+
+  -- Meaningless case which is never called from larger cases. Can return whatever we want.
+  -- If there was a unit type, then Sk b O O would be unit.
+  -- We possibly could define `Skm` on a smaller domain to exclude this case
+  -- (i.e. put into the type an argument (h,t) ≠ (O,O)). This
+  -- would probably be the cleaner solution here. Maybe it would be easier as well (we would
+  -- have to prove the condition for every recursively called case, but maybe we need to
+  -- do that anyway).
+  Skm b    O    O  p k f sk = {!sk -- need to substitute!}
+
+  Skm b (S h)   O  p k f sk = Skm b h (binom b (S h)) (≤-trans lteS (fst p) , inl idp) k f {!sk!} -- We have `sk` in a longer context, so it's a priori a problem. It should still be ok since `sk` doesn't make use of the last context entry. What exactly is the argument?
+
+
+{- replicate:
+[ _ ,   O , O , _ ]∩[ k , f ] = (k , O , O) , (O≤ k) , (O≤ (binom k 1))
+[ b , S h , O , p ]∩[ k , f ] =
+  [ b , h , binom b (S h) , (S≤-≤ (fst p) , inl idp) ]∩[ k , f ]
+-}
+
+
+
+
+  {- Note: In
+
+  test : ℕ → ℕ → ℕ
+  test O O = {!!}
+  test (S h) O = {!!}
+  test h (S t) = {!!}
+
+  the last line does not hold definitionally. Why?
+  If we move it two lines up, the problem disappears.
+  Is this a bug?
+  -}
 
   -- Given a term in a "partial skeleton" over the sieve (b, h, t), we want to
   -- project out the components to get a term in the partial skeleton over (b,
