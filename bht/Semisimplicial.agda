@@ -96,8 +96,9 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
     eq₂ = ̂→-[] ∙ ap (M₊ h [ p ] ̂→_) U-[]
 
 
-  -- this case copies everything from [_,_,_,_]∩[_,_] and add-component
-  Skm b    h (S t) iS k f sk = -- we probably need to split into all the cases of `Sk`.
+  -- This case copies everything from [_,_,_,_]∩[_,_] and add-component.
+  -- We probably need to split into all the cases of `Sk`.
+  Skm b    h (S t) iS k f sk =
     let
       last-component : S h →⁺ b
       last-component = decode {S h} {b} (t , S≤-< (snd iS))
@@ -157,18 +158,25 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
          (k : ℕ) (f : k →⁺ b)
          → Tm (uncurried-Sk (normalise ((b , h , t) , iS)))
          → Tm (uncurried-Sk [ b , h , t , iS ]∩[ k , f ])
-
-  Skm' b    h (S t) iS k f sk =
+  {-
+  Skm' b h (S O) iS k f sk = {!sk!}
+  Skm' b h (S (S t)) iS k f sk =
     let
       last-component : S h →⁺ b
-      last-component = decode {S h} {b} (t , S≤-< (snd iS))
+      last-component = decode {S h} {b} (S t , S≤-< (snd iS))
       sieve-without-last : Sieve
-      sieve-without-last = [ b , h , t , (fst iS , S≤-≤ (snd iS)) ]∩[ k , f ]
+      sieve-without-last = [ b , h , S t , (fst iS , S≤-≤ (snd iS)) ]∩[ k , f ]
       add-new? : Dec (last-component ⊆₊ f)
       add-new? = last-component ⊆₊? f
     in
-       {!!}
-  Skm' b    O    O  iS k f sk = sk
-  Skm' b (S h)   O  iS k f sk =
+       {!Coprod-rec {}!}
+  -}
+  Skm' b    O        O   iS k f sk = sk -- Junk case; never used
+  Skm' b    O     (S O)  iS k f sk = {!!} -- Do we actually really need a unit type here?
+  Skm' b    O  (S (S t)) iS k f sk = {!!}
+
+  Skm' b (S h)       O   iS k f sk =
     Skm' b h (binom b (S h)) (S≤-≤ (fst iS) , inl idp) k f
-      (tr (Tm ∘ uncurried-Sk) (! (normalise-t-max (fst iS))) sk)
+         (tr (Tm ∘ uncurried-Sk) (! (normalise-t-max (fst iS))) sk)
+
+  Skm' b (S h) (S t) iS k f sk = {!!}
