@@ -170,4 +170,5 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
        {!!}
   Skm' b    O    O  iS k f sk = sk
   Skm' b (S h)   O  iS k f sk =
-    Skm' b h (binom b (S h)) (S≤-≤ (fst iS) , inl idp) k f {!sk!}
+    Skm' b h (binom b (S h)) (S≤-≤ (fst iS) , inl idp) k f
+      (tr (Tm ∘ uncurried-Sk) (! (normalise-t-max (fst iS))) sk)

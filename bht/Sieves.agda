@@ -204,6 +204,12 @@ normalise ((b , S h , S t) , iS) = (b , S h , S t) , iS
 -- We can also "normalise up" by using use ℕ-has-dec-eq.
 -- Not sure whether we need it though (probably we do).
 
+normalise-t-max : ∀ {b h} (e : S h ≤ b)
+           → normalise ((b , h , binom b (S h)) , S≤-≤ e , inl idp ) ==
+             ((b , h , binom b (S h)) , S≤-≤ e , inl idp)
+normalise-t-max {b} {h} e = {! binom>O b (S h) e !}
+
+
 prev-is-sieve : ∀ {b h t} → isSieve (b , h , S t) → isSieve (b , h , t)
 prev-is-sieve x = (fst x) , (S≤-≤ (snd x))
 
