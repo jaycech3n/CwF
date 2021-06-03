@@ -195,15 +195,14 @@ get-b ((b , h , t) , p) = b
 get-h ((b , h , t) , p) = h
 get-t ((b , h , t) , p) = t
 
--- Normalise "down". Todo: formulate for Sieves.
-normalise : ℕ × ℕ × ℕ → ℕ × ℕ × ℕ
-normalise (b , O , t) = (b , O , t)
-normalise (b , S h , O) = (b , h , binom b (S h))
-normalise (b , S h , S t) = (b , S h , S t)
+-- Normalise "down".
+normalise : Sieve → Sieve
+normalise ((b , O , t) , iS) = (b , O , t) , iS
+normalise ((b , S h , O) , iS) = (b , h , binom b (S h)) , (S≤-≤ (fst iS)) , inl idp
+normalise ((b , S h , S t) , iS) = (b , S h , S t) , iS
 
 -- We can also "normalise up" by using use ℕ-has-dec-eq.
 -- Not sure whether we need it though (probably we do).
-
 
 prev-is-sieve : ∀ {b h t} → isSieve (b , h , S t) → isSieve (b , h , t)
 prev-is-sieve x = (fst x) , (S≤-≤ (snd x))
