@@ -172,8 +172,19 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
        {!Coprod-rec {}!}
   -}
   Skm' b    O        O   iS k f sk = sk -- Junk case; never used
-  Skm' b    O     (S O)  iS k f sk = {!!} -- Do we actually really need a unit type here?
-  Skm' b    O  (S (S t)) iS k f sk = {!!}
+  Skm' b    O     (S t)  iS k f sk =
+    let
+      last-component : S O →⁺ b
+      last-component = decode {S O} {b} (t , S≤-< (snd iS))
+      sieve-without-last : Sieve
+      sieve-without-last = [ b , O , t , (fst iS , S≤-≤ (snd iS)) ]∩[ k , f ]
+      add-new? : Dec (last-component ⊆₊ f)
+      add-new? = last-component ⊆₊? f
+    in
+       {!⊔-rec -- should this be ⊔-elim?
+         (λ  last⊆₊f → {!Skm' b O t ...!})
+         (λ ¬last⊆₊f → {!sk!})
+         add-new?!}
 
   Skm' b (S h)       O   iS k f sk =
     Skm' b h (binom b (S h)) (S≤-≤ (fst iS) , inl idp) k f
