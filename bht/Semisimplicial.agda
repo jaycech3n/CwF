@@ -20,17 +20,35 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   --    Aₙ₋₁: ... → U)
   SST : ℕ → Con
 
+
+  -- Need the following to properly type Sk
+  SST-of-b,_,_ : ℕ → ℕ → Con
+  SST-of-b, O , t = SST (S O)
+  SST-of-b, S h , O = SST (S h)
+  SST-of-b, S h , S t = SST (S (S h))
+
+  SST-of-b,h,St : ∀ {h t} ⦃ e : O < t ⦄ → (SST-of-b, h , t) == SST (S h)
+  SST-of-b,h,St {O} {t} = idp
+  SST-of-b,h,St {S h} {S t} = idp
+
+  SST-of-b,h,max : ∀ {b h t} → isSieve (b , S h , t)
+                   → (SST-of-b, h , binom b (S h)) == SST (S h)
+  SST-of-b,h,max {b} {h} iS = SST-of-b,h,St ⦃ binom>O b (S h) (fst iS) ⦄
+
+
   -- Sk gives, for every sieve s, the type of "partial boundaries" with shape given by s.
-  Sk : (b h t : ℕ) → isSieve (b , h , t) → Ty (SST (S h))
+  Sk : (b h t : ℕ) → isSieve (b , h , t) → Ty (SST-of-b, h , t)
 
   -- Is there a more principled way of doing this?
-  uncurried-Sk : (s : Sieve) → Ty (SST (S (get-h s)))
+  uncurried-Sk : (s : Sieve) → Ty (SST-of-b, get-h s , get-t s)
   uncurried-Sk ((b , h , t) , p) = Sk b h t p
 
 
+  -- Morphism part of the Sk functor
   Skm : (b h t : ℕ) (iS : isSieve (b , h , t))
         (k : ℕ) (f : k →⁺ b)
-        → Tm (Sk b h t iS) → Tm (uncurried-Sk [ b , h , t , iS ]∩[ k , f ])
+        → Tm (Sk b h t iS)
+        → Tm (uncurried-Sk [ b , h , t , iS ]∩[ k , f ])
 
 
   {- Matching Object -
@@ -49,7 +67,11 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
 
   -- M₊ n is the matching object at level n+1.
   M₊ : (n : ℕ) → Ty (SST (S n))
-  M₊ n = Sk (S (S n)) n (binom (S (S n)) (S n)) (≤-trans lteS lteS , inl idp)
+  M₊ n =
+    tr Ty eq (Sk (S (S n)) n (binom (S (S n)) (S n)) (≤-trans lteS lteS , inl idp))
+    where
+      eq : (SST-of-b, n , binom (S (S n)) (S n)) == SST (S n)
+      eq = ap (SST-of-b, n ,_) (binom-Sn-n (S n)) ∙ SST-of-b,h,St
 
 
   -- Given a term in a "partial skeleton" over the sieve (b, h, t), we want to
@@ -76,9 +98,9 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   Sk b    O    (S O)  iS = el (ν {◆} {U} ↑)
   Sk b    O (S (S t)) iS = Sk b O (S t) (prev-is-sieve iS) ̂× el (ν {◆} {U} ↑)
   -- Next case is easy because (b,Sh,O) is the same as (b,h,max)
-  Sk b (S h)      O   iS = (Sk b h (binom b (S h)) (≤-trans lteS (fst iS) , inl idp)) [ p ]
+  Sk b (S h)      O   iS = {!Sk b h (binom b (S h)) (≤-trans lteS (fst iS) , inl idp)!}
   Sk b (S h)   (S t)  iS =
-    ̂Σ[ sk ∈ Sk b (S h) t (prev-is-sieve iS) ]
+    {! ̂Σ[ sk ∈ Sk b (S h) t (prev-is-sieve iS) ]
       (el
         (tr Tm (U [ p ] [[ _ ]] =⟨ eq₁ ⟩ U =∎)
             ((tr Tm ((M₊ h ̂→ U) [ p ] =⟨ eq₂ ⟩ (M₊ h) [ p ] ̂→ U =∎) (ν {_} {M₊ h ̂→ U}))
@@ -87,7 +109,7 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
                            (decode {S (S h)} {b} (t , S≤-< (snd iS)))
                            {! idp !}
                            -- last argument should be sk, but the function
-                           -- calc-matching needs to be lifted?!})) [ p ])
+                           -- calc-matching needs to be lifted?!})) [ p ]) !}
             -- NOTE the context extension is by the type (M₊ h ̂→ U)
     where
     eq₁ : U [ p ] [[ _ ]] == U
