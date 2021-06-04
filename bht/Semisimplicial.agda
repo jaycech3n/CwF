@@ -158,36 +158,41 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
          (k : ℕ) (f : k →⁺ b)
          → Tm (uncurried-Sk (normalise ((b , h , t) , iS)))
          → Tm (uncurried-Sk [ b , h , t , iS ]∩[ k , f ])
-  {-
-  Skm' b h (S O) iS k f sk = {!sk!}
-  Skm' b h (S (S t)) iS k f sk =
+
+  Skm' b    h (S t)  iS k f sk =
     let
       last-component : S h →⁺ b
-      last-component = decode {S h} {b} (S t , S≤-< (snd iS))
+      last-component = decode {S h} {b} (t , S≤-< (snd iS))
       sieve-without-last : Sieve
-      sieve-without-last = [ b , h , S t , (fst iS , S≤-≤ (snd iS)) ]∩[ k , f ]
+      sieve-without-last = [ b , h , t , iS' ]∩[ k , f ]
       add-new? : Dec (last-component ⊆₊ f)
       add-new? = last-component ⊆₊? f
     in
-       {!Coprod-rec {}!}
-  -}
-  Skm' b    O        O   iS k f sk = sk -- Junk case; never used
-  Skm' b    O     (S t)  iS k f sk =
-    let
-      last-component : S O →⁺ b
-      last-component = decode {S O} {b} (t , S≤-< (snd iS))
-      sieve-without-last : Sieve
-      sieve-without-last = [ b , O , t , (fst iS , S≤-≤ (snd iS)) ]∩[ k , f ]
-      add-new? : Dec (last-component ⊆₊ f)
-      add-new? = last-component ⊆₊? f
-    in
-       {!⊔-rec -- should this be ⊔-elim?
-         (λ  last⊆₊f → {!Skm' b O t ...!})
-         (λ ¬last⊆₊f → {!sk!})
-         add-new?!}
+      {-
+       Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)}
+                  {C = Tm (uncurried-Sk [ b , h , S t , iS ]∩[ k , f ])}
+         (λ  last⊆₊f → {!!})
+         (λ ¬last⊆₊f → {!Skm' b h t iS' k f {!sk without last coord!}!})
+         add-new?
+      -}
+      tr (λ x → x)
+         (! (Coprod-rec-post∘ (Tm ∘ uncurried-Sk)
+                              (λ  last⊆₊f → add-component sieve-without-last)
+                              (λ ¬last⊆₊f → sieve-without-last) add-new?))
+         (Coprod-elim
+           {C = Coprod-rec
+                  (λ last⊆₊f →
+                    Tm (uncurried-Sk (add-component sieve-without-last)))
+                  (λ ¬last⊆₊f →
+                    Tm (uncurried-Sk sieve-without-last))}
+           (λ  last⊆₊f → {!!})
+           (λ ¬last⊆₊f → Skm' b h t iS' k f {!sk without the last coordinate!} )
+           add-new?)
+      where
+        iS' : isSieve (b , h , t)
+        iS' = (fst iS , S≤-≤ (snd iS))
 
-  Skm' b (S h)       O   iS k f sk =
+  Skm' b    O    O   iS k f sk = sk -- Junk case; never used
+  Skm' b (S h)   O   iS k f sk =
     Skm' b h (binom b (S h)) (S≤-≤ (fst iS) , inl idp) k f
          (tr (Tm ∘ uncurried-Sk) (! (normalise-t-max (fst iS))) sk)
-
-  Skm' b (S h) (S t) iS k f sk = {!!}
