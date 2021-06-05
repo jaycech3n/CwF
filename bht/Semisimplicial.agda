@@ -76,7 +76,7 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   Sk b    O    (S O)  iS = el (ν {◆} {U} ↑)
   Sk b    O (S (S t)) iS = Sk b O (S t) (prev-is-sieve iS) ̂× el (ν {◆} {U} ↑)
   -- Next case is easy because (b,Sh,O) is the same as (b,h,max)
-  Sk b (S h)      O   iS = (Sk b h (binom b (S h)) (≤-trans lteS (fst iS) , inl idp)) [ p ]
+  Sk b (S h)      O   iS = (Sk b h (binom b (S h)) (S≤-≤ (fst iS) , inl idp)) [ p ]
   Sk b (S h)   (S t)  iS =
     ̂Σ[ sk ∈ Sk b (S h) t (prev-is-sieve iS) ]
       (el
@@ -153,6 +153,14 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
   Is this a bug?
   -}
 
+  restrict : ∀ {b h t} (iS : isSieve (b , h , S t))
+             → Tm (uncurried-Sk ((b , h , S t) , iS))
+             → Tm (uncurried-Sk (normalise ((b , h , t) , fst iS , S≤-≤ (snd iS))))
+             -- is the above correct?...
+  restrict {b} {h} {S t} iS x = {!!}
+  restrict {b} {O} {O} iS x = {!we need an element of (Sk b 0 0) here!}
+  restrict {b} {S h} {O} iS x = {!restrict {b} {h} {binom b (S h)}!}
+
 
   Skm' : (b h t : ℕ) (iS : isSieve (b , h , t))
          (k : ℕ) (f : k →⁺ b)
@@ -168,17 +176,11 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
       add-new? : Dec (last-component ⊆₊ f)
       add-new? = last-component ⊆₊? f
     in
-      {-
-       Coprod-rec {A = last-component ⊆₊ f} {B = ¬ (last-component ⊆₊ f)}
-                  {C = Tm (uncurried-Sk [ b , h , S t , iS ]∩[ k , f ])}
-         (λ  last⊆₊f → {!!})
-         (λ ¬last⊆₊f → {!Skm' b h t iS' k f {!sk without last coord!}!})
-         add-new?
-      -}
       tr (λ x → x)
          (! (Coprod-rec-post∘ (Tm ∘ uncurried-Sk)
                               (λ  last⊆₊f → add-component sieve-without-last)
-                              (λ ¬last⊆₊f → sieve-without-last) add-new?))
+                              (λ ¬last⊆₊f → sieve-without-last)
+                              add-new?))
          (Coprod-elim
            {C = Coprod-rec
                   (λ last⊆₊f →
@@ -186,7 +188,7 @@ module bht.Semisimplicial {i} (C : WildCategory {i})
                   (λ ¬last⊆₊f →
                     Tm (uncurried-Sk sieve-without-last))}
            (λ  last⊆₊f → {!!})
-           (λ ¬last⊆₊f → Skm' b h t iS' k f {!sk without the last coordinate!} )
+           (λ ¬last⊆₊f → Skm' b h t iS' k f {!sk without the last coordinate, use `restrict`!} )
            add-new?)
       where
         iS' : isSieve (b , h , t)
