@@ -36,8 +36,16 @@ O+O {m} {n} p q =
 +==O-r {m = O} p = p
 +==O-r {m = 1+ m} {n} p = ⊥-elim (ℕ-S≠O (m + n) p)
 
-O<-implies-O<+r : {m n : ℕ} → O < m → O < m + n
-O<-implies-O<+r {1+ m} {n} x = O<S (m + n)
+O<→O<+r : {m n : ℕ} → O < m → O < m + n
+O<→O<+r {1+ m} {n} x = O<S (m + n)
+
+<1→=O : ∀ x → x < 1 → x == O
+<1→=O O _ = idp
+<1→=O (1+ x) (ltSR ())
+
+<S-≤ : {m n : ℕ} →  m < 1+ n → m ≤ n
+<S-≤ ltS = inl idp
+<S-≤ (ltSR x) = inr x
 
 {- Leftover stuff not needed
 
@@ -45,9 +53,7 @@ module _ {m n : ℕ} where
   ==-cancel-S : _==_ {A = ℕ} (1+ m) (1+ n) → m == n
   ==-cancel-S idp = idp
 
-  <S-≤ : m < 1+ n → m ≤ n
-  <S-≤ ltS = inl idp
-  <S-≤ (ltSR x) = inr x
+
 
   S<-< : 1+ m < n → m < n
   S<-< h = <-trans ltS h
@@ -127,4 +133,4 @@ Sn≤binom-Sn-n n = inl (! (binom-Sn-n n))
 
 binom>O : ∀ m n → n < m → O < binom m n
 binom>O (1+ m) O n<m = ltS
-binom>O (1+ m) (1+ n) n<m = O<-implies-O<+r (binom>O m n (<-cancel-S n<m))
+binom>O (1+ m) (1+ n) n<m = O<→O<+r (binom>O m n (<-cancel-S n<m))
