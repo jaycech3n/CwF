@@ -31,8 +31,8 @@ Fin1-has-all-paths i j = prop-path Fin1-is-prop _ _
 ∀-Fin-extend {n = O}    {P} _ PO  _ = tr P (Fin1-has-all-paths _ _) PO
 ∀-Fin-extend {n = 1+ n} {P} f PSn (i , i<)
   with <S-≤ i<
-... | inl i==Sn = tr P (Fin=-intro (! i==Sn)) PSn
-... | inr i<Sn  = tr P (Fin=-intro idp) (f (i , i<Sn))
+...  | inl i==Sn = tr P (Fin=-intro (! i==Sn)) PSn
+...  | inr i<Sn  = tr P (Fin=-intro idp) (f (i , i<Sn))
 
 ∀-Fin? : ∀ {n} (P : Fin n → Type ℓ)
          → ((i : Fin n) → Dec (P i))
@@ -40,8 +40,26 @@ Fin1-has-all-paths i j = prop-path Fin1-is-prop _ _
 ∀-Fin? {n = O} P _ = inl (λ ())
 ∀-Fin? {n = 1+ n} P ∀Fin-Sn-Dec-P
   with ∀-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S)
-... | inl  ∀Fin-n-P = ⊔-elim
+...  | inl  ∀Fin-n-P = ⊔-elim
                         (λ  Pn → inl (∀-Fin-extend ∀Fin-n-P Pn))
                         (λ ¬Pn → inr (λ ∀Fin-Sn-P → ¬Pn (∀Fin-Sn-P (n , ltS))))
                         (∀Fin-Sn-Dec-P (n , ltS))
-... | inr ¬∀Fin-n-P = inr λ ∀Fin-Sn-P → ¬∀Fin-n-P (∀Fin-Sn-P ∘ Fin-S)
+...  | inr ¬∀Fin-n-P = inr λ ∀Fin-Sn-P → ¬∀Fin-n-P (∀Fin-Sn-P ∘ Fin-S)
+
+-- Deciding fibers of maps between finite types
+
+abstract
+  Fin-hfiber-dec : ∀ {m n} (f : Fin m → Fin n) (j : Fin n) → Dec (hfiber f j)
+  Fin-hfiber-dec {O} {n} f j = inr ((≮O _) ∘ snd ∘ fst)
+  Fin-hfiber-dec {1+ m} {n} f j
+    with Fin-hfiber-dec (f ∘ Fin-S) j
+  ...  | inl (x@(i , i<m) , fi==j) = inl (Fin-S x , ap f (Fin=-intro idp) ∙ fi==j)
+  ...  | inr h with f (m , ltS) ≟-Fin j
+  ...             | inl fm==j = inl ((m , ltS) , fm==j)
+  ...             | inr fm≠j  = inr λ{ ((i , i<Sm) , fi==j) →
+                                      ⊔-elim
+                                        (λ i==m →
+                                          fm≠j (ap f (Fin=-intro (! i==m)) ∙ fi==j))
+                                        (λ i<m  →
+                                          h ((i , i<m) , ap f (Fin=-intro idp) ∙ fi==j))
+                                        (<S-≤ i<Sm) }

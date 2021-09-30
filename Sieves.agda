@@ -49,24 +49,11 @@ m →+ n = Σ (Fin (1+ m) → Fin (1+ n)) is-increasing
 fun-of : ∀ {m n} → (m →+ n) → Fin (1+ m) → Fin (1+ n)
 fun-of (f , _) = f
 
-Fin→-init : ∀ {m n} → (Fin (1+ m) → Fin n) → Fin m → Fin n
-Fin→-init {O} f ()
-Fin→-init {1+ m} f = f ∘ Fin-S
-
-→+-init : ∀ {m n} → (1+ m →+ n) → m →+ n
-→+-init {m} (f , f-is-inc) = Fin→-init f , f-is-inc
-
-→+-img : ∀ {m n} → (m →+ n) → List (Fin (1+ n))
-→+-img {O}         (f , _) = f 0 :: nil
-→+-img {1+ m} m→+n@(f , _) = snoc (→+-img (→+-init m→+n)) (f (1+ m , ltS))
-
 _→+-⊆_ : ∀ {m m' n} (f : m →+ n) (g : m' →+ n) → Type₀
-_→+-⊆_ {m} f g = ∀ (i : Fin (1+ m)) → hfiber (fun-of g) (fun-of f i)
+_→+-⊆_ {m} f g = (i : Fin (1+ m)) → hfiber (fun-of g) (fun-of f i)
 
 _→+-⊆?_ : ∀ {m m' n} (f : m →+ n) (g : m' →+ n) → Dec (f →+-⊆ g)
-_→+-⊆?_ {O} {m'} {n} f g with fun-of f 0
-...                         | j = {!!}
-_→+-⊆?_ {1+ m} {m'} {n} f g = {!!}
+_→+-⊆?_ f g = ∀-Fin? _ (λ i → Fin-hfiber-dec (fun-of g) (fun-of f i))
 
 
 {- Subsieves -}
@@ -74,10 +61,10 @@ _→+-⊆?_ {1+ m} {m'} {n} f g = {!!}
 -- This calculates the shape of the intersection of a face map f with
 -- the presieve (n,k,t).
 
-[_,_,_]ᵖ∩_ : (n k t : ℕ)
-             → {m : ℕ} (f : m →+ n)
-             → is-presieve n k t
-             → Maybe Sieve
-([ n , O ,   O  ]ᵖ∩ f) iPS = none
-([ n , O , 1+ t ]ᵖ∩ f) iPS = {!Maybe-case!}
-([ n , 1+ k , t ]ᵖ∩ f) iPS = {!!}
+pre[_,_,_]∩_ : (n k t : ℕ)
+            → {m : ℕ} (f : m →+ n)
+            → is-presieve n k t
+            → Maybe Sieve
+(pre[ n , O ,   O  ]∩ f) iPS = none
+(pre[ n , O , 1+ t ]∩ f) iPS = {!Maybe-case!}
+(pre[ n , 1+ k , t ]∩ f) iPS = {!!}
