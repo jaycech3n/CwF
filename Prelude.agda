@@ -29,23 +29,6 @@ pattern 2+ n = S (S n)
 syntax Σ-syntax A (λ x → B) = Σ[ x ∈ A ] B
 
 
-{- Maybe -}
-
-abstract
-  Maybe : Type i → Type i
-  Maybe A = A ⊔ ⊤
-
-  none : {A : Type i} → Maybe A
-  none = inr tt
-
-  some : {A : Type i} → A → Maybe A
-  some a = inl a
-
-  Maybe-elim : {A : Type i} {B : Type j}
-               → Maybe A → B → (A → B) → B
-  Maybe-elim {A = A} m b f = ⊔-elim {A = A} {B = ⊤} f (λ _ → b) m
-
-
 {- Triples -}
 
 module _ {A : Type i} {B : A → Type j} {C : {a : A} (b : B a) → Type k} where
@@ -54,6 +37,35 @@ module _ {A : Type i} {B : A → Type j} {C : {a : A} (b : B a) → Type k} wher
 
   3rd : (u : Σ[ a ∈ A ] Σ[ b ∈ B a ] C b) → C (fst (snd u))
   3rd = snd ∘ snd
+
+
+{- Maybe -}
+
+-- Could make this dependent, but don't need it.
+
+Maybe : Type i → Type i
+Maybe A = A ⊔ ⊤
+
+pattern none = inr tt
+
+some : {A : Type i} → A → Maybe A
+some a = inl a
+
+Maybe-elim : {A : Type i} {B : Type j}
+             → Maybe A → B → (A → B) → B
+Maybe-elim m b f = ⊔-elim f (λ _ → b) m
+
+maybe : {A : Type i} {B : Type j}
+        → (A → B) → Maybe A → Maybe B
+maybe f (inl a) = some (f a)
+maybe f (inr _) = none
+
+
+{- Decidable types -}
+
+True : {A : Type i} → Dec A → Bool
+True (inl _) = true
+True (inr _) = false
 
 
 {- Rewriting transports -}

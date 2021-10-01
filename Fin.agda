@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module Fin where
 
 open import Prelude public
@@ -30,7 +32,7 @@ Fin1-has-all-paths i j = prop-path Fin1-is-prop _ _
                → ∀ i → P i
 ∀-Fin-extend {n = O}    {P} _ PO  _ = tr P (Fin1-has-all-paths _ _) PO
 ∀-Fin-extend {n = 1+ n} {P} f PSn (i , i<)
-  with <S-≤ i<
+  with <S→≤ i<
 ...  | inl i==Sn = tr P (Fin=-intro (! i==Sn)) PSn
 ...  | inr i<Sn  = tr P (Fin=-intro idp) (f (i , i<Sn))
 
@@ -62,4 +64,4 @@ abstract
                                           fm≠j (ap f (Fin=-intro (! i==m)) ∙ fi==j))
                                         (λ i<m  →
                                           h ((i , i<m) , ap f (Fin=-intro idp) ∙ fi==j))
-                                        (<S-≤ i<Sm) }
+                                        (<S→≤ i<Sm) }

@@ -1,4 +1,4 @@
-{-# OPTIONS --termination-depth=2 #-}
+{-# OPTIONS --without-K --termination-depth=2 #-}
 
 module Semisimplicial where
 
