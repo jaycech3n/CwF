@@ -39,11 +39,19 @@ is-last-sieve n = ltS , Sn≤binom-Sn-n (1+ n)
 Sieve : ℕ → ℕ → Type₀
 Sieve n k = Σ[ t ∈ ℕ ] (O < t) × is-presieve n k t
 
+next-sieve-t : ∀ {n k} t → k < n → t < binom (1+ n) (1+ k) → Sieve n k
+next-sieve-t t k<n t<binom = 1+ t , O<S t , k<n , <→S≤ t<binom
+
 pre-of-sieve : ∀ {n k} → Sieve n k → Presieve n k
 pre-of-sieve (t , _ , iPS) = t , iPS
 
-next-sieve-t : ∀ {n k} t → k < n → t < binom (1+ n) (1+ k) → Sieve n k
-next-sieve-t t k<n t<binom = 1+ t , O<S t , k<n , <→S≤ t<binom
+normalize-k : (k t : ℕ) → ℕ
+normalize-k O t = O
+normalize-k (1+ k) O = k
+normalize-k (1+ k) (1+ t) = 1+ k
+
+sieve-of-pre : ∀ {n k} (s : Presieve n k) → Sieve n (normalize-k k (get-t s))
+sieve-of-pre = {!!}
 
 
 {- Face maps -}
@@ -69,21 +77,21 @@ map-of-index n k t = {!!}
 
 {- Subsieves -}
 
--- (pre[ n , k , t ]∩ f) calculates the shape of the intersection of a
+-- ([ n , k , t ]∩ f) calculates the shape of the intersection of a
 -- face map f with the presieve (n, k, t).
 
-pre[_,_,_]∩_ : (n k t : ℕ)
-               → {m : ℕ} (f : m →+ n)
-               → is-presieve n k t
-               → Presieve n k
+[_,_,_]∩_ : (n k t : ℕ)
+            → {m : ℕ} (f : m →+ n)
+            → is-presieve n k t
+            → Presieve n (normalize-k k t)
 
 t-of-∩ : (n k t : ℕ) {m : ℕ} (f : m →+ n) (iPS : is-presieve n k t)
-         → get-t ((pre[ n , k , t ]∩ f) iPS) ≤ t
+         → get-t (([ n , k , t ]∩ f) iPS) ≤ t
 
-(pre[ n , O , O ]∩ f) iPS = O , iPS
+([ n , O , O ]∩ f) iPS = O , iPS
 
-(pre[ n , O , 1+ t ]∩ f) iPS@(_ , St≤binom)
-  with (pre[ n , O , t ]∩ f) (prev-is-presieve-t iPS)
+([ n , O , 1+ t ]∩ f) iPS@(_ , St≤binom)
+  with ([ n , O , t ]∩ f) (prev-is-presieve-t iPS)
      | t-of-∩ n O t f (prev-is-presieve-t iPS)
      | (map-of-index n O (1+ t) iPS) img-⊆? f
 ...  | t' , O<n , _ | t'≤t | inl _
@@ -91,15 +99,16 @@ t-of-∩ : (n k t : ℕ) {m : ℕ} (f : m →+ n) (iPS : is-presieve n k t)
 ...  | s            | _    | inr _
      = s
 
-(pre[ n , 1+ k , t ]∩ f) iPS = {!!}
+([ n , 1+ k , O ]∩ f) iPS = {![ n , k , binom (1+ n) (1+ k) ]∩ f!}
+
+([ n , 1+ k , 1+ t ]∩ f) iPS = {!!}
 
 t-of-∩ n O O f iPS = inl idp
 
 t-of-∩ n O (1+ t) f iPS
-  with (pre[ n , O , t ]∩ f) (prev-is-presieve-t iPS)
-     | t-of-∩ n O t f (prev-is-presieve-t iPS)
+  with t-of-∩ n O t f (prev-is-presieve-t iPS)
      | (map-of-index n O (1+ t) iPS) img-⊆? f
-...  | t' , _ | t'≤t | inl _ = ≤-ap-S t'≤t
-...  | t' , _ | t'≤t | inr _ = lteSR t'≤t
+...  | t'≤t | inl _ = ≤-ap-S t'≤t
+...  | t'≤t | inr _ = lteSR t'≤t
 
 t-of-∩ n (1+ k) t f iPS = {!!}
