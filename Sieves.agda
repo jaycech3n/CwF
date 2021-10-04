@@ -82,6 +82,14 @@ private
                 → is-sieve n k t
                 → Maybe Sieve
 
+∩-not-none-tmax : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
+               {m : ℕ} (f : m →+ n)
+               → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS ≠ none
+
+∩-not-none-k : (n k t : ℕ) (iS : is-sieve n (1+ k) t)
+               {m : ℕ} (f : m →+ n)
+               → [ n , 1+ k , t ]∩[ m , f ] iS ≠ none
+
 [ n , O , 1+ O ]∩[ m , f ] iS
   with [ n , O , 1 , first-is-sieve n O (O≤ n) ]-face-in-img? f
 ...  | inl  in-f = some ((m , O , 1) , first-is-sieve m O (O≤ m)) -- base case
@@ -97,13 +105,34 @@ private
 [ n , 1+ k , 1+ O ]∩[ m , f ] iS
   with [ n , 1+ k , 1 , iS ]-face-in-img? f
      | [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] (prev-is-sieve-k iS)
-...  | inl in-f | inl ((n' , k' , t') , iS') = some (sieve-increment n' k' t' iS')
-...  | inl in-f | none = {!!} -- this will never happen
-...  | inr ¬in-f | s = s
+     | ∩-not-none-tmax n k (prev-is-sieve-k iS) f
+...  | inl  in-f | inl ((n' , k' , t') , iS') | _ = some (sieve-increment n' k' t' iS')
+...  | inl  in-f | none | w = some (⊥-elim (w idp)) -- this will never happen
+...  | inr ¬in-f | s    | _ = s
 
 [ n , 1+ k , 2+ t ]∩[ m , f ] iS
   with [ n , 1+ k , 2+ t , iS ]-face-in-img? f
      | [ n , 1+ k , 1+ t ]∩[ m , f ] (prev-is-sieve-t iS)
-...  | inl  in-f | inl ((n' , k' , t') , iS') = some (sieve-increment n' k' t' iS')
-...  | inl  in-f | none  = {!!} -- this will never happen
-...  | inr ¬in-f | s     = s
+     | ∩-not-none-k n k (1+ t) (prev-is-sieve-t iS) f
+...  | inl  in-f | inl ((n' , k' , t') , iS') | _ = some (sieve-increment n' k' t' iS')
+...  | inl  in-f | none | w = some (⊥-elim (w idp)) -- this will never happen
+...  | inr ¬in-f | s    | _ = s
+
+∩-not-none-k n k (1+ O) iS {m} f
+  with [ n , 1+ k , 1 , iS ]-face-in-img? f
+     | [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] (prev-is-sieve-k iS)
+     | ∩-not-none-tmax n k (prev-is-sieve-k iS) f
+...  | inl  in-f | inl _ | _ = some≠none
+...  | inl  in-f | none  | _ = some≠none
+...  | inr ¬in-f | _     | w = w
+
+∩-not-none-k n k (2+ t) iS {m} f
+  with [ n , 1+ k , 2+ t , iS ]-face-in-img? f
+     | [ n , 1+ k , 1+ t ]∩[ m , f ] (prev-is-sieve-t iS)
+     | ∩-not-none-k n k (1+ t) (prev-is-sieve-t iS) f
+...  | inl  in-f | inl _ | _ = some≠none
+...  | inl  in-f | none  | _ = some≠none
+...  | inr ¬in-f | _     | w = w
+
+∩-not-none-tmax n O iS {m} f = {!!}
+∩-not-none-tmax n (1+ k) iS {m} f = {!!}
