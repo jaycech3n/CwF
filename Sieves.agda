@@ -1,57 +1,49 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --termination-depth=2 --allow-unsolved-metas #-}
 
 module Sieves where
 
 open import Arithmetic public
 open import Fin public
 
+
+{- Sieves -}
+
 -- A sieve (n,k,t) describes the shape of partial k-skeleta of n-simplices in
--- which the first t > 0 k-faces are present. Presieves are sieves where t ≥ 0.
+-- which the first t k-faces are present.
 
-is-presieve : ℕ → ℕ → ℕ → Type₀
-is-presieve n k t = (k < n) × (t ≤ binom (1+ n) (1+ k))
+record is-sieve (n k t : ℕ) : Type₀ where
+  constructor sieve-conds
+  field
+    ⦃ tpos ⦄ : O < t
+    kcond : k ≤ n
+    tcond : t ≤ binom (1+ n) (1+ k)
 
-prev-is-presieve-t : {n k t : ℕ} → is-presieve n k (1+ t) → is-presieve n k t
-prev-is-presieve-t (k<n , St≤binom) = k<n , (≤-trans lteS St≤binom)
+Sieve : Type₀
+Sieve = Σ[ s ∈ ℕ × ℕ × ℕ ]
+          let n = fst s
+              k = 2nd s
+              t = 3rd s
+          in is-sieve n k t
 
-Presieve : ℕ → ℕ → Type₀
-Presieve n k = Σ[ t ∈ ℕ ] is-presieve n k t
+first-is-sieve : (n k : ℕ) → k ≤ n → is-sieve n k 1
+first-is-sieve n k k≤n = sieve-conds k≤n (binom≥1 (1+ n) (1+ k) (≤-ap-S k≤n))
 
-get-t : ∀ {n k} → Presieve n k → ℕ
-get-t = fst
+last-is-sieve : (n k : ℕ) → k ≤ n → is-sieve n k (binom (1+ n) (1+ k))
+last-is-sieve n k k≤n = sieve-conds ⦃ binom>O (1+ n) (1+ k) (≤-ap-S k≤n) ⦄
+                                    k≤n (inl idp)
 
-is-sieve : ℕ → ℕ → (t : ℕ) ⦃ tpos : O < t ⦄ → Type₀
-is-sieve n k t = is-presieve n k t
-
-prev-is-sieve-t : {n k t : ℕ} ⦃ tpos : O < t ⦄
-                  → is-sieve n k (1+ t)
-                  → is-sieve n k t
-prev-is-sieve-t = prev-is-presieve-t
-
-prev-is-sieve-k : {n k : ℕ} (iS@(Sk<n , _) : is-sieve n (1+ k) 1)
+prev-is-sieve-k : {n k : ℕ} (iS : is-sieve n (1+ k) 1)
                   → is-sieve n k (binom (1+ n) (1+ k))
-                             ⦃ binom>O (1+ n) (1+ k) (ltSR Sk<n) ⦄
-prev-is-sieve-k (Sk<n , 1≤binom) = <-trans ltS Sk<n , inl idp
+prev-is-sieve-k {n} {k} (sieve-conds Sk≤n _) = last-is-sieve n k (≤-trans lteS Sk≤n)
 
-is-last-sieve : (n : ℕ) → is-sieve (1+ n) n (2+ n)
-is-last-sieve n = ltS , Sn≤binom-Sn-n (1+ n)
+prev-is-sieve-t : {n k t : ℕ} → is-sieve n k (2+ t) → is-sieve n k (1+ t)
+prev-is-sieve-t (sieve-conds k≤n St≤binom) = sieve-conds k≤n (≤-trans lteS St≤binom)
 
-Sieve : ℕ → ℕ → Type₀
-Sieve n k = Σ[ t ∈ ℕ ] (O < t) × is-presieve n k t
-
-next-sieve-t : ∀ {n k} t → k < n → t < binom (1+ n) (1+ k) → Sieve n k
-next-sieve-t t k<n t<binom = 1+ t , O<S t , k<n , <→S≤ t<binom
-
-pre-of-sieve : ∀ {n k} → Sieve n k → Presieve n k
-pre-of-sieve (t , _ , iPS) = t , iPS
-
-normalize-k : (k t : ℕ) → ℕ
-normalize-k O t = O
-normalize-k (1+ k) O = k
-normalize-k (1+ k) (1+ t) = 1+ k
-
-sieve-of-pre : ∀ {n k} (s : Presieve n k) → Sieve n (normalize-k k (get-t s))
-sieve-of-pre = {!!}
+sieve-increment : (n k t : ℕ) → is-sieve n k t → Sieve
+sieve-increment n k t iS@(sieve-conds k≤n t≤binom) with k≤n | t≤binom
+... | inl k==n | _            = (n , k , t) , iS
+... | inr k<n  | inl t==binom = (n , 1+ k , 1) , first-is-sieve _ _ (<→S≤ k<n)
+... | inr k<n  | inr t<binom  = (n , k , 1+ t) , sieve-conds k≤n (<→S≤ t<binom)
 
 
 {- Face maps -}
@@ -71,44 +63,47 @@ _img-⊆_ {m} f g = (i : Fin (1+ m)) → hfiber (fun-of g) (fun-of f i)
 _img-⊆?_ : ∀ {m m' n} (f : m →+ n) (g : m' →+ n) → Dec (f img-⊆ g)
 _img-⊆?_ f g = ∀-Fin? _ (λ i → Fin-hfiber-dec (fun-of g) (fun-of f i))
 
-map-of-index : (n k t : ℕ) ⦃ tpos : O < t ⦄ → is-sieve n k t → (k →+ n)
+map-of-index : (n k t : ℕ) → is-sieve n k t → (k →+ n)
 map-of-index n k t = {!!}
 
 
 {- Subsieves -}
 
--- ([ n , k , t ]∩ f) calculates the shape of the intersection of a
--- face map f with the presieve (n, k, t).
+private
+  [_,_,_,_]-face-in-img?_ : ∀ {m} (n k t : ℕ) (iS : is-sieve n k t) (f : m →+ n)
+                            → Dec (map-of-index n k t iS img-⊆ f)
+  [ n , k , t , iS ]-face-in-img? f = (map-of-index n k t iS) img-⊆? f
 
-[_,_,_]∩_ : (n k t : ℕ)
-            → {m : ℕ} (f : m →+ n)
-            → is-presieve n k t
-            → Presieve n (normalize-k k t)
+-- [n, k, t]∩[m, f] calculates the shape of the intersection of a face
+-- map f : m →+ n with the sieve (n,k,t).
 
-t-of-∩ : (n k t : ℕ) {m : ℕ} (f : m →+ n) (iPS : is-presieve n k t)
-         → get-t (([ n , k , t ]∩ f) iPS) ≤ t
+[_,_,_]∩[_,_] : (n k t : ℕ)
+                → (m : ℕ) (f : m →+ n)
+                → is-sieve n k t
+                → Maybe Sieve
 
-([ n , O , O ]∩ f) iPS = O , iPS
+[ n , O , 1+ O ]∩[ m , f ] iS
+  with [ n , O , 1 , first-is-sieve n O (O≤ n) ]-face-in-img? f
+...  | inl  in-f = some ((m , O , 1) , first-is-sieve m O (O≤ m)) -- base case
+...  | inr ¬in-f = none
 
-([ n , O , 1+ t ]∩ f) iPS@(_ , St≤binom)
-  with ([ n , O , t ]∩ f) (prev-is-presieve-t iPS)
-     | t-of-∩ n O t f (prev-is-presieve-t iPS)
-     | (map-of-index n O (1+ t) iPS) img-⊆? f
-...  | t' , O<n , _ | t'≤t | inl _
-     = pre-of-sieve (next-sieve-t t' O<n (S≤→< (≤-trans (≤-ap-S t'≤t) St≤binom)))
-...  | s            | _    | inr _
-     = s
+[ n , O , 2+ t ]∩[ m , f ] iS
+  with [ n , O , 2+ t , iS ]-face-in-img? f
+     | [ n , O , 1+ t ]∩[ m , f ] (prev-is-sieve-t iS)
+...  | inl  in-f | inl ((n' , k' , t') , iS') = some (sieve-increment n' k' t' iS')
+...  | inl  in-f | none = some ((m , O , 1) , (first-is-sieve m O (O≤ m))) -- base case
+...  | inr ¬in-f | s = s
 
-([ n , 1+ k , O ]∩ f) iPS = {![ n , k , binom (1+ n) (1+ k) ]∩ f!}
+[ n , 1+ k , 1+ O ]∩[ m , f ] iS
+  with [ n , 1+ k , 1 , iS ]-face-in-img? f
+     | [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] (prev-is-sieve-k iS)
+...  | inl in-f | inl ((n' , k' , t') , iS') = some (sieve-increment n' k' t' iS')
+...  | inl in-f | none = {!!} -- this will never happen
+...  | inr ¬in-f | s = s
 
-([ n , 1+ k , 1+ t ]∩ f) iPS = {!!}
-
-t-of-∩ n O O f iPS = inl idp
-
-t-of-∩ n O (1+ t) f iPS
-  with t-of-∩ n O t f (prev-is-presieve-t iPS)
-     | (map-of-index n O (1+ t) iPS) img-⊆? f
-...  | t'≤t | inl _ = ≤-ap-S t'≤t
-...  | t'≤t | inr _ = lteSR t'≤t
-
-t-of-∩ n (1+ k) t f iPS = {!!}
+[ n , 1+ k , 2+ t ]∩[ m , f ] iS
+  with [ n , 1+ k , 2+ t , iS ]-face-in-img? f
+     | [ n , 1+ k , 1+ t ]∩[ m , f ] (prev-is-sieve-t iS)
+...  | inl  in-f | inl ((n' , k' , t') , iS') = some (sieve-increment n' k' t' iS')
+...  | inl  in-f | none  = {!!} -- this will never happen
+...  | inr ¬in-f | s     = s

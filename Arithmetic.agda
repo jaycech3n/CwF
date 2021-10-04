@@ -55,6 +55,10 @@ S≤→< : ∀ {m n} → 1+ m ≤ n → m < n
 S≤→< {m} (inl Sm==n) = tr (m <_) Sm==n ltS
 S≤→< (inr Sm<n) = <-trans ltS Sm<n
 
+≤→<S : ∀ {m n} → m ≤ n → m < 1+ n
+≤→<S {m} (inl m==n) = tr (λ □ → m < 1+ □) m==n ltS
+≤→<S (inr m<n) = ltSR m<n
+
 
 {- Leftover stuff not needed
 
@@ -122,6 +126,10 @@ binom-n-n (1+ n) =
   (binom n n) + O              =⟨ +-comm _ O ∙ binom-n-n n ⟩
   1 =∎
 
+binom-n-1 : ∀ n → binom n 1 == n
+binom-n-1 O = idp
+binom-n-1 (1+ n) = ap 1+ (binom-n-1 n)
+
 binom-Sn-n : ∀ n → binom (1+ n) n == 1+ n
 binom-Sn-n O = idp
 binom-Sn-n (1+ n) =
@@ -138,6 +146,10 @@ binom-Sn-n (1+ n) =
 Sn≤binom-Sn-n : ∀ n → 1+ n ≤ binom (1+ n) n
 Sn≤binom-Sn-n n = inl (! (binom-Sn-n n))
 
-binom>O : ∀ m n → n < m → O < binom m n
-binom>O (1+ m) O n<m = ltS
-binom>O (1+ m) (1+ n) n<m = O<→O<+r (binom>O m n (<-cancel-S n<m))
+binom>O : ∀ m n → n ≤ m → O < binom m n
+binom>O _      O      _        = ltS
+binom>O O      (1+ n) (inl ())
+binom>O (1+ m) (1+ n) Sn≤Sm    = O<→O<+r (binom>O m n (≤-cancel-S Sn≤Sm))
+
+binom≥1 : ∀ m n → n ≤ m → 1 ≤ binom m n
+binom≥1 m n = <→S≤ ∘ binom>O m n

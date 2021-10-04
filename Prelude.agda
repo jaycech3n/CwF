@@ -46,10 +46,10 @@ module _ {A : Type i} {B : A → Type j} {C : {a : A} (b : B a) → Type k} wher
 Maybe : Type i → Type i
 Maybe A = A ⊔ ⊤
 
-pattern none = inr tt
-
 some : {A : Type i} → A → Maybe A
 some a = inl a
+
+pattern none = inr tt
 
 Maybe-elim : {A : Type i} {B : Type j}
              → Maybe A → B → (A → B) → B
@@ -59,6 +59,9 @@ maybe : {A : Type i} {B : Type j}
         → (A → B) → Maybe A → Maybe B
 maybe f (inl a) = some (f a)
 maybe f (inr _) = none
+
+some≠none : {A : Type i} {a : A} → some a ≠ none
+some≠none {a = a} = inl≠inr a tt
 
 
 {- Decidable types -}
