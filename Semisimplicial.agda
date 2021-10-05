@@ -38,8 +38,20 @@ module _ {i} (C : WildCategory {i})
       let
         A : Tm {SST k ∷ shape+ k ∷ prev-Sk} (shape+ k ↑ ↑)
         A = (υ (shape+ k) ↑ₜ)
+
+        shape↑↑-is-̂→ : (shape+ k ↑ ↑) :> Ty (SST k ∷ shape+ k ∷ prev-Sk)
+                       == (Sk (1+ k) k (binom (2+ k) (1+ k)) _ ↑ ↑) ̂→ (U ↑ ↑)
+        shape↑↑-is-̂→ = ap _↑ ̂→-[] ∙ ̂→-[]
+
+        -- Ugly, but we have to convince Agda that this is still a
+        -- universe in the extended context.
+        U↑↑↑[[]]-is-U : (U ↑ ↑ ↑) [[ _ ]] == U
+        U↑↑↑[[]]-is-U = {!ap (_[[ _ ]] ∘ _↑ ∘ _↑) U-[]
+                        ∙ ap (_[[ _ ]] ∘ _↑) U-[]
+                        ∙ ap _[[ _ ]] U-[]
+                        ∙ U-[]!}
       in
-        {!!}
+        el (tr Tm U↑↑↑[[]]-is-U (tr Tm shape↑↑-is-̂→ A ` ({!!} ↑ₜ ↑ₜ)))
     where
       -- Shape of the full k-skeleton of Δ⁽ⁿ⁺¹⁾
       prev-Sk : Ty (SST k ∷ shape+ k)

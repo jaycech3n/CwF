@@ -134,5 +134,4 @@ private
 ...  | inl  in-f | none  | _ = some≠none
 ...  | inr ¬in-f | _     | w = w
 
-∩-not-none-tmax n O iS {m} f = {!!}
-∩-not-none-tmax n (1+ k) iS {m} f = {!!}
+∩-not-none-tmax n k iS {m} f = {!!}
