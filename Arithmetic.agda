@@ -44,11 +44,11 @@ O<→O<+r {1+ m} {n} x = O<S (m + n)
 <1→=O (1+ x) (ltSR ())
 
 <S→≤ : ∀ {m n} →  m < 1+ n → m ≤ n
-<S→≤ ltS = inl idp
+<S→≤ ltS = lteE
 <S→≤ (ltSR m<n) = inr m<n
 
 <→S≤ : ∀ {m n} → m < n → 1+ m ≤ n
-<→S≤ ltS = inl idp
+<→S≤ ltS = lteE
 <→S≤ (ltSR m<n) = inr (<-ap-S m<n)
 
 S≤→< : ∀ {m n} → 1+ m ≤ n → m < n

@@ -30,7 +30,7 @@ first-is-sieve n k k≤n = sieve-conds k≤n (binom≥1 (1+ n) (1+ k) (≤-ap-S 
 
 last-is-sieve : (n k : ℕ) → k ≤ n → is-sieve n k (binom (1+ n) (1+ k))
 last-is-sieve n k k≤n = sieve-conds ⦃ binom>O (1+ n) (1+ k) (≤-ap-S k≤n) ⦄
-                                    k≤n (inl idp)
+                                    k≤n lteE
 
 prev-is-sieve-k : {n k : ℕ} (iS : is-sieve n (1+ k) 1)
                   → is-sieve n k (binom (1+ n) (1+ k))
