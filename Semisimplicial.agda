@@ -20,11 +20,14 @@ module _ {i} (C : WildCategory {i})
   Sk  : (n k t : ℕ) → is-sieve n k t → Ty (SST k)
 
   -- Uncurried Maybe form of Sk
-  Sk' : (s : Maybe Sieve) → Ty {!SST =< get-k =< s!}
-  {-
+  Sk-aux : (s : Maybe Sieve) → Ty (SST (default O get-k s))
+  Sk-aux (inl ((n , k , t) , iS)) = Sk n k t iS
+  Sk-aux none = Sk O O 1 (first-is-sieve _ _ lteE)
+                -- Slight hack: if the intersection is empty get Sk→ to return
+                -- the first vertex of the skeleton.
+
   Sk→ : (n k t : ℕ) (iS : is-sieve n k t) {m : ℕ} (f : m →+ n)
-        → Sk n k t iS → Sk' ([ n , k , t ]∩[ m , f ] iS )
-  -}
+        → Tm (Sk n k t iS) → Tm (Sk-aux ([ n , k , t ]∩[ m , f ] iS ))
 
   -- (shape+ n) is the shape of the type of (n+1)-fillers
   shape+ : (n : ℕ) → Ty (SST n)
@@ -67,6 +70,9 @@ module _ {i} (C : WildCategory {i})
 
       ∂face : (s : Tm (prev-Sk ↑)) → Tm (Sk (1+ k) k (binom (2+ k) (1+ k))
                                         (last-is-sieve (1+ k) k lteS))
-      ∂face s = {!!}
+      ∂face s = {!Sk→ (1+ n) k (binom (2+ n) (1+ k)) (prev-is-sieve-k iS)
+                      (map-of-index (1+ n) (1+ k) 1 iS) ?!}
 
   Sk (1+ n) (1+ k) (2+ t) (sieve-conds Sk<Sn 2+≤binom) = {!!}
+
+  Sk→ n k t iS f x = {!!}

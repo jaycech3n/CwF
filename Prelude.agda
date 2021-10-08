@@ -55,20 +55,12 @@ Maybe-elim : {A : Type i} {B : Type j}
              → Maybe A → B → (A → B) → B
 Maybe-elim m b f = ⊔-elim f (λ _ → b) m
 
-maybe : {A : Type i} {B : Type j}
-        → (A → B) → Maybe A → Maybe B
-maybe f (inl a) = some (f a)
-maybe f (inr _) = none
+default : {A : Type i} {B : Type j} → B → (A → B) → Maybe A → B
+default _ f (inl a) = f a
+default b f none = b
 
 some≠none : {A : Type i} {a : A} → some a ≠ none
 some≠none {a = a} = inl≠inr a tt
-
-infixr 20 _=<_
-_=<_ : {A : Type i} {B : Type j} → (A → B) → Maybe A → Maybe B
-f =< inl x = some (f x)
-_ =< none  = none
-
-
 
 
 {- Decidable types -}
