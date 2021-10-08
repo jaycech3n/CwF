@@ -25,6 +25,9 @@ Sieve = Σ[ s ∈ ℕ × ℕ × ℕ ]
               t = 3rd s
           in is-sieve n k t
 
+get-k : Sieve → ℕ
+get-k ((_ , k , _) , _) = k
+
 first-is-sieve : (n k : ℕ) → k ≤ n → is-sieve n k 1
 first-is-sieve n k k≤n = sieve-conds k≤n (binom≥1 (1+ n) (1+ k) (≤-ap-S k≤n))
 

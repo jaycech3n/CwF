@@ -19,6 +19,8 @@ module _ {i} (C : WildCategory {i})
   SST : ℕ → Con
   Sk  : (n k t : ℕ) → is-sieve n k t → Ty (SST k)
 
+  -- Uncurried Maybe form of Sk
+  Sk' : (s : Maybe Sieve) → Ty {!SST =< get-k =< s!}
   {-
   Sk→ : (n k t : ℕ) (iS : is-sieve n k t) {m : ℕ} (f : m →+ n)
         → Sk n k t iS → Sk' ([ n , k , t ]∩[ m , f ] iS )

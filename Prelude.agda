@@ -63,6 +63,13 @@ maybe f (inr _) = none
 some≠none : {A : Type i} {a : A} → some a ≠ none
 some≠none {a = a} = inl≠inr a tt
 
+infixr 20 _=<_
+_=<_ : {A : Type i} {B : Type j} → (A → B) → Maybe A → Maybe B
+f =< inl x = some (f x)
+_ =< none  = none
+
+
+
 
 {- Decidable types -}
 
