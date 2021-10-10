@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --termination-depth=2 --allow-unsolved-metas #-}
+{-# OPTIONS --without-K --termination-depth=2 #-}
 
 module Sieves where
 
@@ -85,9 +85,21 @@ private
                 → is-sieve n k t
                 → Maybe Sieve
 
+tmax-∩-k≤m : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
+             {m : ℕ} (f : m →+ n) (k≤m : k ≤ m)
+             → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS
+               == some ((m , k , binom (1+ m) (1+ k))
+                       , last-is-sieve m k k≤m)
+
+tmax-∩-Sm≤k : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
+             {m : ℕ} (f : 1+ m →+ n) (Sm≤k : 1+ m ≤ k)
+             → [ n , k , binom (1+ n) (1+ k) ]∩[ 1+ m , f ] iS
+               == some ((1+ m , m , binom (2+ m) (1+ m) )
+                       , last-is-sieve (1+ m) m (inr ltS))
+
 ∩-not-none-tmax : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
-               {m : ℕ} (f : m →+ n)
-               → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS ≠ none
+                  {m : ℕ} (f : m →+ n)
+                  → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS ≠ none
 
 ∩-not-none-k : (n k t : ℕ) (iS : is-sieve n (1+ k) t)
                {m : ℕ} (f : m →+ n)
@@ -121,6 +133,12 @@ private
 ...  | inl  in-f | none | w = some (⊥-elim (w idp)) -- this will never happen
 ...  | inr ¬in-f | s    | _ = s
 
+tmax-∩-k≤m = {!!}
+
+tmax-∩-Sm≤k = {!!}
+
+∩-not-none-tmax n k iS {m} f = {!!}
+
 ∩-not-none-k n k (1+ O) iS {m} f
   with [ n , 1+ k , 1 , iS ]-face-in-img? f
      | [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] (prev-is-sieve-k iS)
@@ -136,5 +154,3 @@ private
 ...  | inl  in-f | inl _ | _ = some≠none
 ...  | inl  in-f | none  | _ = some≠none
 ...  | inr ¬in-f | _     | w = w
-
-∩-not-none-tmax n k iS {m} f = {!!}
