@@ -42,9 +42,9 @@ Sieve = Σ[ s ∈ ℕ × ℕ × ℕ ]
               t = 3rd s
           in is-sieve n k t
 
-Sieve= : (s@(t , _) s'@(t' , _) : Sieve)
+Sieve= : {s@(t , _) s'@(t' , _) : Sieve}
          → fst t == fst t' → 2nd t == 2nd t' → 3rd t == 3rd t' → s == s'
-Sieve= s s' idp idp idp = pair= idp (prop-path is-sieve-is-prop _ _)
+Sieve= idp idp idp = pair= idp (prop-path is-sieve-is-prop _ _)
 
 get-k : Sieve → ℕ
 get-k ((_ , k , _) , _) = k
@@ -106,6 +106,8 @@ private
                 → is-sieve n k t
                 → Maybe Sieve
 
+-- Both ∩-tmax functions need to be generalized!
+
 ∩-tmax-k≤m : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
              {m : ℕ} (f : m →+ n) (k≤m : k ≤ m)
              → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS
@@ -153,8 +155,14 @@ private
 ...  | inl  in-f | none | w = some (⊥-elim (w idp)) -- this will never happen
 ...  | inr ¬in-f | s    | _ = s
 
-∩-tmax-k≤m n O iS f k≤m = {!!}
-∩-tmax-k≤m n (1+ k) iS f k≤m = {!!}
+
+∩-tmax-k≤m n O iS {O} f _ = {!!} -- this proof should probably specifically
+                                 -- use that f : 0 →+ n (which only picks out
+                                 -- exactly one vertex)
+∩-tmax-k≤m n O iS {1+ m} f _ = {!!}
+∩-tmax-k≤m n (1+ k) iS {O} f (inl ())
+∩-tmax-k≤m n (1+ k) iS {1+ m} f Sk≤Sm = {!!}
+
 
 ∩-tmax-m<k = {!!}
 
