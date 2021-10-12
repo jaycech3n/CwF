@@ -19,6 +19,8 @@ module _ {i} (C : WildCategory {i})
   SST : ℕ → Con
   Sk  : (n k t : ℕ) → is-sieve n k t → Ty (SST k)
 
+  Sk' : (n k t : ℕ) → is-sieve n k t → (k' : ℕ) → k ≤ k' → Ty (SST k')
+
   -- Uncurried Maybe form of Sk
   Sk-aux : (s : Maybe Sieve) → Ty (SST (default O get-k s))
   Sk-aux (inl ((n , k , t) , iS)) = Sk n k t iS
@@ -26,8 +28,13 @@ module _ {i} (C : WildCategory {i})
                 -- Slight hack: if the intersection is empty get Sk→ to return
                 -- the first vertex of the skeleton.
 
+  -- Why does decoupling work? Some explanation would be good!
   Sk→ : (n k t : ℕ) (iS : is-sieve n k t) {m : ℕ} (f : m →+ n)
         → Tm (Sk n k t iS) → Tm (Sk-aux ([ n , k , t ]∩[ m , f ] iS ))
+
+  Sk→' : (n k t : ℕ) (iS : is-sieve n k t) (k' : ℕ) → k ≤ k'
+         → {m : ℕ} (f : m →+ n)
+         → Tm (Sk n k t iS) → Tm (Sk-aux ([ n , k , t ]∩[ m , f ] iS ))
 
   -- (shape+ n) is the shape of the type of (n+1)-fillers
   shape+ : (n : ℕ) → Ty (SST n)
@@ -35,6 +42,27 @@ module _ {i} (C : WildCategory {i})
 
   SST O = ◆ ∷ U
   SST (1+ n) = SST n ∷ shape+ n
+
+
+  Sk' n O (1+ O) iS O k≤k' = el (υ U ↓)
+  Sk' n O (1+ O) iS (1+ k') k≤k' = (Sk' n O 1 iS k' {!!}) ↑
+
+  Sk' n O (2+ t) iS k' k≤k' = {!!}
+
+  Sk' O (1+ k) t (sieve-conds (inl ()) tcond) k' k≤k'
+
+  Sk' (1+ n) (1+ k) (1+ O) iS@(sieve-conds kcond _) k' (inl Sk==k') =
+    ̂Σ[ s ∈ prev-Sk ] {!!}
+    where
+      prev-Sk : Ty (SST k')
+      prev-Sk = Sk' (1+ n) k (binom (2+ n) (1+ k))
+                    (last-is-sieve (1+ n) k (≤-trans lteS kcond))
+                    k' {!!}
+
+  Sk' (1+ n) (1+ k) (1+ O) iS k' (inr Sk<k') = {!!}
+
+  Sk' (1+ n) (1+ k) (2+ t) iS k' k≤k' = {!!}
+
 
   -- The only sieve on 0 is (0,0,1)
   Sk O O (1+ t) _ = el (υ U ↓)
@@ -76,3 +104,8 @@ module _ {i} (C : WildCategory {i})
   Sk (1+ n) (1+ k) (2+ t) (sieve-conds Sk<Sn 2+≤binom) = {!!}
 
   Sk→ n k t iS f x = {!!}
+
+  Sk→' n O (1+ t) iS O k≤k' f x = {!-- if 1+t face is ⊆ ... then ...!}
+  Sk→' n O (1+ t) iS (1+ k') k≤k' f = {!-- weaken prev k'!}
+
+  Sk→' n (1+ k) t iS k' k≤k' f = {!!}
