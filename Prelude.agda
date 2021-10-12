@@ -39,6 +39,15 @@ module _ {A : Type i} {B : A → Type j} {C : {a : A} (b : B a) → Type k} wher
   3rd = snd ∘ snd
 
 
+{- Coproducts -}
+
+inl= : {A : Type i} {B : Type j} {a a' : A} → a == a' → inl a == inl a' :> A ⊔ B
+inl= idp = idp
+
+inr= : {A : Type i} {B : Type j} {b b' : B} → b == b' → inr b == inr b' :> A ⊔ B
+inr= idp = idp
+
+
 {- Maybe -}
 
 -- Could make this dependent, but don't need it.
