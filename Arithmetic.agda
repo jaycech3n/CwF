@@ -153,3 +153,14 @@ binom>O (1+ m) (1+ n) Sn≤Sm    = O<→O<+r (binom>O m n (≤-cancel-S Sn≤Sm)
 
 binom≥1 : ∀ m n → n ≤ m → 1 ≤ binom m n
 binom≥1 m n = <→S≤ ∘ binom>O m n
+
+
+{- Trichotomy -}
+
+ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
+ℕ-trichotomy' O n = inl (O≤ n)
+ℕ-trichotomy' (1+ m) O = inr (O<S m)
+ℕ-trichotomy' (1+ m) (1+ n) with ℕ-trichotomy' m n
+... | inl (inl m==n) = inl (inl (ap 1+ m==n))
+... | inl (inr  m<n) = inl (inr (<-ap-S m<n))
+... | inr        m>n = inr (<-ap-S m>n)

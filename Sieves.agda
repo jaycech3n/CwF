@@ -18,12 +18,33 @@ record is-sieve (n k t : ℕ) : Type₀ where
     kcond : k ≤ n
     tcond : t ≤ binom (1+ n) (1+ k)
 
+module _ where
+  open is-sieve
+  is-sieve= : ∀ {n k t} {iS iS' : is-sieve n k t}
+              → tpos iS == tpos iS'
+              → kcond iS == kcond iS'
+              → tcond iS == tcond iS'
+              → iS == iS'
+  is-sieve= idp idp idp = idp
+
+is-sieve-is-prop : ∀ {n k t} → is-prop (is-sieve n k t)
+is-sieve-is-prop = all-paths-is-prop
+                   λ{(sieve-conds ⦃ tpos ⦄ kcond tcond)
+                     (sieve-conds ⦃ tpos' ⦄ kcond' tcond')
+                   → is-sieve= (prop-path <-is-prop tpos tpos')
+                               (prop-path ≤-is-prop kcond kcond')
+                               (prop-path ≤-is-prop tcond tcond')}
+
 Sieve : Type₀
 Sieve = Σ[ s ∈ ℕ × ℕ × ℕ ]
           let n = fst s
               k = 2nd s
               t = 3rd s
           in is-sieve n k t
+
+Sieve= : (s@(t , _) s'@(t' , _) : Sieve)
+         → fst t == fst t' → 2nd t == 2nd t' → 3rd t == 3rd t' → s == s'
+Sieve= s s' idp idp idp = pair= idp (prop-path is-sieve-is-prop _ _)
 
 get-k : Sieve → ℕ
 get-k ((_ , k , _) , _) = k
@@ -70,7 +91,7 @@ map-of-index : (n k t : ℕ) → is-sieve n k t → (k →+ n)
 map-of-index n k t = {!!}
 
 
-{- Subsieves -}
+{- Subsieves and intersection -}
 
 private
   [_,_,_,_]-face-in-img?_ : ∀ {m} (n k t : ℕ) (iS : is-sieve n k t) (f : m →+ n)
@@ -85,17 +106,16 @@ private
                 → is-sieve n k t
                 → Maybe Sieve
 
-tmax-∩-k≤m : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
+∩-tmax-k≤m : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
              {m : ℕ} (f : m →+ n) (k≤m : k ≤ m)
              → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS
-               == some ((m , k , binom (1+ m) (1+ k))
-                       , last-is-sieve m k k≤m)
+               == some ((m , k , binom (1+ m) (1+ k)) , last-is-sieve m k k≤m)
 
-tmax-∩-Sm≤k : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
-             {m : ℕ} (f : 1+ m →+ n) (Sm≤k : 1+ m ≤ k)
-             → [ n , k , binom (1+ n) (1+ k) ]∩[ 1+ m , f ] iS
-               == some ((1+ m , m , binom (2+ m) (1+ m) )
-                       , last-is-sieve (1+ m) m (inr ltS))
+-- check that this works
+∩-tmax-m<k : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
+             {m : ℕ} (f : m →+ n) (m<k : m < k)
+             → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS
+               == some ((m , m , 1) , first-is-sieve m m lteE)
 
 ∩-not-none-tmax : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
                   {m : ℕ} (f : m →+ n)
@@ -133,11 +153,14 @@ tmax-∩-Sm≤k : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
 ...  | inl  in-f | none | w = some (⊥-elim (w idp)) -- this will never happen
 ...  | inr ¬in-f | s    | _ = s
 
-tmax-∩-k≤m = {!!}
+∩-tmax-k≤m n O iS f k≤m = {!!}
+∩-tmax-k≤m n (1+ k) iS f k≤m = {!!}
 
-tmax-∩-Sm≤k = {!!}
+∩-tmax-m<k = {!!}
 
-∩-not-none-tmax n k iS {m} f = {!!}
+∩-not-none-tmax n k iS {m} f with ℕ-trichotomy' k m
+... | inl k≤m rewrite ∩-tmax-k≤m n k iS f k≤m = some≠none
+... | inr m>k rewrite ∩-tmax-m<k n k iS f m>k = some≠none
 
 ∩-not-none-k n k (1+ O) iS {m} f
   with [ n , 1+ k , 1 , iS ]-face-in-img? f
