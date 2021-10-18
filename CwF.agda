@@ -534,3 +534,20 @@ record UStructure {i}
       _↓ = tr Tm U-[]
 
   open definitions public
+
+
+record UnitStructure {i}
+  {C : WildCategory {i}} (cwf : WildCwFStructure C) : Type (lsuc i)
+  where
+  open WildCwFStructure cwf
+
+  field
+    ̂⊤    : ∀ {Γ} → Ty Γ
+    ̂*    : ∀ {Γ} → Tm {Γ} ̂⊤
+    ̂⊤η   : ∀ {Γ} {t : Tm {Γ} ̂⊤} → t == ̂*
+    ̂⊤-[] : ∀ {Γ Δ} {f : Sub Δ Γ} → ̂⊤ [ f ] == ̂⊤
+
+  private
+    module definitions where
+      ̂*-[] : ∀ {Γ Δ} {f : Sub Δ Γ} {t :  Tm {Γ} ̂⊤} → t [ f ]ₜ == ̂* [ Tm ↓ ̂⊤-[] ]
+      ̂*-[] = from-tr _ _ ̂⊤η
