@@ -9,11 +9,13 @@ module _ {i} (C : WildCategory {i})
   (cwf : WildCwFStructure C)
   (pistruct : PiStructure cwf)
   (sigmastruct : SigmaStructure cwf)
+  (unitstruct : UnitStructure cwf)
   (ustruct : UStructure cwf)
   where
   open WildCwFStructure cwf
   open PiStructure pistruct
   open SigmaStructure sigmastruct
+  open UnitStructure unitstruct
   open UStructure ustruct
 
   SST : ℕ → Con
@@ -24,9 +26,7 @@ module _ {i} (C : WildCategory {i})
   -- Uncurried Maybe form of Sk
   Sk-aux : (s : Maybe Sieve) → Ty (SST (default O get-k s))
   Sk-aux (inl ((n , k , t) , iS)) = Sk n k t iS
-  Sk-aux none = Sk O O 1 (first-is-sieve _ _ lteE)
-                -- Slight hack: if the intersection is empty get Sk→ to return
-                -- the first vertex of the skeleton.
+  Sk-aux none = ̂⊤
 
   -- Why does decoupling work? Some explanation would be good!
   Sk→ : (n k t : ℕ) (iS : is-sieve n k t) {m : ℕ} (f : m →+ n)
@@ -42,7 +42,6 @@ module _ {i} (C : WildCategory {i})
 
   SST O = ◆ ∷ U
   SST (1+ n) = SST n ∷ shape+ n
-
 
   Sk' n O (1+ O) iS O k≤k' = el (υ U ↓)
   Sk' n O (1+ O) iS (1+ k') k≤k' = (Sk' n O 1 iS k' {!!}) ↑

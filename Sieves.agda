@@ -142,15 +142,6 @@ private
 ...  | inl  in-f | none | w = some (⊥-elim (w idp)) -- this will never happen
 ...  | inr ¬in-f | s    | _ = s
 
-
-{-
-In particular, we need something like...
-
-  [ n+1 , k , binom (n+2) (k+1) ]∩[ 
-
--}
-
-
 ∩-not-none-tmax n k iS {m} f = {!!}
 
 ∩-not-none-k n k (1+ O) iS {m} f
