@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --termination-depth=2 #-}
+{-# OPTIONS --without-K --termination-depth=2 --allow-unsolved-metas #-}
 
 module Sieves where
 
@@ -106,19 +106,6 @@ private
                 → is-sieve n k t
                 → Maybe Sieve
 
--- Both ∩-tmax functions need to be generalized!
-
-∩-tmax-k≤m : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
-             {m : ℕ} (f : m →+ n) (k≤m : k ≤ m)
-             → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS
-               == some ((m , k , binom (1+ m) (1+ k)) , last-is-sieve m k k≤m)
-
--- check that this works
-∩-tmax-m<k : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
-             {m : ℕ} (f : m →+ n) (m<k : m < k)
-             → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS
-               == some ((m , m , 1) , first-is-sieve m m lteE)
-
 ∩-not-none-tmax : (n k : ℕ) (iS : is-sieve n k (binom (1+ n) (1+ k)))
                   {m : ℕ} (f : m →+ n)
                   → [ n , k , binom (1+ n) (1+ k) ]∩[ m , f ] iS ≠ none
@@ -156,19 +143,15 @@ private
 ...  | inr ¬in-f | s    | _ = s
 
 
-∩-tmax-k≤m n O iS {O} f _ = {!!} -- this proof should probably specifically
-                                 -- use that f : 0 →+ n (which only picks out
-                                 -- exactly one vertex)
-∩-tmax-k≤m n O iS {1+ m} f _ = {!!}
-∩-tmax-k≤m n (1+ k) iS {O} f (inl ())
-∩-tmax-k≤m n (1+ k) iS {1+ m} f Sk≤Sm = {!!}
+{-
+In particular, we need something like...
+
+  [ n+1 , k , binom (n+2) (k+1) ]∩[ 
+
+-}
 
 
-∩-tmax-m<k = {!!}
-
-∩-not-none-tmax n k iS {m} f with ℕ-trichotomy' k m
-... | inl k≤m rewrite ∩-tmax-k≤m n k iS f k≤m = some≠none
-... | inr m>k rewrite ∩-tmax-m<k n k iS f m>k = some≠none
+∩-not-none-tmax n k iS {m} f = {!!}
 
 ∩-not-none-k n k (1+ O) iS {m} f
   with [ n , 1+ k , 1 , iS ]-face-in-img? f
