@@ -57,7 +57,8 @@ From the pair (h,t), we get a concrete sieve S(h,t) on b as follows:
 ∙ for k > h, no g ∈ Hom k b is in the sieve
 
 
-Definition (standard, a reference is MacLane-Moerdijk, "Sheaves in geometry and logic", chapter I.4, p 38). If S is a sieve on b and f ∈ Hom m b, then
+Definition (standard, a reference is MacLane-Moerdijk, "Sheaves in geometry
+and logic", chapter I.4, p 38). If S is a sieve on b and f ∈ Hom m b, then
   S ∙ f = {h | f ∘ h ∈ S}
 is a sieve on m.
 
@@ -85,6 +86,11 @@ Caveat: In the Agda implementation, the definition of ∩ is correct because of
 the above lemma. The above lemma justifies the definition of [b,h,t]∩f by
 recursion on t as described in Sieves.agda.
 
+([unimportant]
+Notes. Maybe we should only use finite direct/inverse categories (instead of
+what are essentially finite sieves of inverse categories)?
+Maybe "well-presented" would be better terminology.
+)
 
 
 
