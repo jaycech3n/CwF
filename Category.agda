@@ -1,16 +1,16 @@
-{-# OPTIONS --without-K #-}
-
 {--- Categories in HoTT ---}
+
+{-# OPTIONS --without-K #-}
 
 module Category where
 
 open import Prelude public
 
 
-{- Various flavor of category -
+{- Various flavors of "category" -}
 
-"Wild" constructions are those which are neither truncated nor required to be
-coherent. -}
+-- "Wild" constructions are those which are neither truncated nor required to be
+-- coherent.
 
 record WildCategory {i} : Type (lsuc i) where
   infixr 40 _◦_
@@ -38,14 +38,15 @@ record StrictCategory {i} : Type (lsuc i) where
     Ob-is-set  : is-set Ob
 
 -- Isomorphism
+
 module _ {i} ⦃ C : WildCategory {i} ⦄ where
   open WildCategory C
 
   record is-iso  {x y : Ob} (f : Hom x y) : Type i where
     field
       g : Hom y x
-      g-f : g ◦ f == id
-      f-g : f ◦ g == id
+      g∘f : g ◦ f == id
+      f∘g : f ◦ g == id
 
   infix 30 _≅_
   record _≅_ (x y : Ob) : Type i where
@@ -56,10 +57,11 @@ module _ {i} ⦃ C : WildCategory {i} ⦄ where
   id-to-iso : ∀ {x y} → x == y → x ≅ y
   id-to-iso idp = record
     { f = id
-    ; f-is-iso = record { g = id ; g-f = idl ; f-g = idl }
+    ; f-is-iso = record { g = id ; g∘f = idl ; f∘g = idl }
     }
 
 -- Univalent category
+
 record Category {i} : Type (lsuc i) where
   field ⦃ C ⦄ : PreCategory {i}
   open PreCategory C hiding (C) public
@@ -69,20 +71,20 @@ record Category {i} : Type (lsuc i) where
 
 {- Coercions -}
 
-wild-of-pre = PreCategory.C
-pre-of-strict = StrictCategory.C
+wild-of-pre-cat = PreCategory.C
+pre-of-strict-cat = StrictCategory.C
 pre-of-cat = Category.C
 
-wild-of-strict : ∀ {i} → StrictCategory {i} → WildCategory {i}
-wild-of-strict = wild-of-pre ∘ pre-of-strict
+wild-of-strict-cat : ∀ {i} → StrictCategory {i} → WildCategory {i}
+wild-of-strict-cat = wild-of-pre-cat ∘ pre-of-strict-cat
 
 wild-of-cat : ∀ {i} → Category {i} → WildCategory {i}
-wild-of-cat = wild-of-pre ∘ pre-of-cat
+wild-of-cat = wild-of-pre-cat ∘ pre-of-cat
 
 
 {- Properties of objects -}
 
-module _ {i} ⦃ C : WildCategory {i} ⦄ where
+module _ {i} (C : WildCategory {i}) where
   open WildCategory C
 
   is-initial : (x : Ob) → Type i
