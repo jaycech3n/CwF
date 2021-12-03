@@ -12,6 +12,7 @@ open import HoTT
   ; [_]            to ‖_‖
   ; ℕ-has-dec-eq   to _≟-ℕ_
   ; Fin-has-dec-eq to _≟-Fin_
+  ; <-dec          to _<?_
   ; ≤-dec          to _≤?_ )
   public
 
@@ -35,7 +36,7 @@ module _ {A : Type i} {B : A → Type j} {C : {a : A} (b : B a) → Type k} wher
   2nd : (u : Σ[ a ∈ A ] Σ[ b ∈ B a ] C b) → B (fst u)
   2nd = fst ∘ snd
 
-  3rd : (u : Σ[ a ∈ A ] Σ[ b ∈ B a ] C b) → C (fst (snd u))
+  3rd : (u : Σ[ a ∈ A ] Σ[ b ∈ B a ] C b) → C (2nd u)
   3rd = snd ∘ snd
 
 

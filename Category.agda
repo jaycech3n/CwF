@@ -12,10 +12,9 @@ open import Prelude public
 -- "Wild" constructions are those which are neither truncated nor required to be
 -- coherent.
 
-record WildCategory {i} : Type (lsuc i) where
+record WildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
   infixr 40 _◦_
   field
-    Ob  : Type i
     Hom : Ob → Ob → Type i
     _◦_ : ∀ {x y z} → Hom y z → Hom x y → Hom x z
     id  : ∀ {x} → Hom x x
@@ -24,6 +23,12 @@ record WildCategory {i} : Type (lsuc i) where
           → (f ◦ g) ◦ h == f ◦ (g ◦ h)
     idl : ∀ {x y} {f : Hom x y} → id ◦ f == f
     idr : ∀ {x y} {f : Hom x y} → f ◦ id == f
+
+record WildCategory {i} : Type (lsuc i) where
+  field
+    Ob  : Type i
+    WildCategory-on-Ob : WildCategoryOn Ob
+  open WildCategoryOn WildCategory-on-Ob public
 
 record PreCategory {i} : Type (lsuc i) where
   field ⦃ C ⦄ : WildCategory {i}
@@ -84,7 +89,7 @@ wild-of-cat = wild-of-pre-cat ∘ pre-of-cat
 
 {- Properties of objects -}
 
-module _ {i} (C : WildCategory {i}) where
+module _ {i} ⦃ C : WildCategory {i} ⦄  where
   open WildCategory C
 
   is-initial : (x : Ob) → Type i

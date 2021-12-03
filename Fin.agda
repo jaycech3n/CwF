@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --allow-unsolved-metas #-}
 
 module Fin where
 
@@ -9,7 +9,7 @@ private
   variable
     ℓ : ULevel
 
--- Equality on Fin
+-- (In)Equality on Fin
 
 Fin= : ∀ {n} {i j : Fin n} → fst i == fst j → i == j
 Fin= {_} {.(fst j) , fstj<n} {j} idp = pair= idp (prop-path <-is-prop _ _)
@@ -23,6 +23,18 @@ has-level-apply Fin1-is-prop (i , i<1) (j , j<1) =
 
 Fin1-has-all-paths : has-all-paths (Fin 1)
 Fin1-has-all-paths i j = prop-path Fin1-is-prop _ _
+
+_<-Fin_ : ∀ {n} (i j : Fin n) → Type₀
+i <-Fin j = fst i < fst j
+
+_≤-Fin_ : ∀ {n} (i j : Fin n) → Type₀
+i ≤-Fin j = fst i ≤ fst j
+
+_<?-Fin_ : ∀ {n} → Decidable (_<-Fin_ {n})
+(i , _) <?-Fin (j , _) = i <? j
+
+_≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
+(i , _) ≤?-Fin (j , _) = i ≤? j
 
 -- Proof by exhaustion
 
@@ -47,6 +59,11 @@ Fin1-has-all-paths i j = prop-path Fin1-is-prop _ _
                         (λ ¬Pn → inr (λ ∀Fin-Sn-P → ¬Pn (∀Fin-Sn-P (n , ltS))))
                         (∀Fin-Sn-Dec-P (n , ltS))
 ...  | inr ¬∀Fin-n-P = inr λ ∀Fin-Sn-P → ¬∀Fin-n-P (∀Fin-Sn-P ∘ Fin-S)
+
+Σ-Fin? : ∀ {n} (P : Fin n → Type ℓ)
+         → ((i : Fin n) → Dec (P i))
+         → Dec (Σ[ i ∈ Fin n ] P i)
+Σ-Fin? = {!!}
 
 -- Deciding fibers of maps between finite types
 

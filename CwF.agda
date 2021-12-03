@@ -31,7 +31,7 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
   field
     ◆ : Con
-    ◆-is-terminal : is-terminal C ◆
+    ◆-is-terminal : is-terminal ⦃ C ⦄ ◆
 
   infixl 40 _[_] _[_]ₜ
   field
