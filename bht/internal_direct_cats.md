@@ -1,14 +1,9 @@
-{-
-A strategy for implementing type-valued diagrams on (certain) inverse categories
-              (a.k.a.: Generalisation of the bht approach)
-================================================================================
-
+### A strategy for implementing type-valued diagrams on (certain) inverse categories <br/> A.k.a.: A generalisation of the bht approach
 
 Everything described in Sieves.agda can be done in higher generality. And maybe
 that's actually easier to implement? For simplicity, I'll talk about *direct*
 (as opposed to *inverse*) categories, i.e. arrows only "go up"as in Δ+ (before
 taking the dual).
-
 
 Definition (ordered, locally Bishop finite, direct category).
 Consider a category I with objects ℕ, given by
@@ -57,7 +52,8 @@ From the pair (h,t), we get a concrete sieve S(h,t) on b as follows:
 ∙ for k > h, no g ∈ Hom k b is in the sieve
 
 
-Definition (standard, a reference is MacLane-Moerdijk, "Sheaves in geometry and logic", chapter I.4, p 38). If S is a sieve on b and f ∈ Hom m b, then
+Definition (standard, a reference is MacLane-Moerdijk, "Sheaves in geometry
+and logic", chapter I.4, p 38). If S is a sieve on b and f ∈ Hom m b, then
   S ∙ f = {h | f ∘ h ∈ S}
 is a sieve on m.
 
@@ -85,7 +81,46 @@ Caveat: In the Agda implementation, the definition of ∩ is correct because of
 the above lemma. The above lemma justifies the definition of [b,h,t]∩f by
 recursion on t as described in Sieves.agda.
 
+([unimportant]
+Notes. Maybe we should only use finite direct/inverse categories (instead of
+what are essentially finite sieves of inverse categories)?
+Maybe "well-presented" would be better terminology.
+)
 
+### Note
 
+Terminology: A type is called "small" if it is in the (lowest or only) universe.
 
--}
+If (Con, Sub, Ty, Tm) is a CwF with a universe U, then there's a "smaller" CwF (or a sub-CwF) which only consists of small types and contexts (small context = context build of U and small types).
+
+What we're doing above is not the construction of contexts in Shulman's paper, but we're constructing (with SST n) the limit of the universe in the model of the new CwF.
+
+See also the [discussion on the FP Zulip](https://fplab.zulipchat.com/#narrow/stream/122461-general/topic/Shulman's.20universe.20construction/near/263715906).
+
+### Extending the Construction: From Contexts to CwF's?
+
+Denote the original CwF by (Con, Sub, Ty, Tm). Denote the empty context by ●.
+Given inverse category I = (Δ₊)op(≤n) as above, the above constructs a context
+(SST n) : Con, from now for simplicitly called SST : Con. If the inverse
+category I is *not* (Δ₊)op, it should be called differently, but let's ignore
+this for now and still call it SST : Con.
+
+If I → J is a sieve embedding of inverse cats, there
+is a substitution Sub SST_J SST_I, so what we've constructed is essentially
+a functor
+
+  InvSieveEmb → (Con,Sub).
+
+This is the induced functor between limits.
+
+Where exactly do we want to go from here? If we want to build a CwF,
+we could define:
+
+* A new context Con' by Con' := Sub ● SST
+
+* For Γ,Δ : Con', a substitution in Sub' Γ Δ is given by a substitution
+  α : Sub SST SST such that α ∘ Γ = Δ
+
+* Assuming I is the inverse cat, we can take I × 2 (with 2 the walking arrow)
+  and take SST(I × 2) as the total space of Ty'(I) over Con'(I).
+
