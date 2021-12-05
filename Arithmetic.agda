@@ -59,6 +59,12 @@ S≤→< (inr Sm<n) = <-trans ltS Sm<n
 ≤→<S {m} (inl m==n) = tr (λ □ → m < 1+ □) m==n ltS
 ≤→<S (inr m<n) = ltSR m<n
 
+≤-<-< : ∀ {k m n} → k ≤ m → m < n → k < n
+≤-<-< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
+≤-<-< (inr e) h = <-trans e h
+
+¬-< : ∀ {n} → n < n → ⊥
+¬-< id< = <-to-≠ id< idp
 
 {- Leftover stuff not needed
 
@@ -86,10 +92,6 @@ module _ {m n : ℕ} where
   ≤-¬=-< : m ≤ n → ¬ (m == n) → m < n
   ≤-¬=-< (inl x) y = ⊥-elim (y x)
   ≤-¬=-< (inr x) _ = x
-
-≤-<-< : ∀ {k m n} → k ≤ m → m < n → k < n
-≤-<-< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
-≤-<-< (inr e) h = <-trans e h
 
 +==O-l : {m n : ℕ} → m + n == O → m == O
 +==O-l {m = O} _ = idp
@@ -158,9 +160,7 @@ binom≥1 m n = <→S≤ ∘ binom>O m n
 {- Trichotomy -}
 
 ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
-ℕ-trichotomy' O n = inl (O≤ n)
-ℕ-trichotomy' (1+ m) O = inr (O<S m)
-ℕ-trichotomy' (1+ m) (1+ n) with ℕ-trichotomy' m n
-... | inl (inl m==n) = inl (inl (ap 1+ m==n))
-... | inl (inr  m<n) = inl (inr (<-ap-S m<n))
-... | inr        m>n = inr (<-ap-S m>n)
+ℕ-trichotomy' m n with ℕ-trichotomy m n
+... | inl m=n = inl (inl m=n)
+... | inr (inl m<n) = inl (inr m<n)
+... | inr (inr n<m) = inr n<m

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --without-K #-}
 
 module Fin where
 
@@ -24,6 +24,9 @@ has-level-apply Fin1-is-prop (i , i<1) (j , j<1) =
 Fin1-has-all-paths : has-all-paths (Fin 1)
 Fin1-has-all-paths i j = prop-path Fin1-is-prop _ _
 
+Fin=-elim : ∀ {n} {i j : Fin n} → i == j → fst i == fst j
+Fin=-elim {n} {_ , _} {.(_ , _)} idp = idp
+
 _<-Fin_ : ∀ {n} (i j : Fin n) → Type₀
 i <-Fin j = fst i < fst j
 
@@ -36,6 +39,23 @@ _<?-Fin_ : ∀ {n} → Decidable (_<-Fin_ {n})
 _≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
 (i , _) ≤?-Fin (j , _) = i ≤? j
 
+private
+  Fin-trichotomy-aux : ∀ {k} (m n : ℕ) (m<k : m < k) (n<k : n < k)
+                       →   ((m , m<k) == (n , n<k))
+                         ⊔ ((m , m<k) <-Fin (n , n<k))
+                         ⊔ ((n , n<k) <-Fin (m , m<k))
+  Fin-trichotomy-aux O O _ _ = inl (Fin= idp)
+  Fin-trichotomy-aux O (1+ n) _ _ = inr (inl (O<S n))
+  Fin-trichotomy-aux (1+ m) O _ _ = inr (inr (O<S m))
+  Fin-trichotomy-aux (1+ m) (1+ n) Sm<k Sn<k
+    with Fin-trichotomy-aux m n (<-trans ltS Sm<k) (<-trans ltS Sn<k)
+  ... | inl m=n = inl (Fin= (ap S (Fin=-elim m=n)))
+  ... | inr (inl m<n) = inr (inl (<-ap-S m<n))
+  ... | inr (inr n<m) = inr (inr (<-ap-S n<m))
+
+Fin-trichotomy : ∀ {k} (i j : Fin k) → (i == j) ⊔ (i <-Fin j) ⊔ (j <-Fin i)
+Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
+
 -- Proof by exhaustion
 
 ∀-Fin-extend : ∀ {n} {P : Fin (1+ n) → Type ℓ}
@@ -43,10 +63,9 @@ _≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
                → P (n , ltS)
                → ∀ i → P i
 ∀-Fin-extend {n = O}    {P} _ PO  _ = tr P (Fin1-has-all-paths _ _) PO
-∀-Fin-extend {n = 1+ n} {P} f PSn (i , i<)
-  with <S→≤ i<
-...  | inl i==Sn = tr P (Fin= (! i==Sn)) PSn
-...  | inr i<Sn  = tr P (Fin= idp) (f (i , i<Sn))
+∀-Fin-extend {n = 1+ n} {P} f PSn (i , i<) with <S→≤ i<
+... | inl i==Sn = tr P (Fin= (! i==Sn)) PSn
+... | inr i<Sn  = tr P (Fin= idp) (f (i , i<Sn))
 
 ∀-Fin? : ∀ {n} (P : Fin n → Type ℓ)
          → ((i : Fin n) → Dec (P i))
@@ -54,16 +73,36 @@ _≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
 ∀-Fin? {n = O} P _ = inl (λ ())
 ∀-Fin? {n = 1+ n} P ∀Fin-Sn-Dec-P
   with ∀-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S)
-...  | inl  ∀Fin-n-P = ⊔-elim
-                        (λ  Pn → inl (∀-Fin-extend ∀Fin-n-P Pn))
-                        (λ ¬Pn → inr (λ ∀Fin-Sn-P → ¬Pn (∀Fin-Sn-P (n , ltS))))
-                        (∀Fin-Sn-Dec-P (n , ltS))
 ...  | inr ¬∀Fin-n-P = inr λ ∀Fin-Sn-P → ¬∀Fin-n-P (∀Fin-Sn-P ∘ Fin-S)
+...  | inl  ∀Fin-n-P with ∀Fin-Sn-Dec-P (n , ltS)
+...                     | inl  Pn = inl (∀-Fin-extend ∀Fin-n-P Pn)
+...                     | inr ¬Pn = inr λ ∀Fin-Sn-P → ¬Pn (∀Fin-Sn-P (n , ltS))
 
 Σ-Fin? : ∀ {n} (P : Fin n → Type ℓ)
          → ((i : Fin n) → Dec (P i))
          → Dec (Σ[ i ∈ Fin n ] P i)
-Σ-Fin? = {!!}
+Σ-Fin? {n = 0} _ _ = inr (λ ())
+Σ-Fin? {n = 1} P ∀Fin-Sn-Dec-P
+  with ∀Fin-Sn-Dec-P 0
+...  | inl  P0 = inl (0 , P0)
+...  | inr ¬P0 = inr λ{ ((O , ltS) , P0) → ¬P0 P0
+                     ; ((1+ _ , ltSR ()) , _)}
+Σ-Fin? {n = 2+ n} P ∀Fin-Sn-Dec-P
+  with Σ-Fin? (P ∘ Fin-S) (∀Fin-Sn-Dec-P ∘ Fin-S)
+...  | inl  (i , Pi) = inl ((Fin-S i) , Pi)
+...  | inr ¬ΣFin-n-P
+         with ∀Fin-Sn-Dec-P (1+ n , ltS)
+...         | inl  PSn = inl ((1+ n , ltS) , PSn)
+...         | inr ¬PSn = inr
+                λ{ ((i , i<2+n) , Pi) →
+                  ⊔-elim
+                    (λ i≤Sn →
+                      ⊔-elim
+                        (λ i=Sn → ¬PSn (tr P (Fin= i=Sn) Pi))
+                        (λ i<Sn → ¬ΣFin-n-P ((i , i<Sn) , (tr P (Fin= idp) Pi)))
+                        i≤Sn)
+                    (λ Sn<i → ¬-< (≤-<-< (<→S≤ Sn<i) i<2+n))
+                    (ℕ-trichotomy' i (1+ n)) }
 
 -- Deciding fibers of maps between finite types
 

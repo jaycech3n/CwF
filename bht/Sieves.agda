@@ -111,8 +111,9 @@ abstract
                 → is-sieve b h t
                 → Maybe Sieve
 
-[ b , O , 1 ]∩[ m , f ] iS = {!!}
-[ b , O , 2+ t ]∩[ m , f ] iS = {!!}
+
+[ b , O , O ]∩[ m , f ] iS = {!!}
+[ b , O , 1+ t ]∩[ m , f ] iS = {!!}
 [ b , 1+ h , t ]∩[ m , f ] iS = {!!}
 
 {-
