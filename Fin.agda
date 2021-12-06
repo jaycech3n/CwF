@@ -39,7 +39,9 @@ _<?-Fin_ : ∀ {n} → Decidable (_<-Fin_ {n})
 _≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
 (i , _) ≤?-Fin (j , _) = i ≤? j
 
-private
+Fin-trichotomy : ∀ {k} (i j : Fin k) → (i == j) ⊔ (i <-Fin j) ⊔ (j <-Fin i)
+Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
+  where
   Fin-trichotomy-aux : ∀ {k} (m n : ℕ) (m<k : m < k) (n<k : n < k)
                        →   ((m , m<k) == (n , n<k))
                          ⊔ ((m , m<k) <-Fin (n , n<k))
@@ -52,9 +54,6 @@ private
   ... | inl m=n = inl (Fin= (ap S (Fin=-elim m=n)))
   ... | inr (inl m<n) = inr (inl (<-ap-S m<n))
   ... | inr (inr n<m) = inr (inr (<-ap-S n<m))
-
-Fin-trichotomy : ∀ {k} (i j : Fin k) → (i == j) ⊔ (i <-Fin j) ⊔ (j <-Fin i)
-Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
 
 -- Proof by exhaustion
 
@@ -101,7 +100,7 @@ Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
                         (λ i=Sn → ¬PSn (tr P (Fin= i=Sn) Pi))
                         (λ i<Sn → ¬ΣFin-n-P ((i , i<Sn) , (tr P (Fin= idp) Pi)))
                         i≤Sn)
-                    (λ Sn<i → ¬-< (≤-<-< (<→S≤ Sn<i) i<2+n))
+                    (λ Sn<i → ¬-< (≤→<→< (<→S≤ Sn<i) i<2+n))
                     (ℕ-trichotomy' i (1+ n)) }
 
 -- Deciding fibers of maps between finite types

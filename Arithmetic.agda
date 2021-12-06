@@ -59,12 +59,19 @@ S≤→< (inr Sm<n) = <-trans ltS Sm<n
 ≤→<S {m} (inl m==n) = tr (λ □ → m < 1+ □) m==n ltS
 ≤→<S (inr m<n) = ltSR m<n
 
-≤-<-< : ∀ {k m n} → k ≤ m → m < n → k < n
-≤-<-< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
-≤-<-< (inr e) h = <-trans e h
+≤→<→< : ∀ {k m n} → k ≤ m → m < n → k < n
+≤→<→< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
+≤→<→< (inr e) h = <-trans e h
 
 ¬-< : ∀ {n} → n < n → ⊥
 ¬-< id< = <-to-≠ id< idp
+
+≤→≠→< : ∀ {m n} → m ≤ n → m ≠ n → m < n
+≤→≠→< (inl x) y = ⊥-elim (y x)
+≤→≠→< (inr x) _ = x
+
+<→ℕ-pred< : ∀ {k} n → O < n → n ≤ k → ℕ-pred n < k
+<→ℕ-pred< (1+ n) _ Sn≤k = S≤→< Sn≤k
 
 {- Leftover stuff not needed
 
@@ -89,9 +96,7 @@ module _ {m n : ℕ} where
   <-S≤ ltS = inl idp
   <-S≤ (ltSR x) = inr (<-ap-S x)
 
-  ≤-¬=-< : m ≤ n → ¬ (m == n) → m < n
-  ≤-¬=-< (inl x) y = ⊥-elim (y x)
-  ≤-¬=-< (inr x) _ = x
+
 
 +==O-l : {m n : ℕ} → m + n == O → m == O
 +==O-l {m = O} _ = idp
@@ -164,3 +169,14 @@ binom≥1 m n = <→S≤ ∘ binom>O m n
 ... | inl m=n = inl (inl m=n)
 ... | inr (inl m<n) = inl (inr m<n)
 ... | inr (inr n<m) = inr n<m
+
+
+{- ℕ₊ -}
+
+ℕ₊ : Type₀
+ℕ₊ = Σ[ n ∈ ℕ ] O < n
+
+instance
+  ℕ₊-reader : FromNat ℕ₊
+  FromNat.in-range ℕ₊-reader n = O < n
+  FromNat.read ℕ₊-reader n ⦃ O<n ⦄ = n , O<n
