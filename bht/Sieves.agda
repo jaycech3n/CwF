@@ -6,7 +6,7 @@ open import bht.NiceIndexCategory
 open import Arithmetic
 open import Fin
 
-module bht.Sieves {i : ULevel} ⦃ C : NiceIndexCategory {i} ⦄ where
+module bht.Sieves {i} ⦃ C : NiceIndexCategory {i} ⦄ where
 
 open NiceIndexCategory C
 
@@ -52,20 +52,20 @@ is-sieve-bh0 : ∀ {b h} → h ≤ b → is-sieve b h O
 is-sieve-bh0 {b} {h} h≤b = sieve-conds h≤b (O≤ (Hom-size h b))
 
 is-sieve-prev-t : ∀ {b h t} → is-sieve b h (1+ t) → is-sieve b h t
-is-sieve-prev-t (sieve-conds hcond tcond) = sieve-conds hcond (≤-trans lteS tcond)
+is-sieve-prev-t (sieve-conds hcond tcond) = sieve-conds hcond (S≤→≤ tcond)
 
 is-sieve-next-t : ∀ {b h t} → is-sieve b h t → t < Hom-size h b
                   → is-sieve b h (1+ t)
 is-sieve-next-t (sieve-conds hcond tcond) t<tmax = sieve-conds hcond (<→S≤ t<tmax)
 
-incr-sieve-aux : ∀ b h t → is-sieve b h t → Sieve
-incr-sieve-aux b h t iS@(sieve-conds hcond tcond) with hcond | tcond
-... | inl h=b | _ = (b , h , t) , iS
-... | inr h<b | inr t<tmax = (b , h , 1+ t) , is-sieve-next-t iS t<tmax
-... | inr h<b | inl t=tmax = {!!}
-
 incr-sieve : Sieve → Sieve
 incr-sieve ((b , h , t) , iS) = incr-sieve-aux b h t iS
+  where
+  incr-sieve-aux : ∀ b h t → is-sieve b h t → Sieve
+  incr-sieve-aux b h t iS@(sieve-conds hcond tcond) with hcond | tcond
+  ... | inl h=b | _ = (b , h , t) , iS
+  ... | inr h<b | inr t<tmax = (b , h , 1+ t) , is-sieve-next-t iS t<tmax
+  ... | inr h<b | inl t=tmax = {!!}
 
 {-
 first-is-sieve : (b h : ℕ) → h ≤ b → is-sieve b h 1
@@ -130,12 +130,14 @@ abstract
 
 [ b , O , O ]∩[ m , f ] iS = (m , O , O) , is-sieve-bh0 (O≤ m)
 
-[ b , O , 1+ t ]∩[ m , f ] iS
-  with topmost-[ b , O , (1+ t , O<S t) , iS ]-map-in-img-of? f
-...  | inl (g , f◦g≈t) = incr-sieve ([ b , O , t ]∩[ m , f ] (is-sieve-prev-t iS))
-...  | inr ¬in-img = [ b , O , t ]∩[ m , f ] (is-sieve-prev-t iS)
+[ b , O , 1+ t ]∩[ m , f ] iS =
+  ⊔-elim
+    (λ (g , f◦g≈t) → incr-sieve ([ b , O , t ]∩[ m , f ] (is-sieve-prev-t iS)))
+    (λ ¬in-img → [ b , O , t ]∩[ m , f ] (is-sieve-prev-t iS))
+    (topmost-[ b , O , (1+ t , O<S t) , iS ]-map-in-img-of? f)
 
-[ b , 1+ h , O ]∩[ m , f ] iS = [ b , h , {!Hom-size h b -- doesn't pass the termination checker!!} ]∩[ m , f ] {!!}
+[ b , 1+ h , O ]∩[ m , f ] (sieve-conds hcond tcond) =
+  [ b , h , Hom-size h b ]∩[ m , f ] {!!}
 
 [ b , 1+ h , 1+ t ]∩[ m , f ] iS = {!!}
 

@@ -59,6 +59,9 @@ S≤→< (inr Sm<n) = <-trans ltS Sm<n
 ≤→<S {m} (inl m==n) = tr (λ □ → m < 1+ □) m==n ltS
 ≤→<S (inr m<n) = ltSR m<n
 
+S≤→≤ : ∀ {m n} → 1+ m ≤ n → m ≤ n
+S≤→≤ h = ≤-trans lteS h
+
 ≤→<→< : ∀ {k m n} → k ≤ m → m < n → k < n
 ≤→<→< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
 ≤→<→< (inr e) h = <-trans e h
@@ -81,9 +84,6 @@ module _ {m n : ℕ} where
 
   S<-< : 1+ m < n → m < n
   S<-< h = <-trans ltS h
-
-  S≤-≤ : 1+ m ≤ n → m ≤ n
-  S≤-≤ h = ≤-trans lteS h
 
   S<-≤ : 1+ m < n → m ≤ n
   S<-≤ h = inr (S<-< h)
