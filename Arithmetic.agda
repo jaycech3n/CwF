@@ -15,8 +15,7 @@ instance
   O<-inst : ∀ {n} → O < 1+ n
   O<-inst {n} = O<S n
 
-{- Leftover stuff not needed
-
+{-
 instance
   S<S-inst : {m n : ℕ} ⦃ m<n : m < n ⦄ → 1+ m < 1+ n
   S<S-inst ⦃ m<n ⦄ = <-ap-S m<n
@@ -77,11 +76,13 @@ S≤→≤ h = ≤-trans lteS h
 ≠O→O< {O}    u = ⊥-elim (u idp)
 ≠O→O< {1+ n} _ = O<S n
 
+=-cancel-S : ∀ {m n} → 1+ m == 1+ n :> ℕ → m == n
+=-cancel-S idp = idp
+
 <→ℕ-pred< : ∀ {k} n → O < n → n ≤ k → ℕ-pred n < k
 <→ℕ-pred< (1+ n) _ Sn≤k = S≤→< Sn≤k
 
-{- Leftover stuff not needed
-
+{-
 module _ {m n : ℕ} where
   ==-cancel-S : _==_ {A = ℕ} (1+ m) (1+ n) → m == n
   ==-cancel-S idp = idp
@@ -100,11 +101,51 @@ module _ {m n : ℕ} where
   <-S≤ ltS = inl idp
   <-S≤ (ltSR x) = inr (<-ap-S x)
 
-
-
 +==O-l : {m n : ℕ} → m + n == O → m == O
 +==O-l {m = O} _ = idp
 -}
+
+
+{- Trichotomy -}
+
+ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
+ℕ-trichotomy' m n with ℕ-trichotomy m n
+... | inl m=n = inl (inl m=n)
+... | inr (inl m<n) = inl (inr m<n)
+... | inr (inr n<m) = inr n<m
+
+
+{- ℕ₊ -}
+
+ℕ₊ : Type₀
+ℕ₊ = Σ[ n ∈ ℕ ] O < n
+
+instance
+  ℕ₊-reader : FromNat ℕ₊
+  FromNat.in-range ℕ₊-reader n = O < n
+  FromNat.read ℕ₊-reader n ⦃ O<n ⦄ = n , O<n
+
+
+{- Monus -}
+
+infix 80 _∸_
+_∸_ : ℕ → ℕ → ℕ
+O ∸ n = O
+1+ m ∸ O = 1+ m
+1+ m ∸ 1+ n = m ∸ n
+
+∸-move-S-l : ∀ {k} m n → m ∸ n == 1+ k → m ∸ 1+ n == k
+∸-move-S-l (1+ m) (1+ n) p = ∸-move-S-l m n p
+∸-move-S-l (1+ O) O p = =-cancel-S p
+∸-move-S-l (2+ m) O p = =-cancel-S p
+
+∸→≤ : ∀ {m n} → m ∸ n == 0 → m ≤ n
+∸→≤ {O} {n} _ = O≤ n
+∸→≤ {1+ m} {1+ n} p = ≤-ap-S (∸→≤ p)
+
+∸→< : ∀ {m n k} → m ∸ n == 1+ k → n < m
+∸→< {1+ m} {O} _ = O<S m
+∸→< {1+ m} {1+ n} p = <-ap-S (∸→< p)
 
 
 {- Binomial coefficients -}
@@ -164,23 +205,3 @@ binom>O (1+ m) (1+ n) Sn≤Sm    = O<→O<+r (binom>O m n (≤-cancel-S Sn≤Sm)
 
 binom≥1 : ∀ m n → n ≤ m → 1 ≤ binom m n
 binom≥1 m n = <→S≤ ∘ binom>O m n
-
-
-{- Trichotomy -}
-
-ℕ-trichotomy' : (m n : ℕ) → (m ≤ n) ⊔ (n < m)
-ℕ-trichotomy' m n with ℕ-trichotomy m n
-... | inl m=n = inl (inl m=n)
-... | inr (inl m<n) = inl (inr m<n)
-... | inr (inr n<m) = inr n<m
-
-
-{- ℕ₊ -}
-
-ℕ₊ : Type₀
-ℕ₊ = Σ[ n ∈ ℕ ] O < n
-
-instance
-  ℕ₊-reader : FromNat ℕ₊
-  FromNat.in-range ℕ₊-reader n = O < n
-  FromNat.read ℕ₊-reader n ⦃ O<n ⦄ = n , O<n
