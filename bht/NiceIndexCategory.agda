@@ -66,6 +66,11 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
       ...        | inl  u = inl (tr-Σ-≃-l (P ∘ <– e) e u)
       ...        | inr ¬u = inr (λ (f , p) → ¬u (–> e f , p))
 
+  Hom-id-size : ∀ {x} → O < Hom-size x x
+  Hom-id-size {x} with Hom-size x x | Hom-ord (id {x})
+  ... | O    | i = ⊥-elim (≮O _ (snd i))
+  ... | 1+ n | _ = O<S n
+
 record NiceIndexCategory {i} : Type (lsuc i) where
   field ⦃ C ⦄ : LocallyFiniteWildCategoryOn ℕ
   open LocallyFiniteWildCategoryOn C hiding (C) public

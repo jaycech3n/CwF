@@ -70,8 +70,12 @@ S≤→≤ h = ≤-trans lteS h
 ¬-< id< = <-to-≠ id< idp
 
 ≤→≠→< : ∀ {m n} → m ≤ n → m ≠ n → m < n
-≤→≠→< (inl x) y = ⊥-elim (y x)
-≤→≠→< (inr x) _ = x
+≤→≠→< (inl u) v = ⊥-elim (v u)
+≤→≠→< (inr u) _ = u
+
+≠O→O< : ∀ {n} → n ≠ O → O < n
+≠O→O< {O}    u = ⊥-elim (u idp)
+≠O→O< {1+ n} _ = O<S n
 
 <→ℕ-pred< : ∀ {k} n → O < n → n ≤ k → ℕ-pred n < k
 <→ℕ-pred< (1+ n) _ Sn≤k = S≤→< Sn≤k
