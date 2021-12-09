@@ -4,9 +4,7 @@ module Arithmetic where
 
 open import Prelude public
 
--- We use instances for rudimentary automatic solving of certain inequality
--- constraints.
-
+-- We use instances for automatic solving of certain inequality constraints.
 instance
   O≤-inst : ∀ {n} → O ≤ n
   O≤-inst {n} = O≤ n
@@ -117,13 +115,16 @@ module _ {m n : ℕ} where
 
 {- ℕ₊ -}
 
-ℕ₊ : Type₀
-ℕ₊ = Σ[ n ∈ ℕ ] O < n
+record ℕ₊ : Type₀ where
+  constructor pos
+  field
+    to-ℕ : ℕ
+    ⦃ O< ⦄ : O < to-ℕ
 
 instance
   ℕ₊-reader : FromNat ℕ₊
   FromNat.in-range ℕ₊-reader n = O < n
-  FromNat.read ℕ₊-reader n ⦃ O<n ⦄ = n , O<n
+  FromNat.read ℕ₊-reader n ⦃ O<n ⦄ = pos n
 
 
 {- Monus -}
@@ -146,6 +147,9 @@ O ∸ n = O
 ∸→< : ∀ {m n k} → m ∸ n == 1+ k → n < m
 ∸→< {1+ m} {O} _ = O<S m
 ∸→< {1+ m} {1+ n} p = <-ap-S (∸→< p)
+
+_−1 : ℕ₊ → ℕ
+pos (1+ n) −1 = n
 
 
 {- Binomial coefficients -}
