@@ -1,14 +1,14 @@
 {--- Sieves in "nice enough" index categories ---}
 
-{-# OPTIONS --without-K --termination-depth=2 #-}
+{-# OPTIONS --without-K #-}
 
 open import bht.NiceIndexCategory
 open import Arithmetic
 open import Fin
 
-module bht.Sieves {i} ⦃ C : NiceIndexCategory {i} ⦄ where
+module bht.Sieves {i} ⦃ I : NiceIndexCategory {i} ⦄ where
 
-open NiceIndexCategory C
+open NiceIndexCategory I
 
 {- Initial segment sieves -}
 
@@ -60,6 +60,9 @@ is-sieve-next-t : ∀ {b h t} → is-sieve b h t → t < Hom-size h b
                   → is-sieve b h (1+ t)
 is-sieve-next-t (sieve-conds hcond tcond) t<tmax = sieve-conds hcond (<→S≤ t<tmax)
 
+is-sieve-bhtmax : ∀ {b h} → h ≤ b → is-sieve b h (Hom-size h b)
+is-sieve-bhtmax hcond = sieve-conds hcond (inl idp)
+
 incr-level : (b h : ℕ)
              → {m : ℕ} → {b ∸ h == m}
              → Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
@@ -73,7 +76,7 @@ incr-sieve : Sieve → Sieve
 incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
 ... | inl h=b | _ = (b , h , t) , iS
 ... | inr h<b | inr t<tmax = (b , h , 1+ t) , is-sieve-next-t iS t<tmax
-... | inr h<b | inl t=tmax = (b , h' , 1) , (sieve-conds h'cond 1cond')
+... | inr h<b | inl t=tmax = (b , h' , 1) , sieve-conds h'cond 1cond'
                              where
                                next-level : Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
                                next-level = incr-level b h {b ∸ h} {idp}
@@ -85,12 +88,12 @@ incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
 {- Sieve intersection -}
 
 topmost-[_,_,_,_]-map-in-img-of?_ :
-  (b h : ℕ) ((t , O<t) : ℕ₊) (iS@(sieve-conds _ tcond) : is-sieve b h t)
+  (b h : ℕ) ((pos t ⦃ O<t ⦄) : ℕ₊) (iS@(sieve-conds _ tcond) : is-sieve b h t)
   {m : ℕ} (f : Hom m b)
   → Dec (Σ[ g ∈ Hom h m ] (f ◦ g ≈ Hom-idx (ℕ-pred t , <→ℕ-pred< t O<t tcond)))
                                            -- t arrows in the (h → b) level, so
                                            -- the topmost one has index (t-1).
-topmost-[ b , h , (t , O<t) , iS@(sieve-conds _ tcond) ]-map-in-img-of? f =
+topmost-[ b , h , pos t ⦃ O<t ⦄ , iS@(sieve-conds _ tcond) ]-map-in-img-of? f =
   Σ-Hom? (λ g → f ◦ g ≈ Hom-idx (ℕ-pred t , <→ℕ-pred< t O<t tcond)) (λ g → _ ≈? _)
 
 -- [ b, h, t ]∩[ m, f ] calculates the shape of the intersection of the
@@ -106,7 +109,7 @@ topmost-[ b , h , (t , O<t) , iS@(sieve-conds _ tcond) ]-map-in-img-of? f =
   ⊔-rec
     (λ  in-img → incr-sieve ([ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)))
     (λ ¬in-img → [ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS))
-    (topmost-[ b , h , (1+ t , O<S t) , iS ]-map-in-img-of? f)
+    (topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f)
 
 [ b , O , O ]∩[ m , f ] iS = (m , O , O) , is-sieve-bh0 (O≤ m)
 
