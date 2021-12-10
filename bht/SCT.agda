@@ -24,19 +24,63 @@ module _ {i}
 
   SCT : ℕ → Con
   Sk  : (b h t : ℕ) → is-sieve b h t → Ty (SCT (1+ h))
+
+  Sk-unc  : (((_ , h , _) , _) : Sieve) → Ty (SCT (1+ h))
+  Sk-unc ((b , h , t) , iS) = Sk b h t iS
+
+  Sk→ : (b h t : ℕ) (iS : is-sieve b h t)
+        {m : ℕ} (f : Hom m b)
+        → Tm (Sk b h t iS)
+        → Tm (Sk-unc ([ b , h , t ]∩[ m , f ] iS))
+
   -- M b is the "matching object" of the diagram induced by (SCT b).
   M   : (b : ℕ) → Ty (SCT b)
-
-  -- The context SCT n = (A₀, A₁, ..., Aₙ₋₁) consists of all fillers of cells up
-  -- to (and including) "dimension" (n-1).
-  SCT O = ◆
-  SCT (1+ O) = SCT O ∷ U -- (≅ SCT O ∷ M O ̂→ U, which is less convenient)
-  SCT (1+ n@(1+ _)) = SCT n ∷ M n ̂→ U
-
-  Sk b O O iS = ̂⊤
-  Sk b O (1+ t) iS = Sk b O t (is-sieve-prev-t iS) ̂× el (υ U ↓)
-  Sk b (1+ h) O iS = {!!}
-  Sk b (1+ h) (1+ t) iS = {!!}
-
   M O = ̂⊤
   M (1+ b) = Sk (1+ b) b (Hom-size b (1+ b)) (is-sieve-bhtmax lteS)
+
+  _-Fillers : (b : ℕ) → Ty (SCT b)
+  b -Fillers = M b ̂→ U
+
+  -- The context SCT n = (A₀, A₁, ..., Aₙ₋₁) consists of fillers of cells up to
+  -- (and including) dimension (n-1).
+  SCT O = ◆
+  SCT (1+ n) = SCT n ∷ (n -Fillers)
+
+  open is-sieve
+
+  Sk b h (1+ t) iS =
+    ̂Σ[ s ∈ Prev-Sk ]
+      let
+        Aₕ : Tm {SCT (1+ h)} ((h -Fillers) [ π (h -Fillers) ])
+        Aₕ = υ (h -Fillers)
+
+        ∂cell : Tm (M h)
+        ∂cell = {!!}
+      in {!s!}
+    where
+      Prev-Sk : Ty (SCT (1+ h))
+      Prev-Sk = Sk b h t (is-sieve-prev-t iS)
+
+  Sk b O O iS = ̂⊤
+  Sk b (1+ h) O iS = Sk b h (Hom-size h b) (is-sieve-bhtmax (S≤→≤ (hcond iS)))
+                       [ π ((1+ h)-Fillers) ]
+
+  Sk→ b h (1+ t) iS f s = {!s!}
+  Sk→ b O O iS f s = ̂*
+  Sk→ b (1+ h) O iS {m} f s = {!s!}
+  {-
+  With the signature
+    (b h t : ℕ) (iS : is-sieve b h t)
+    {m : ℕ} (f : Hom m b)
+    → Tm (Sk b h t iS)
+    → Tm (Sk-unc ([ b , h , t ]∩[ m , f ] iS)),
+  the (b , 1+ h , 0) case results in having an argument
+    s : Tm (Sk b (1+ h) O iS),
+  definitionally
+    s : Tm {SCT (2+ h)}
+           (Sk b h (Hom-size h b) (is-sieve-bhtmax (S≤→≤ (hcond iS))) [ π ((1+ h)-Fillers) ])
+  when the goal is
+    ? : Tm (Sk-unc ([ b , 1+ h , O ]∩[ m , f ] iS)),
+  which is definitionally
+    ? : Tm (Sk-unc ([ b , h , Hom-size h b ]∩[ m , f ] (sieve-conds (S≤→≤ hcond) (inl idp)))).
+  -}
