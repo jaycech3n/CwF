@@ -373,11 +373,14 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
       -- Lifting types and terms to weakened contexts
 
-      _↑ : ∀ {Γ} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
-      _↑ {A = A} B = B [ π A ]
+      _⁺ : ∀ {Γ} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
+      _⁺ {A = A} B = B [ π A ]
 
-      _↑ₜ : ∀ {Γ} {A B : Ty Γ} → Tm A → Tm (A [ π B ])
-      _↑ₜ {B = B} t = t [ π B ]ₜ
+      _⁺ₜ : ∀ {Γ} {A B : Ty Γ} → Tm A → Tm (A [ π B ])
+      _⁺ₜ {B = B} t = t [ π B ]ₜ
+
+      _⁺⁺ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} → Ty Γ → Ty (Γ ∷ A ∷ B)
+      _⁺⁺ {A = A} {B = B} C = C [ π A ] [ π B ]
 
   open definitions public
 
@@ -453,9 +456,10 @@ record PiStructure {i}
         =⟨ ʷ-comm |in-ctx (λ □ → ̂Π _ (B [ □ ])) ⟩ ̂Π (A [ f ]) (B [ f ◦ π (A [ f ]) ])
         =⟨ []-◦   |in-ctx (λ □ → ̂Π _ □) ⟩ ̂Π (A [ f ]) (B [ f ] [ π (A [ f ]) ]) =∎
 
-      -- If we must talk about actually applying functions
+      -- Function application
 
-      _`_ : ∀ {Γ} {A : Ty Γ} {B} (f : Tm (̂Π A B)) (a : Tm A)
+      _`_ : ∀ {Γ} {A : Ty Γ} {B}
+            → (f : Tm (̂Π A B)) (a : Tm A)
             → Tm (B [[ a ]])
       f ` a = (app f) [[ a ]]ₜ
 

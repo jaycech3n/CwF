@@ -45,7 +45,7 @@ module _ {i} (C : WildCategory {i})
   SST (1+ n) = SST n ∷ shape+ n
 
   Sk' n O (1+ O) iS O k≤k' = el (υ U ↓)
-  Sk' n O (1+ O) iS (1+ k') k≤k' = (Sk' n O 1 iS k' {!!}) ↑
+  Sk' n O (1+ O) iS (1+ k') k≤k' = (Sk' n O 1 iS k' {!!}) ⁺
 
   Sk' n O (2+ t) iS k' k≤k' = {!!}
 
@@ -73,30 +73,30 @@ module _ {i} (C : WildCategory {i})
 
   Sk (1+ n) (1+ k) (1+ O) iS@(sieve-conds Sk<Sn _) =
     -- "Σ (Sk (1+ n) k (binom (2+ n) (1+ k))) λ s → A₍ₖ₊₁₎ (Sk→ f s)"
-    ̂Σ[ s ∈ prev-Sk ] el (tr Tm U↑↑[[]]==U (tr Tm shape↑==̂→ A ` (∂face s ↑ₜ)) ↑ₜ ↓)
+    ̂Σ[ s ∈ prev-Sk ] el (tr Tm U⁺⁺[[]]==U (tr Tm shape⁺==̂→ A ` (∂face s ⁺ₜ)) ⁺ₜ ↓)
     where
       -- Shape of the full k-skeleton of Δ⁽ⁿ⁺¹⁾
       prev-Sk : Ty (SST k ∷ shape+ k)
-      prev-Sk = Sk (1+ n) k (binom (2+ n) (1+ k)) (prev-is-sieve-k iS) ↑
+      prev-Sk = Sk (1+ n) k (binom (2+ n) (1+ k)) (prev-is-sieve-k iS) ⁺
 
-      A : Tm ((shape+ k ↑) :> Ty (SST (1+ k)))
+      A : Tm ((shape+ k ⁺) :> Ty (SST (1+ k)))
       A = υ (shape+ k)
 
-      shape↑==̂→ : (shape+ k ↑) :> Ty (SST k ∷ shape+ k)
-                  == (Sk (1+ k) k (binom (2+ k) (1+ k)) _ ↑) ̂→ (U ↑)
-      shape↑==̂→ = ̂→-[]
+      shape⁺==̂→ : (shape+ k ⁺) :> Ty (SST k ∷ shape+ k)
+                  == (Sk (1+ k) k (binom (2+ k) (1+ k)) _ ⁺) ̂→ (U ⁺)
+      shape⁺==̂→ = ̂→-[]
 
       -- Ugly, but we have to convince Agda that this is still a
       -- universe in the extended context.
-      U↑↑[[]]==U : ∀ {t} → U [ π (shape+ k) ]
-                             [ π (Sk (1+ k) k (binom (2+ k) (1+ k)) _ ↑) ]
+      U⁺⁺[[]]==U : ∀ {t} → U [ π (shape+ k) ]
+                             [ π (Sk (1+ k) k (binom (2+ k) (1+ k)) _ ⁺) ]
                              [[ t ]]
                            == U
-      U↑↑[[]]==U {t} = ap (_[[ t ]] ∘ _[ π _ ]) U-[]
+      U⁺⁺[[]]==U {t} = ap (_[[ t ]] ∘ _[ π _ ]) U-[]
                      ∙ ap _[[ t ]] U-[]
                      ∙ U-[]
 
-      ∂face : (s : Tm (prev-Sk ↑)) → Tm (Sk (1+ k) k (binom (2+ k) (1+ k))
+      ∂face : (s : Tm (prev-Sk ⁺)) → Tm (Sk (1+ k) k (binom (2+ k) (1+ k))
                                         (last-is-sieve (1+ k) k lteS))
       ∂face s = {!Sk→ (1+ n) k (binom (2+ n) (1+ k)) (prev-is-sieve-k iS)
                       (map-of-index (1+ n) (1+ k) 1 iS) ?!}
