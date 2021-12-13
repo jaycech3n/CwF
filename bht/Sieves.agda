@@ -1,6 +1,6 @@
 {--- Sieves in "nice enough" index categories ---}
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --allow-unsolved-metas #-}
 
 open import bht.NiceIndexCategory
 open import Arithmetic
@@ -43,8 +43,8 @@ Sieve = Σ[ s ∈ ℕ × ℕ × ℕ ]
               t = 3rd s
           in is-sieve b h t
 
-sieve-h : Sieve → ℕ
-sieve-h ((_ , h , _) , _) = h
+h-of-sieve : Sieve → ℕ
+h-of-sieve ((_ , h , _) , _) = h
 
 Sieve= : {s@(t , _) s'@(t' , _) : Sieve}
          → fst t == fst t' → 2nd t == 2nd t' → 3rd t == 3rd t' → s == s'
@@ -87,6 +87,7 @@ incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
                                h'cond = 2nd next-level
                                1cond' = 3rd next-level
 
+
 {- Sieve intersection -}
 
 topmost-[_,_,_,_]-map-in-img-of?_ :
@@ -107,7 +108,7 @@ topmost-[ b , h , pos t ⦃ O<t ⦄ , iS@(sieve-conds _ tcond) ]-map-in-img-of? 
                 → Sieve
 
 -- This recursion still works if there is some Hom-size h b = 0
-[ b , h , 1+ t ]∩[ m , f ] iS@(sieve-conds hcond tcond)
+[ b , h , 1+ t ]∩[ m , f ] iS
   with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
 ... | inl  in-img = incr-sieve ([ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS))
 ... | inr ¬in-img = [ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)
@@ -117,19 +118,40 @@ topmost-[ b , h , pos t ⦃ O<t ⦄ , iS@(sieve-conds _ tcond) ]-map-in-img-of? 
 [ b , 1+ h , O ]∩[ m , f ] (sieve-conds hcond _) =
   [ b , h , Hom-size h b ]∩[ m , f ] (sieve-conds (S≤→≤ hcond) lteE)
 
+∩-h≤ : ∀ b h t {m} {f} iS
+       → h-of-sieve ([ b , h , t ]∩[ m , f ] iS) ≤ h
 
-∩-h≤ : ∀ {b h t} iS {m} {f}
-         → (i : ℕ) → h ≤ i
-         → sieve-h ([ b , h , t ]∩[ m , f ] iS) ≤ i
-∩-h≤ {b} {h} {t} iS {_} {f} i icond = ≤-trans (∩-h≤-aux b h t iS) icond
-  where
-  ∩-h≤-aux : ∀ b h t iS {m} {f}
-               → sieve-h ([ b , h , t ]∩[ m , f ] iS) ≤ h
+incr-sieve-∩-h≤ : ∀ b h t {m} {f} iS →
+                  h-of-sieve (incr-sieve ([ b , h , t ]∩[ m , f ] iS)) ≤ h
 
-  ∩-h≤-aux b h (1+ t) iS {f = f}
-    with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
-  ... | inl  in-img = {!--probably need the corresponding lemma for incr-sieve!}
-  ... | inr ¬in-img = ∩-h≤-aux b h t (is-sieve-prev-t iS)
+∩-h≤ b h (1+ t) {m} {f} iS@(sieve-conds hcond tcond)
+  with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
+... | inl in-img = incr-sieve-∩-h≤ b h t (is-sieve-prev-t iS)
+... | inr ¬in-img = ∩-h≤ b h t (is-sieve-prev-t iS)
+∩-h≤ b   O    O iS = lteE
+∩-h≤ b (1+ h) O iS = lteSR (∩-h≤ b h (Hom-size h b) (is-sieve-prev-h iS))
 
-  ∩-h≤-aux b   O    O iS = lteE
-  ∩-h≤-aux b (1+ h) O iS = lteSR (∩-h≤-aux b h (Hom-size h b) (is-sieve-prev-h iS))
+private
+  -- Need this for incr-sieve-∩-h≤:
+  ∩-unc : (((b , h , t , m) , f , iS) :
+            Σ[ (b , h , t , m) ∈ ℕ × ℕ × ℕ × ℕ ] Hom m b × is-sieve b h t)
+          → Sieve
+  ∩-unc ((b , h , t , m) , f , iS) = [ b , h , t ]∩[ m , f ] iS
+
+incr-sieve-∩-h≤ b h t {m} {f} iS
+  with [ b , h , t ]∩[ m , f ] iS | inspect ∩-unc ((b , h , t , m) , f , iS )
+...  | (b' , h' , t') , (sieve-conds hcond' tcond') | ▹ eq
+       with hcond'
+...       | inl h'=b' = tr (λ □ → h-of-sieve □ ≤ h) eq (∩-h≤ b h t iS)
+                      -- incr-sieve([b, h, t]∩[m, f] iS)
+                      -- ≡ incr-sieve((b', h', t'), _)
+                      -- ≡ (b', h', t') ≡ [b, h, t]∩[m, f] iS.
+                      -- So we can use ∩-h≤ b h t.
+...       | inr h'<b' with tcond'
+...                      | inr t'<tmax' = tr (λ □ → h-of-sieve □ ≤ h) eq (∩-h≤ b h t iS)
+...                      | inl t'=tmax' = {!!}
+
+∩-h≤' : ∀ {b h t} iS {m} {f}
+        → (i : ℕ) → h ≤ i
+        → h-of-sieve ([ b , h , t ]∩[ m , f ] iS) ≤ i
+∩-h≤' {b} {h} {t} iS {_} {f} i icond = ≤-trans (∩-h≤ b h t iS) icond

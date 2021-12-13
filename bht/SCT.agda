@@ -39,7 +39,7 @@ module _ {i}
                         → Tm (Sk[ b , h , t , iS ] i icond)
                         → Tm (Sk-unc
                                ([ b , h , t ]∩[ m , f ] iS)
-                               i (∩-h≤ iS i icond))
+                               i (∩-h≤' iS i icond))
 
   -- The matching object
   M[_]   : (h i : ℕ) → h ≤ i → Ty (SCT i)

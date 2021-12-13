@@ -32,17 +32,17 @@ syntax Σ-syntax A (λ x → B) = Σ[ x ∈ A ] B
 
 {- Inspect -}
 
--- Copied from agda-stdlib
+-- The inspect idiom, copied from the Agda standard library
 
-record Reveal_·_is_ {A : Set i} {B : A → Type j}
+record Reveal_·_is_ {A : Type i} {B : A → Type j}
   (f : (x : A) → B x) (x : A) (y : B x) : Type (lmax i j)
   where
-  constructor inspected
+  constructor ▹
   field eq : f x == y
 
-inspect : ∀ {A : Set i} {B : A → Set j}
+inspect : ∀ {A : Type i} {B : A → Type j}
           (f : (x : A) → B x) (x : A) → Reveal f · x is f x
-inspect f x = inspected idp
+inspect f x = ▹ idp
 
 
 {- Triples -}
