@@ -1,6 +1,6 @@
 {--- Sieves in "nice enough" index categories ---}
 
-{-# OPTIONS --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --without-K #-}
 
 open import bht.NiceIndexCategory
 open import Arithmetic
@@ -43,8 +43,8 @@ Sieve = Σ[ s ∈ ℕ × ℕ × ℕ ]
               t = 3rd s
           in is-sieve b h t
 
-sieve-dim : Sieve → ℕ
-sieve-dim ((_ , h , _) , _) = h
+sieve-h : Sieve → ℕ
+sieve-h ((_ , h , _) , _) = h
 
 Sieve= : {s@(t , _) s'@(t' , _) : Sieve}
          → fst t == fst t' → 2nd t == 2nd t' → 3rd t == 3rd t' → s == s'
@@ -118,18 +118,18 @@ topmost-[ b , h , pos t ⦃ O<t ⦄ , iS@(sieve-conds _ tcond) ]-map-in-img-of? 
   [ b , h , Hom-size h b ]∩[ m , f ] (sieve-conds (S≤→≤ hcond) lteE)
 
 
-∩-dim≤ : ∀ {b h t} iS {m} {f}
+∩-h≤ : ∀ {b h t} iS {m} {f}
          → (i : ℕ) → h ≤ i
-         → sieve-dim ([ b , h , t ]∩[ m , f ] iS) ≤ i
-∩-dim≤ {b} {h} {t} iS {_} {f} i icond = ≤-trans (∩-dim≤-aux b h t iS) icond
+         → sieve-h ([ b , h , t ]∩[ m , f ] iS) ≤ i
+∩-h≤ {b} {h} {t} iS {_} {f} i icond = ≤-trans (∩-h≤-aux b h t iS) icond
   where
-  ∩-dim≤-aux : ∀ b h t iS {m} {f}
-               → sieve-dim ([ b , h , t ]∩[ m , f ] iS) ≤ h
+  ∩-h≤-aux : ∀ b h t iS {m} {f}
+               → sieve-h ([ b , h , t ]∩[ m , f ] iS) ≤ h
 
-  ∩-dim≤-aux b h (1+ t) iS {f = f}
+  ∩-h≤-aux b h (1+ t) iS {f = f}
     with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
   ... | inl  in-img = {!--probably need the corresponding lemma for incr-sieve!}
-  ... | inr ¬in-img = ∩-dim≤-aux b h t (is-sieve-prev-t iS)
+  ... | inr ¬in-img = ∩-h≤-aux b h t (is-sieve-prev-t iS)
 
-  ∩-dim≤-aux b   O    O iS = lteE
-  ∩-dim≤-aux b (1+ h) O iS = lteSR (∩-dim≤-aux b h (Hom-size h b) (is-sieve-prev-h iS))
+  ∩-h≤-aux b   O    O iS = lteE
+  ∩-h≤-aux b (1+ h) O iS = lteSR (∩-h≤-aux b h (Hom-size h b) (is-sieve-prev-h iS))
