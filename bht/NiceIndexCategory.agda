@@ -74,3 +74,7 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
 record NiceIndexCategory {i} : Type (lsuc i) where
   field ⦃ C ⦄ : LocallyFiniteWildCategoryOn ℕ
   open LocallyFiniteWildCategoryOn C hiding (C) public
+
+  -- Note: the construction in bht.SCT is that of the type-theoretic Reedy
+  -- fibrant diagram over the full direct subcategory of a nice index category
+  -- whose degree map is given by deg n = n.
