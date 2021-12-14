@@ -66,16 +66,27 @@ module _ {i}
   Sk→[ b , h , 1+ t , iS ]∩[ m , f ] s = {!!}
   Sk→[ b , O , O , iS ]∩[ m , f ] s = ̂*
   Sk→[ b , 1+ h , O , iS ]∩[ m , f ] s =
-    {!Sk→[ b , h , Hom-size h b , is-sieve-prev-h iS ]∩[ m , f ] {!s!}!}
+    Sk→[ b , h , Hom-size h b , is-sieve-prev-h iS ]∩[ m , f ] {!s!}
     {-
-    In this case we have argument
+    This case shows why the generalization over SCT levels in bht.SCT is the
+    right thing to do. Here, we have argument
       s : Tm (Sk b (1+ h) O iS),
     definitionally
       s : Tm {SCT (2+ h)}
-             (Sk b h (Hom-size h b) (is-sieve-bhtmax (S≤→≤ (hcond iS))) [ π (1+ h-Fillers) ]).
+             (Sk b h (Hom-size h b) _ [ π (1+ h-Fillers) ]).
     On the other hand, the goal is
       ? : Tm (Sk-unc ([ b , 1+ h , O ]∩[ m , f ] iS)),
     which is definitionally
       ? : Tm {SCT (1+ <dimension of intersection>)}
-           (Sk-unc ([ b , h , Hom-size h b ]∩[ m , f ] (sieve-conds (S≤→≤ hcond) (inl idp)))),
+             (Sk-unc ([ b , h , Hom-size h b ]∩[ m , f ] _)).
+
+    We need to apply Sk→ to s, and so would think to lift it to the right
+    context. If we want to do this lifting internally we'd have to internalize
+    Sk→ to the CwF, which is already inconvenient. Assuming we do this, however,
+    Sk→ is then an internal function in
+      Tm (Sk[ b , h , t , iS ]) ̂→ Sk-unc ([ b , h , t ]∩[ m , f ] iS),
+    whose codomain lives in some SCT h' where h' depends on the intersection.
+
+    ==> Too many moving parts to internalize; might as well do this "decoupling"
+    externally.
     -}
