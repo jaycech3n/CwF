@@ -463,6 +463,11 @@ record PiStructure {i}
             → Tm (B [[ a ]])
       f ` a = (app f) [[ a ]]ₜ
 
+      _⃗[_]ₜ : ∀ {Δ Γ} {A B : Ty Γ}
+              → (f : Tm (A ̂→ B)) (σ : Sub Δ Γ)
+              → Tm (A [ σ ] ̂→ B [ σ ])
+      f ⃗[ σ ]ₜ = tr Tm ̂→-[] (f [ σ ]ₜ)
+
   open definitions public
 
 

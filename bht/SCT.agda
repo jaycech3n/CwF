@@ -62,7 +62,13 @@ module _ {i}
             → Sk-unc s i icond == Sk-unc s' i icond'
   Sk-unc= {s} {.s} idp {i} = ap (Sk-unc s i) (≤-has-all-paths _ _)
 
-  Sk[ b , h , 1+ t , iS ] i icond = {!!}
+  Sk[ b , h , 1+ t , iS ] i icond =
+    ̂Σ[ s ∈ Prev-Sk ]
+      {!!}
+    where
+    Prev-Sk : Ty (SCT (1+ i))
+    Prev-Sk = Sk[ b , h , t , is-sieve-prev-t iS ] i icond
+
   Sk[ b , O , O , iS ] i icond = ̂⊤
   Sk[ b , 1+ h , O , iS ] O (inl ())
   Sk[ b , 1+ h , O , iS ] (1+ i) icond =

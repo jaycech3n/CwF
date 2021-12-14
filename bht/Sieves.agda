@@ -50,6 +50,9 @@ Sieve= : {s@(t , _) s'@(t' , _) : Sieve}
          → fst t == fst t' → 2nd t == 2nd t' → 3rd t == 3rd t' → s == s'
 Sieve= idp idp idp = pair= idp (prop-path is-sieve-is-prop _ _)
 
+Sieve=h : {s s' : Sieve} → s == s' → h-of-sieve s == h-of-sieve s'
+Sieve=h idp = idp
+
 is-sieve-bh0 : ∀ {b h} → h ≤ b → is-sieve b h O
 is-sieve-bh0 {b} {h} h≤b = sieve-conds h≤b (O≤ (Hom-size h b))
 

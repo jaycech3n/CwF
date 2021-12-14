@@ -73,7 +73,7 @@ module _ {i}
 
   Sk→ b h (1+ t) iS f s = {!s!}
   Sk→ b O O iS f s = ̂*
-  Sk→ b (1+ h) O iS {m} f s = Sk→ b h (Hom-size h b) {!!} f s
+  Sk→ b (1+ h) O iS {m} f s = Sk→ b h (Hom-size h b) (is-sieve-prev-h iS) f s
   {-
   With the signature
     (b h t : ℕ) (iS : is-sieve b h t)

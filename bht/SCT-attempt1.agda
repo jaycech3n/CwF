@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K --termination-depth=2 #-}
 
-module bht.SCT where
+module bht.SCT-attempt1 where
 
 open import CwF public
 open import bht.NiceIndexCategory
