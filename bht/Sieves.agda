@@ -1,6 +1,6 @@
 {--- Sieves in "nice enough" index categories ---}
 
-{-# OPTIONS --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --without-K #-}
 
 open import bht.NiceIndexCategory
 open import Arithmetic
@@ -73,10 +73,9 @@ incr-level : (b h : ℕ)
              → {m : ℕ} → {b ∸ h == m}
              → Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
 incr-level b h {O} = b , lteE , <→S≤ Hom-id-size
-incr-level b h {1+ m} {p} = ⊔-rec
-                              (λ Hom-size=0 → incr-level b (1+ h) {m} {∸-move-S-l b h p})
-                              (λ Hom-size≠0 → 1+ h , <→S≤ (∸→< p) , <→S≤ (≠O→O< Hom-size≠0))
-                              (Hom-size (1+ h) b ≟-ℕ O)
+incr-level b h {1+ m} {p} with Hom-size (1+ h) b ≟-ℕ O
+... | inl Hom-size=0 = incr-level b (1+ h) {m} {∸-move-S-l b h p}
+... | inr Hom-size≠0 = 1+ h , <→S≤ (∸→< p) , <→S≤ (≠O→O< Hom-size≠0)
 
 incr-sieve : Sieve → Sieve
 incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
@@ -112,7 +111,7 @@ topmost-[ b , h , pos t ⦃ O<t ⦄ , iS@(sieve-conds _ tcond) ]-map-in-img-of? 
 
 -- This recursion still works if there is some Hom-size h b = 0
 [ b , h , 1+ t ]∩[ m , f ] iS
-  with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
+ with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
 ... | inl  in-img = incr-sieve ([ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS))
 ... | inr ¬in-img = [ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)
 
@@ -128,7 +127,7 @@ incr-sieve-∩-h≤ : ∀ b h t {m} {f} iS →
                   h-of-sieve (incr-sieve ([ b , h , t ]∩[ m , f ] iS)) ≤ h
 
 ∩-h≤ b h (1+ t) {m} {f} iS@(sieve-conds hcond tcond)
-  with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
+ with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
 ... | inl in-img = incr-sieve-∩-h≤ b h t (is-sieve-prev-t iS)
 ... | inr ¬in-img = ∩-h≤ b h t (is-sieve-prev-t iS)
 ∩-h≤ b   O    O iS = lteE
@@ -141,18 +140,51 @@ private
           → Sieve
   ∩-unc ((b , h , t , m) , f , iS) = [ b , h , t ]∩[ m , f ] iS
 
+incr-sieve-∩-h≤ b h (1+ t) {m} {f} iS
+ with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
+... | inl  in-img = {!!}
+      :> (h-of-sieve (incr-sieve
+           (incr-sieve ([ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)))) ≤ h)
+... | inr ¬in-img = incr-sieve-∩-h≤ b h t (is-sieve-prev-t iS)
+incr-sieve-∩-h≤ b O O {O} {f} iS = inl idp
+incr-sieve-∩-h≤ b O O {1+ m} {f} iS
+ with O≤ (Hom-size O (1+ m))
+... | inl Hom-size-0-Sm=0 = {!this doesn't work, it's always ≥ 1; but maybe we
+can fix this with an extra condition!}
+
+... | inr Hom-size-0-Sm>0 = inl idp
+incr-sieve-∩-h≤ b (1+ h) O {m} {f} iS =
+  ≤→≤S (incr-sieve-∩-h≤ b h (Hom-size h b) (is-sieve-prev-h iS))
+
+{-
 incr-sieve-∩-h≤ b h t {m} {f} iS
   with [ b , h , t ]∩[ m , f ] iS | inspect ∩-unc ((b , h , t , m) , f , iS )
-...  | (b' , h' , t') , (sieve-conds hcond' tcond') | ▹ eq
-       with hcond'
-...       | inl h'=b' = tr (λ □ → h-of-sieve □ ≤ h) eq (∩-h≤ b h t iS)
-                      -- incr-sieve([b, h, t]∩[m, f] iS)
-                      -- ≡ incr-sieve((b', h', t'), _)
-                      -- ≡ (b', h', t') ≡ [b, h, t]∩[m, f] iS.
-                      -- So we can use ∩-h≤ b h t.
-...       | inr h'<b' with tcond'
-...                      | inr t'<tmax' = tr (λ □ → h-of-sieve □ ≤ h) eq (∩-h≤ b h t iS)
-...                      | inl t'=tmax' = {!!}
+... | (b' , h' , t') , (sieve-conds hcond' tcond') | ▹ eq
+      with hcond'
+...   | inl h'=b' = tr (λ □ → h-of-sieve □ ≤ h) eq (∩-h≤ b h t iS)
+                    -- incr-sieve([b, h, t]∩[m, f] iS)
+                    -- ≡ incr-sieve((b', h', t'), _)
+                    -- ≡ (b', h', t') ≡ [b, h, t]∩[m, f] iS.
+                    -- So we can use ∩-h≤ b h t.
+...   | inr h'<b'
+        with tcond'
+...     | inr t'<tmax' = tr (λ □ → h-of-sieve □ ≤ h) eq (∩-h≤ b h t iS)
+...     | inl t'=tmax'
+          with Hom-size (1+ h') b' ≟-ℕ O
+...       | inl Hom-size=0 = {!!}
+...       | inr Hom-size≠0 = {!!}
+          {-
+          ⊢ fst (incr-level b' h' {b' ∸ h'} {idp}) ≤ h
+          From h'<b' get (b' ∸ h' == 1+ _), so
+            fst (incr-level b' h' {b' ∸ h'} {idp})
+            == fst (incr-level b' h' {1+ _} {idp})
+          depends on
+            Hom-size (1+ h') b' ≟-ℕ O.
+
+          + Hom-size (1+ h') b' ≠ O,
+            fst (incr-level ...) ≡ 1+ h'.
+          -}
+-}
 
 ∩-h≤' : ∀ {b h t} iS {m} {f}
         → (i : ℕ) → h ≤ i

@@ -49,15 +49,19 @@ O<→O<+r {1+ m} {n} x = O<S (m + n)
 <→S≤ (ltSR m<n) = inr (<-ap-S m<n)
 
 S≤→< : ∀ {m n} → 1+ m ≤ n → m < n
-S≤→< {m} (inl Sm==n) = tr (m <_) Sm==n ltS
+S≤→< {m} (inl Sm=n) = tr (m <_) Sm=n ltS
 S≤→< (inr Sm<n) = <-trans ltS Sm<n
 
 ≤→<S : ∀ {m n} → m ≤ n → m < 1+ n
-≤→<S {m} (inl m==n) = tr (λ □ → m < 1+ □) m==n ltS
+≤→<S {m} (inl m=n) = tr (λ □ → m < 1+ □) m=n ltS
 ≤→<S (inr m<n) = ltSR m<n
 
 S≤→≤ : ∀ {m n} → 1+ m ≤ n → m ≤ n
 S≤→≤ h = ≤-trans lteS h
+
+≤→≤S : ∀ {m n} → m ≤ n → m ≤ 1+ n
+≤→≤S {m} {n} (inl m=n) = tr (λ □ → m ≤ 1+ □) m=n lteS
+≤→≤S {m} {n} (inr m<n) = inr (ltSR m<n)
 
 ≤→<→< : ∀ {k m n} → k ≤ m → m < n → k < n
 ≤→<→< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
@@ -79,29 +83,6 @@ S≤→≤ h = ≤-trans lteS h
 
 <→ℕ-pred< : ∀ {k} n → O < n → n ≤ k → ℕ-pred n < k
 <→ℕ-pred< (1+ n) _ Sn≤k = S≤→< Sn≤k
-
-{-
-module _ {m n : ℕ} where
-  ==-cancel-S : _==_ {A = ℕ} (1+ m) (1+ n) → m == n
-  ==-cancel-S idp = idp
-
-  S<-< : 1+ m < n → m < n
-  S<-< h = <-trans ltS h
-
-  S<-≤ : 1+ m < n → m ≤ n
-  S<-≤ h = inr (S<-< h)
-
-  S≤-< : 1+ m ≤ n → m < n
-  S≤-< (inl x) = tr (_ <_) x ltS
-  S≤-< (inr x) = <-trans ltS x
-
-  <-S≤ : m < n → 1+ m ≤ n
-  <-S≤ ltS = inl idp
-  <-S≤ (ltSR x) = inr (<-ap-S x)
-
-+==O-l : {m n : ℕ} → m + n == O → m == O
-+==O-l {m = O} _ = idp
--}
 
 
 {- Trichotomy -}
@@ -129,7 +110,7 @@ instance
 
 {- Monus -}
 
-infix 80 _∸_
+infixl 80 _∸_
 _∸_ : ℕ → ℕ → ℕ
 O ∸ n = O
 1+ m ∸ O = 1+ m
@@ -147,6 +128,14 @@ O ∸ n = O
 ∸→< : ∀ {m n k} → m ∸ n == 1+ k → n < m
 ∸→< {1+ m} {O} _ = O<S m
 ∸→< {1+ m} {1+ n} p = <-ap-S (∸→< p)
+
+∸O : ∀ {n} → n ∸ O == n
+∸O {O} = idp
+∸O {1+ n} = idp
+
+<→∸=S : ∀ {m n} → m < n → n ∸ m == 1+ (n ∸ m ∸ 1)
+<→∸=S {O} {1+ n} _ = ap 1+ (! ∸O)
+<→∸=S {1+ m} {1+ n} = <→∸=S ∘ <-cancel-S
 
 _−1 : ℕ₊ → ℕ
 pos (1+ n) −1 = n

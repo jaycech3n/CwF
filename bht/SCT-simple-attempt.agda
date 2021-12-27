@@ -69,11 +69,13 @@ module _ {i}
     Sk→[ b , h , Hom-size h b , is-sieve-prev-h iS ]∩[ m , f ] {!s!}
     {-
     This case shows why the generalization over SCT levels in bht.SCT is the
-    right thing to do. Here, we have argument
+    right thing to do.
+
+    Here, we have argument
       s : Tm (Sk b (1+ h) O iS),
     definitionally
-      s : Tm {SCT (2+ h)}
-             (Sk b h (Hom-size h b) _ [ π (1+ h-Fillers) ]).
+      s : Tm {SCT (2+ h)} (Sk b h (Hom-size h b) _ [ π (1+ h-Fillers) ]).
+
     On the other hand, the goal is
       ? : Tm (Sk-unc ([ b , 1+ h , O ]∩[ m , f ] iS)),
     which is definitionally
