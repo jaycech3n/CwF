@@ -9,9 +9,12 @@ private
   variable
     ℓ : ULevel
 
+to-ℕ : ∀ {n} → Fin n → ℕ
+to-ℕ = fst
+
 -- (In)Equality on Fin
 
-Fin= : ∀ {n} {i j : Fin n} → fst i == fst j → i == j
+Fin= : ∀ {n} {i j : Fin n} → to-ℕ i == to-ℕ j → i == j
 Fin= {_} {.(fst j) , fstj<n} {j} idp = pair= idp (prop-path <-is-prop _ _)
 
 Fin=-is-prop : ∀ {n} {i j : Fin n} → is-prop (i == j)
@@ -28,10 +31,10 @@ Fin=-elim : ∀ {n} {i j : Fin n} → i == j → fst i == fst j
 Fin=-elim {n} {_ , _} {.(_ , _)} idp = idp
 
 _<-Fin_ : ∀ {n} (i j : Fin n) → Type₀
-i <-Fin j = fst i < fst j
+i <-Fin j = to-ℕ i < to-ℕ j
 
 _≤-Fin_ : ∀ {n} (i j : Fin n) → Type₀
-i ≤-Fin j = fst i ≤ fst j
+i ≤-Fin j = to-ℕ i ≤ to-ℕ j
 
 _<?-Fin_ : ∀ {n} → Decidable (_<-Fin_ {n})
 (i , _) <?-Fin (j , _) = i <? j
