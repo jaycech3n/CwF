@@ -160,21 +160,45 @@ module ∩-Properties where
   ... | inr ¬in-img = {!!}
   ∩-f◦-≼ b h (pos (2+ t) ⦃ O<2+t ⦄) iS {m} f iS' p s scond = {!!}
 
+  private
+    -- Need this for h-of-∩-≤:
+    ∩-unc : ((((b , h , t) , iS) , m , f) :
+              Σ[ ((b , h , t) , iS) ∈ Sieve ] Σ[ m ∈ ℕ ] Hom m b)
+            → Sieve
+    ∩-unc (((b , h , t) , iS) , m , f) = [ b , h , t ]∩[ m , f ] iS
+
   h-of-∩-≤ : ∀ b h t {m} {f} iS
              → h-of-sieve ([ b , h , t ]∩[ m , f ] iS) ≤ h
 
   h-of-∩-≤ b h (1+ t) {m} {f} iS@(sieve-conds hcond tcond)
    with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
   ... | inl in-img
-        with h-of-∩-≤ b h t {m} {f} (is-sieve-prev-t iS)
-  ...      | inl h'=h = {!--lemma!}
+        with [ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)
+           | inspect ∩-unc (((b , h , t) , is-sieve-prev-t iS) , m , f)
+           | h-of-∩-≤ b h t {m} {f} (is-sieve-prev-t iS)
+           ---
+  ...      | (b' , h' , t') , iS'
+           | ▹ eq
+           | inl h'=h = {!eq!}
+                      :> (h-of-sieve (incr-sieve ((b' , h' , t') , iS')) ≤ h)
              where
-               g : Hom h m
-               g = fst in-img
+               {-
+                           b
+                           ↑ ↖ f
+                 Hom-idx t | ∘ m
+                           | ↗ t̃
+                           h (= h')
+               -}
+               t̃ : Hom h m
+               t̃ = fst in-img
 
-               f◦g : f ◦ g == Hom-idx h b (t , _)
-               f◦g = snd in-img
-  ...      | inr h'<h = {!!}
+               f◦t̃ : f ◦ t̃ == Hom-idx h b (t , _)
+               f◦t̃ = snd in-img
+           ---
+  ...      | (b' , h' , t') , iS'
+           | ▹ eq
+           | inr h'<h = {!!}
+                      :> (h-of-sieve (incr-sieve ((b' , h' , t') , iS')) ≤ h)
 
   h-of-∩-≤ b h (1+ t) {m} {f} iS@(sieve-conds hcond tcond)
       | inr ¬in-img = h-of-∩-≤ b h t (is-sieve-prev-t iS)
@@ -188,13 +212,6 @@ module ∩-Properties where
   h-of-∩-≤' {b} {h} {t} iS {_} {f} i icond = ≤-trans (h-of-∩-≤ b h t iS) icond
 
   {-
-  private
-    -- Need this for h-of-incr-∩-≤:
-    ∩-unc : (((b , h , t , m) , f , iS) :
-              Σ[ (b , h , t , m) ∈ ℕ × ℕ × ℕ × ℕ ] Hom m b × is-sieve b h t)
-            → Sieve
-    ∩-unc ((b , h , t , m) , f , iS) = [ b , h , t ]∩[ m , f ] iS
-
   h-of-incr-∩-≤ : ∀ b h t {m} {f} iS
                   → h-of-sieve (incr-sieve ([ b , h , t ]∩[ m , f ] iS)) ≤ h
   h-of-incr-∩-≤ b h (1+ t) {m} {f} iS
