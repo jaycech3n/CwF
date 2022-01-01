@@ -67,6 +67,10 @@ S≤→≤ h = ≤-trans lteS h
 ≤→<→< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
 ≤→<→< (inr e) h = <-trans e h
 
+<→≤→< : ∀ {k m n} → k < m → m ≤ n → k < n
+<→≤→< {k} k<m (inl m=n) = tr (k <_) m=n k<m
+<→≤→< k<m (inr m<n) = <-trans k<m m<n
+
 ¬-< : ∀ {n} → n < n → ⊥
 ¬-< id< = <-to-≠ id< idp
 

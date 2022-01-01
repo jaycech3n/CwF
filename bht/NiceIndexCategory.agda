@@ -28,24 +28,24 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
     Hom-ord : ∀ {x y} → Hom x y → Fin (Hom-size x y)
     Hom-ord {x} {y} f = –> (Hom-equiv x y) f
 
-    Hom-idx : ∀ {x y} → Fin (Hom-size x y) → Hom x y
-    Hom-idx {x} {y} i = <– (Hom-equiv x y) i
+    Hom-idx : ∀ x y → Fin (Hom-size x y) → Hom x y
+    Hom-idx x y i = <– (Hom-equiv x y) i
 
     Hom-idx-of-ord : ∀ {x y} (f : Hom x y)
-                     → Hom-idx (Hom-ord f) == f
+                     → Hom-idx x y (Hom-ord f) == f
     Hom-idx-of-ord {x} {y} f = <–-inv-l (Hom-equiv x y) f
 
     Hom-ord-of-idx : ∀ {x y} (i : Fin (Hom-size x y))
-                     → Hom-ord (Hom-idx i) == i
+                     → Hom-ord (Hom-idx x y i) == i
     Hom-ord-of-idx {x} {y} i = <–-inv-r (Hom-equiv x y) i
 
   Hom= : ∀ {x y} {f g : Hom x y}
          → Hom-ord f == Hom-ord g
          → f == g
-  Hom= {f = f} {g = g} p =
+  Hom= {x} {y} {f = f} {g = g} p =
     f =⟨ ! (Hom-idx-of-ord f) ⟩
-    Hom-idx (Hom-ord f) =⟨ ap Hom-idx p ⟩
-    Hom-idx (Hom-ord g) =⟨ Hom-idx-of-ord g ⟩
+    Hom-idx x y (Hom-ord f) =⟨ ap (Hom-idx x y) p ⟩
+    Hom-idx x y (Hom-ord g) =⟨ Hom-idx-of-ord g ⟩
     g =∎
 
   _≟-Hom_ : ∀ {x y} → has-dec-eq (Hom x y)
