@@ -67,7 +67,7 @@ is-sieve-prev-t (sieve-conds hcond tcond) = sieve-conds hcond (S≤→≤ tcond)
 
 is-sieve-next-t : ∀ {b h t} → is-sieve b h t → t < Hom-size h b
                   → is-sieve b h (1+ t)
-is-sieve-next-t (sieve-conds hcond tcond) t<tmax = sieve-conds hcond (<→S≤ t<tmax)
+is-sieve-next-t (sieve-conds hcond tcond) t<max = sieve-conds hcond (<→S≤ t<max)
 
 is-sieve-bhtmax : ∀ {b h} → h ≤ b → is-sieve b h (Hom-size h b)
 is-sieve-bhtmax hcond = sieve-conds hcond lteE
@@ -86,8 +86,8 @@ incr-level b h {1+ m} {p} with Hom-size (1+ h) b ≟-ℕ O
 incr-sieve : Sieve → Sieve
 incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
 ... | inl h=b | _ = (b , h , t) , iS
-... | inr h<b | inr t<tmax = (b , h , 1+ t) , is-sieve-next-t iS t<tmax
-... | inr h<b | inl t=tmax = (b , h' , 1) , sieve-conds h'cond 1cond'
+... | inr h<b | inr t<max = (b , h , 1+ t) , is-sieve-next-t iS t<max
+... | inr h<b | inl t=max = (b , h' , 1) , sieve-conds h'cond 1cond'
                              where
                                next-level : Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
                                next-level = incr-level b h {b ∸ h} {idp}
@@ -98,8 +98,8 @@ incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
 b-of-incr : (s : Sieve) → b-of-sieve (incr-sieve s) == b-of-sieve s
 b-of-incr ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
 ... | inl h=b | _ = idp
-... | inr h<b | inr t<tmax = idp
-... | inr h<b | inl t=tmax = idp
+... | inr h<b | inr t<max = idp
+... | inr h<b | inl t=max = idp
 
 {- Sieve intersection -}
 
@@ -145,6 +145,15 @@ module ∩-Properties where
   b-of-∩ b O O iS = idp
   b-of-∩ b (1+ h) O iS = b-of-∩ b h (Hom-size h b) (is-sieve-prev-h iS)
 
+  h-of-incr-t<max : ∀ b h t iS
+                    → t < Hom-size h b
+                    → h-of-sieve (incr-sieve ((b , h , t) , iS)) == h
+  h-of-incr-t<max b h t iS@(sieve-conds hcond tcond) t<max with tcond
+  ... | inl t=max = ⊥-elim (<-to-≠ t<max t=max)
+  ... | inr _ with hcond
+  ...            | inl _ = idp
+  ...            | inr _ = idp
+
   -- What lemma do we need, exactly?...
   ∩-f◦-≼ : (b h : ℕ) ((pos t ⦃ O<t ⦄) : ℕ₊)
            (iS@(sieve-conds _ tcond) : is-sieve b h t)
@@ -179,8 +188,9 @@ module ∩-Properties where
            ---
   ...      | (b' , h' , t') , iS'
            | ▹ eq
-           | inl h'=h = {!eq!}
-                      :> (h-of-sieve (incr-sieve ((b' , h' , t') , iS')) ≤ h)
+           | inl h'=h = inl hlem
+                        :> (h-of-sieve (incr-sieve ((b' , h' , t') , iS')) ≤ h)
+                                                -- ↳ == [ b , h , t ]∩[ m , f ] _
              where
                {-
                            b
@@ -194,6 +204,41 @@ module ∩-Properties where
 
                f◦t̃ : f ◦ t̃ == Hom-idx h b (t , _)
                f◦t̃ = snd in-img
+
+               b'=m : b' == m
+               b'=m = b' =⟨ ap b-of-sieve (! eq) ⟩
+                      b-of-sieve ([ b , h , t ]∩[ m , f ] _) =⟨ b-of-∩ b h t _ ⟩
+                      m =∎
+
+               Hom-size-h'b'-hm : Hom-size h' b' == Hom-size h m
+               Hom-size-h'b'-hm = ap (λ □ → Hom-size □ b' ) h'=h
+                                  ∙ ap (Hom-size h) b'=m
+
+               t'<max : t' < Hom-size h m
+               {-
+               Have that t' ≤ Hom-size h m.
+
+               If t' = Hom-size h m, then
+                 "t̃ is in the initial segment sieve (b', h', t')",
+               which is [b, h, t]∩[m, f]; i.e.
+                 Hom-ord t̃ < t'.
+               [--!-> Lemma: `f : Hom x y → Hom-ord f < Hom-size x y`]
+
+               Since
+                 Hom-ord t̃ < t',
+               we have that
+                 f ◦ t̃ ≼ f ◦ Hom-idx (t' - 1), (t' > 0 since Hom h m contains t̃)
+               and thus
+                 t = Hom-ord (f ◦ t̃) ≤ Hom-ord (f ◦ Hom-idx (t' - 1)),
+               ⇔ Hom-idx t ≼ f ◦ Hom-idx (t' - 1).
+               -}
+               t'<max = {!!}
+
+               hlem : h-of-sieve (incr-sieve ((b' , h' , t') , iS')) == h
+               hlem = h-of-incr-t<max
+                        b' h' t' iS'
+                        (tr (t' <_) (! Hom-size-h'b'-hm) t'<max)
+                      ∙ h'=h
            ---
   ...      | (b' , h' , t') , iS'
            | ▹ eq
