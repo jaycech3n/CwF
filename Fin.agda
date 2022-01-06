@@ -42,6 +42,15 @@ _<?-Fin_ : ∀ {n} → Decidable (_<-Fin_ {n})
 _≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
 (i , _) ≤?-Fin (j , _) = i ≤? j
 
+module <-Reasoning where
+  ≤-Fin-trans : ∀ {n} {i j k : Fin n} → i ≤-Fin j → j ≤-Fin k → i ≤-Fin k
+  ≤-Fin-trans (inl p) (inl q) = inl (p ∙ q)
+  ≤-Fin-trans (inr u) (inl q) = inr (tr (_ <_) q u)
+  ≤-Fin-trans (inl p) (inr v) = inr (tr (_< _) (! p) v)
+  ≤-Fin-trans (inr u) (inr v) = inr (<-trans u v)
+
+open <-Reasoning public
+
 Fin-trichotomy : ∀ {k} (i j : Fin k) → (i == j) ⊔ (i <-Fin j) ⊔ (j <-Fin i)
 Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
   where
@@ -58,7 +67,7 @@ Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
   ... | inr (inl m<n) = inr (inl (<-ap-S m<n))
   ... | inr (inr n<m) = inr (inr (<-ap-S n<m))
 
--- Proof by exhaustion
+{- Proof by exhaustion -}
 
 ∀-Fin-extend : ∀ {n} {P : Fin (1+ n) → Type ℓ}
                → ((i : Fin n) → P (Fin-S i))
@@ -107,7 +116,6 @@ Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
                     (ℕ-trichotomy' i (1+ n)) }
 
 -- Deciding fibers of maps between finite types
-
 abstract
   Fin-hfiber-dec : ∀ {m n} (f : Fin m → Fin n) (j : Fin n) → Dec (hfiber f j)
   Fin-hfiber-dec {O} {n} f j = inr ((≮O _) ∘ snd ∘ fst)

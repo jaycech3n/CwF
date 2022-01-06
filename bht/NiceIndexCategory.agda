@@ -64,10 +64,32 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
 
   _≼?_ : ∀ {x y} → Decidable (_≼_ {x} {y})
   f ≼? g with Hom-ord f ≤?-Fin Hom-ord g
-  ...       | inl (inl f=g) = inl (inl (Hom= (Fin= f=g)))
-  ...       | inl (inr f<g) = inl (inr f<g)
-  ...       | inr ¬eq = inr (λ{(inl f=g) → ¬eq (inl (ap (fst ∘ Hom-ord) f=g))
-                             ; (inr f<g) → ¬eq (inr f<g)})
+  ...       | inl (inl p) = inl (inl (Hom= (Fin= p)))
+  ...       | inl (inr u) = inl (inr u)
+  ...       | inr ¬eq = inr (λ{(inl p) → ¬eq (inl (ap (fst ∘ Hom-ord) p))
+                             ; (inr u) → ¬eq (inr u)})
+
+  ≺-trans : ∀ {x y} {f g h : Hom x y} → f ≺ g → g ≺ h → f ≺ h
+  ≺-trans = <-trans
+
+  ≼-trans : ∀ {x y} {f g h : Hom x y} → f ≼ g → g ≼ h → f ≼ h
+  ≼-trans u (inl q) = tr (_ ≼_) q u
+  ≼-trans (inl p) = tr (_≼ _) (! p)
+  ≼-trans (inr u) (inr v) = inr (≺-trans u v)
+
+  module ≺-Reasoning where
+    ≤-Fin→≼ : ∀ {x y : Ob} {f g : Hom x y}
+              → Hom-ord f ≤-Fin Hom-ord g
+              → f ≼ g
+    ≤-Fin→≼ {x} {y} {f} {g} (inl p) = inl (Hom= (Fin= p))
+    ≤-Fin→≼ {x} {y} {f} {g} (inr u) = inr u
+
+    ≼→≤-Fin : ∀ {x y : Ob} {f g : Hom x y}
+             → f ≼ g
+             → Hom-ord f ≤-Fin Hom-ord g
+    ≼→≤-Fin {x} {y} {f} {g} (inl f=g) = inl (ap (fst ∘ Hom-ord) f=g)
+    ≼→≤-Fin {x} {y} {f} {g} (inr f≺g) = inr f≺g
+
 
   Σ-Hom? : ∀ {ℓ} {x y} (P : Hom x y → Type ℓ)
            → ((f : Hom x y) → Dec (P f))
@@ -95,19 +117,20 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
   ... | O    | i = ⊥-elim (≮O _ (snd i))
   ... | 1+ n | _ = O<S n
 
+
 record NiceIndexCategory {ℓ} : Type (lsuc ℓ) where
   field ⦃ C ⦄ : LocallyFiniteWildCategoryOn ℕ
   open LocallyFiniteWildCategoryOn C hiding (C) public
   field
-    ◦-r-monotone : ∀ {x y z} {g g' : Hom x y} {f : Hom y z}
+    ◦-monotone : ∀ {x y z} {g g' : Hom x y} {f : Hom y z}
                    → g ≺ g'
                    → f ◦ g ≺ f ◦ g'
 
-  ◦-r-monotone' : ∀ {x y z} {g g' : Hom x y} {f : Hom y z}
+  ◦-monotone' : ∀ {x y z} {g g' : Hom x y} {f : Hom y z}
                   → g ≼ g'
                   → f ◦ g ≼ f ◦ g'
-  ◦-r-monotone' {f = f} (inl g=g') = inl (ap (f ◦_) g=g')
-  ◦-r-monotone' (inr g≺g') = inr (◦-r-monotone g≺g')
+  ◦-monotone' {f = f} (inl g=g') = inl (ap (f ◦_) g=g')
+  ◦-monotone' (inr g≺g') = inr (◦-monotone g≺g')
 
   -- Note: the construction in bht.SCT is that of the type-theoretic Reedy
   -- fibrant diagram over the full direct subcategory of a nice index category

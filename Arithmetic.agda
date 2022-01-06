@@ -111,6 +111,13 @@ instance
   FromNat.in-range ℕ₊-reader n = O < n
   FromNat.read ℕ₊-reader n ⦃ O<n ⦄ = pos n
 
+infixl 100 _−1
+_−1 : ℕ₊ → ℕ
+pos (1+ n) −1 = n
+
+≤→−1< : {m@(pos m′) : ℕ₊} {n : ℕ} → m′ ≤ n → m −1 < n
+≤→−1< {pos (1+ m′)} = S≤→<
+
 
 {- Monus -}
 
@@ -140,9 +147,6 @@ O ∸ n = O
 <→∸=S : ∀ {m n} → m < n → n ∸ m == 1+ (n ∸ m ∸ 1)
 <→∸=S {O} {1+ n} _ = ap 1+ (! ∸O)
 <→∸=S {1+ m} {1+ n} = <→∸=S ∘ <-cancel-S
-
-_−1 : ℕ₊ → ℕ
-pos (1+ n) −1 = n
 
 
 {- Binomial coefficients -}
