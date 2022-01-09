@@ -84,32 +84,32 @@ incr-level b h {1+ m} {p} with Hom-size (1+ h) b ≟-ℕ O
 ... | inr Hom-size≠0 = 1+ h , <→S≤ (∸→< p) , <→S≤ (≠O→O< Hom-size≠0)
 
 incr-sieve : Sieve → Sieve
-incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
-... | inl h=b | _ = (b , h , t) , iS
-... | inr h<b | inr t<max = (b , h , 1+ t) , is-sieve-next-t iS t<max
-... | inr h<b | inl t=max = (b , h' , 1) , sieve-conds h'cond 1cond'
-                             where
-                               next-level : Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
-                               next-level = incr-level b h {b ∸ h} {idp}
-                               h' = fst next-level
-                               h'cond = 2nd next-level
-                               1cond' = 3rd next-level
+incr-sieve ((b , h , t) , iS@(sieve-conds (inl h=b) _)) =
+  (b , h , t) , iS
+incr-sieve ((b , h , t) , iS@(sieve-conds (inr h<b) (inr t<max))) =
+  (b , h , 1+ t) , is-sieve-next-t iS t<max
+incr-sieve ((b , h , t) , iS@(sieve-conds (inr h<b) (inl t=max))) =
+  (b , h' , 1) , sieve-conds h'cond 1cond'
+  where
+    next-level : Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
+    next-level = incr-level b h {b ∸ h} {idp}
+    h' = fst next-level
+    h'cond = 2nd next-level
+    1cond' = 3rd next-level
 
 module incr-sieve-Properties where
   b-of-incr : (s : Sieve) → b-of-sieve (incr-sieve s) == b-of-sieve s
-  b-of-incr ((b , h , t) , (sieve-conds hcond tcond)) with hcond | tcond
-  ... | inl h=b | _ = idp
-  ... | inr h<b | inr t<max = idp
-  ... | inr h<b | inl t=max = idp
+  b-of-incr ((b , h , t) , sieve-conds (inl _) _) = idp
+  b-of-incr ((b , h , t) , sieve-conds (inr _) (inl _)) = idp
+  b-of-incr ((b , h , t) , sieve-conds (inr _) (inr _)) = idp
 
   h-of-incr-t<max : ∀ b h t iS
                     → t < Hom-size h b
                     → h-of-sieve (incr-sieve ((b , h , t) , iS)) == h
-  h-of-incr-t<max b h t (sieve-conds hcond tcond) t<max with tcond
-  ... | inl t=max = ⊥-elim (<-to-≠ t<max t=max)
-  ... | inr _ with hcond
-  ...            | inl _ = idp
-  ...            | inr _ = idp
+  h-of-incr-t<max b h t (sieve-conds hcond (inl t=max)) t<max =
+    ⊥-elim (<-to-≠ t<max t=max)
+  h-of-incr-t<max b h t (sieve-conds (inl _) (inr _)) _ = idp
+  h-of-incr-t<max b h t (sieve-conds (inr _) (inr _)) _ = idp
 
 open incr-sieve-Properties
 
@@ -198,7 +198,12 @@ module ∩-Properties where
       g ≼ Hom-idx h m (t'-1)
     → f ◦ g ≼ Hom-idx h b (t−1)
 
-  [ b , h , t ]∩[ m , f ]-⊆-lem iS {t'} {iS'} p g g≼ = {!!}
+  [ b , h , one@(pos 1) ]∩[ m , f ]-⊆-lem iS {pos (1+ t')} {iS'} p g g≼
+   with topmost-[ b , h , one , iS ]-map-in-img-of? f
+  ... | inl x = {!!}
+  ... | inr x = {!!}
+
+  [ b , h , pos (2+ t) ]∩[ m , f ]-⊆-lem iS {pos (1+ t')} {iS'} p g g≼ = {!!}
 
   private
     -- Need this for h-of-∩:
