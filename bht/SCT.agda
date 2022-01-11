@@ -22,6 +22,8 @@ module _ {i}
   open UnitStructure unitstruct
   open UStructure ustruct
 
+  open ∩-Properties
+
   SCT : ℕ → Con
 
   Sk[_,_,_,_] : (b h t : ℕ) → is-sieve b h t
@@ -39,7 +41,7 @@ module _ {i}
                        → Tm (Sk[ b , h , t , iS ] i icond)
                        → Tm (Sk-unc
                               ([ b , h , t ]∩[ m , f ] iS)
-                              i (∩-h≤' iS i icond))
+                              i (h-of-∩' iS i icond))
 
   -- The matching object
   M[_] : (h i : ℕ) → h ≤ i → Ty (SCT i)
