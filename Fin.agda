@@ -44,9 +44,9 @@ _≤?-Fin_ : ∀ {n} → Decidable (_≤-Fin_ {n})
 
 module <-Reasoning where
   ≤-Fin-trans : ∀ {n} {i j k : Fin n} → i ≤-Fin j → j ≤-Fin k → i ≤-Fin k
-  ≤-Fin-trans (inl p) (inl q) = inl (p ∙ q)
-  ≤-Fin-trans (inr u) (inl q) = inr (tr (_ <_) q u)
-  ≤-Fin-trans (inl p) (inr v) = inr (tr (_< _) (! p) v)
+  ≤-Fin-trans (inl idp) (inl idp) = inl idp
+  ≤-Fin-trans (inr u) (inl idp) = inr u
+  ≤-Fin-trans (inl idp) (inr v) = inr v
   ≤-Fin-trans (inr u) (inr v) = inr (<-trans u v)
 
 open <-Reasoning public
@@ -75,8 +75,8 @@ Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
                → ∀ i → P i
 ∀-Fin-extend {n = O}    {P} _ PO  _ = tr P (Fin1-has-all-paths _ _) PO
 ∀-Fin-extend {n = 1+ n} {P} f PSn (i , i<) with <S→≤ i<
-... | inl i==Sn = tr P (Fin= (! i==Sn)) PSn
-... | inr i<Sn  = tr P (Fin= idp) (f (i , i<Sn))
+... | inl idp = tr P (Fin= idp) PSn
+... | inr i<Sn = tr P (Fin= idp) (f (i , i<Sn))
 
 ∀-Fin? : ∀ {n} (P : Fin n → Type ℓ)
          → ((i : Fin n) → Dec (P i))

@@ -49,26 +49,26 @@ O<→O<+r {1+ m} {n} x = O<S (m + n)
 <→S≤ (ltSR m<n) = inr (<-ap-S m<n)
 
 S≤→< : ∀ {m n} → 1+ m ≤ n → m < n
-S≤→< {m} (inl Sm=n) = tr (m <_) Sm=n ltS
+S≤→< (inl idp) = ltS
 S≤→< (inr Sm<n) = <-trans ltS Sm<n
 
 ≤→<S : ∀ {m n} → m ≤ n → m < 1+ n
-≤→<S {m} (inl m=n) = tr (λ □ → m < 1+ □) m=n ltS
+≤→<S (inl idp) = ltS
 ≤→<S (inr m<n) = ltSR m<n
 
 S≤→≤ : ∀ {m n} → 1+ m ≤ n → m ≤ n
 S≤→≤ h = ≤-trans lteS h
 
 ≤→≤S : ∀ {m n} → m ≤ n → m ≤ 1+ n
-≤→≤S {m} {n} (inl m=n) = tr (λ □ → m ≤ 1+ □) m=n lteS
+≤→≤S (inl idp) = inr ltS
 ≤→≤S {m} {n} (inr m<n) = inr (ltSR m<n)
 
 ≤→<→< : ∀ {k m n} → k ≤ m → m < n → k < n
-≤→<→< {k} {m} {n} (inl p) h = tr (_< n) (! p) h
+≤→<→< (inl idp) h = h
 ≤→<→< (inr e) h = <-trans e h
 
 <→≤→< : ∀ {k m n} → k < m → m ≤ n → k < n
-<→≤→< {k} k<m (inl m=n) = tr (k <_) m=n k<m
+<→≤→< k<m (inl idp) = k<m
 <→≤→< k<m (inr m<n) = <-trans k<m m<n
 
 ¬-< : ∀ {n} → n < n → ⊥
