@@ -10,10 +10,11 @@ module bht.Sieves {i} ⦃ I : NiceIndexCategory {i} ⦄ where
 
 open NiceIndexCategory I
 
+
 {- Initial segment sieves -}
 
 -- Throughout this development, a "sieve" is an initial segment sieve.
--- t is the *number* of maps in the topmost level Hom h b.
+-- t is the number of maps in the topmost level Hom h b.
 
 record is-sieve (b h t : ℕ) : Type₀ where
   constructor sieve-conds
@@ -52,6 +53,9 @@ h-of-sieve ((_ , h , _) , _) = h
 t-of-sieve : Sieve → ℕ
 t-of-sieve ((_ , _ , t) , _) = t
 
+sieve-cond-of : (((b , h , t) , _) : Sieve) → is-sieve b h t
+sieve-cond-of (_ , iS) = iS
+
 Sieve= : {s@(t , _) s'@(t' , _) : Sieve}
          → fst t == fst t' → 2nd t == 2nd t' → 3rd t == 3rd t' → s == s'
 Sieve= idp idp idp = pair= idp (prop-path is-sieve-is-prop _ _)
@@ -84,18 +88,17 @@ incr-level b h {1+ m} {p} with Hom-size (1+ h) b ≟-ℕ O
 ... | inr Hom-size≠0 = 1+ h , <→S≤ (∸→< p) , <→S≤ (≠O→O< Hom-size≠0)
 
 incr-sieve : Sieve → Sieve
-incr-sieve ((b , h , t) , iS@(sieve-conds (inl h=b) _)) =
-  (b , h , t) , iS
-incr-sieve ((b , h , t) , iS@(sieve-conds (inr h<b) (inr t<max))) =
-  (b , h , 1+ t) , is-sieve-next-t iS t<max
-incr-sieve ((b , h , t) , iS@(sieve-conds (inr h<b) (inl t=max))) =
-  (b , h' , 1) , sieve-conds h'cond 1cond'
-  where
-    next-level : Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
-    next-level = incr-level b h {b ∸ h} {idp}
-    h' = fst next-level
-    h'cond = 2nd next-level
-    1cond' = 3rd next-level
+incr-sieve ((b , h , t) , iS@(sieve-conds hcond tcond)) with hcond | tcond
+... | inl h=b | _         = (b , h , t) , iS
+... | inr h<b | inr t<max = (b , h , 1+ t) , is-sieve-next-t iS t<max
+... | inr h<b | inl t=max = (b , h' , 1) , sieve-conds h'cond 1cond'
+                            where
+                              next-level :
+                                Σ[ h' ∈ ℕ ] (h' ≤ b) × (1 ≤ Hom-size h' b)
+                              next-level = incr-level b h {b ∸ h} {idp}
+                              h' = fst next-level
+                              h'cond = 2nd next-level
+                              1cond' = 3rd next-level
 
 module incr-sieve-Properties where
   b-of-incr : (s : Sieve) → b-of-sieve (incr-sieve s) == b-of-sieve s
@@ -112,6 +115,30 @@ module incr-sieve-Properties where
   h-of-incr-t<max b h t (sieve-conds (inr _) (inr _)) _ = idp
 
 open incr-sieve-Properties
+
+
+{- Sieve level order -}
+
+-- We use this order to prove properties of the intersection function.
+
+data [_,_]≼[_,_] (h' t' h t : ℕ) : Type₀ where
+  on-h : h' < h           → [ h' , t' ]≼[ h , t ]
+  on-t : h' == h → t' ≤ t → [ h' , t' ]≼[ h , t ]
+
+Sieve≼-trans : ∀ {h i j t u v}
+               → [ h , t ]≼[ i , u ]
+               → [ i , u ]≼[ j , v ]
+               → [ h , t ]≼[ j , v ]
+Sieve≼-trans (on-h u) (on-h v) = on-h (<-trans u v)
+Sieve≼-trans {h} (on-h u) (on-t idp _) = on-h u
+Sieve≼-trans {j = j} (on-t idp u) (on-h v) = on-h v
+Sieve≼-trans (on-t idp u) (on-t idp v) = on-t idp (≤-trans u v)
+
+Sieve≼-idp : ∀ {h t} → [ h , t ]≼[ h , t ]
+Sieve≼-idp = on-t idp (inl idp)
+
+Sieve≼-St : ∀ {h t} → [ h , t ]≼[ h , 1+ t ]
+Sieve≼-St = on-t idp (inr ltS)
 
 
 {- Sieve intersection -
@@ -131,34 +158,33 @@ and is in fact also an initial segment sieve (of height ≤ h), since:
 
 open ℕ₊ using (to-ℕ)
 
-topmost-[_,_,_,_]-map-in-img-of?_ :
-  (b h : ℕ) (t : ℕ₊) (iS : is-sieve b h (to-ℕ t)) {m : ℕ} (f : Hom m b)
-  → Dec (Σ[ g ∈ Hom h m ] (f ◦ g == Hom-idx h b (t −1 , ≤→−1< (tcond iS))))
-                                    -- t arrows in the (h → b) level, so the
-                                    -- topmost one has index (t-1).
-topmost-[ b , h , t , iS ]-map-in-img-of? f =
-  Σ-Hom? (λ g → f ◦ g == Hom-idx h b (t −1 , ≤→−1< (tcond iS))) (λ g → _ ≟-Hom _)
+[_,_,_,_]-map-in-img-of?_ :
+  (b h t : ℕ) (iS : is-sieve b h (1+ t)) {m : ℕ} (f : Hom m b)
+  → Dec (Σ[ g ∈ Hom h m ] (f ◦ g == Hom-idx h b (t , S≤→< (tcond iS))))
+[ b , h , t , iS ]-map-in-img-of? f =
+  Σ-Hom? (λ g → f ◦ g == Hom-idx h b (t , S≤→< (tcond iS))) (λ g → _ ≟-Hom _)
+
 
 [_,_,_]∩[_,_] : (b h t : ℕ)
-                → (m : ℕ) (f : Hom m b)
+                (m : ℕ) (f : Hom m b)
                 → is-sieve b h t
                 → Sieve
-
 [ b , h , 1+ t ]∩[ m , f ] iS
- with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
+ with [ b , h , t , iS ]-map-in-img-of? f
 ... | inl  in-img = incr-sieve ([ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS))
 ... | inr ¬in-img = [ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)
-
 [ b , O , O ]∩[ m , f ] iS = (m , O , O) , is-sieve-bh0 (O≤ m)
-
 [ b , 1+ h , O ]∩[ m , f ] iS =
   [ b , h , Hom-size h b ]∩[ m , f ] (sieve-conds (S≤→≤ (hcond iS)) lteE)
 
+
 module ∩-Properties where
+  open ≺-Reasoning
+
   b-of-∩ : ∀ b h t {m} {f} iS
            → b-of-sieve ([ b , h , t ]∩[ m , f ] iS) == m
   b-of-∩ b h (1+ t) {m} {f} iS
-   with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
+   with [ b , h , t , iS ]-map-in-img-of? f
   ... | inl  in-img = let iS' : is-sieve b h t
                           iS' = is-sieve-prev-t iS
                       in b-of-incr ([ b , h , t ]∩[ m , f ] iS')
@@ -166,13 +192,6 @@ module ∩-Properties where
   ... | inr ¬in-img = b-of-∩ b h t (is-sieve-prev-t iS)
   b-of-∩ b O O iS = idp
   b-of-∩ b (1+ h) O iS = b-of-∩ b h (Hom-size h b) (is-sieve-prev-h iS)
-
-  [_,_,_]∩[_,_]◦-≼ :
-    (b h : ℕ) (t : ℕ₊) (m : ℕ) (f : Hom m b) {iS : is-sieve b h (to-ℕ t)}
-    → (g g' : Hom h m) → g' ≼ g
-    → f ◦ g ≼ Hom-idx h b (t −1 , ≤→−1< (tcond iS))
-    → f ◦ g' ≼ Hom-idx h b (t −1 , ≤→−1< (tcond iS))
-  [ b , h , t ]∩[ m , f ]◦-≼ g g' = ≼-trans ∘ ◦-monotone'
 
   {-
   Need something like
@@ -185,39 +204,108 @@ module ∩-Properties where
   for fixed b, h, but instead on pairs (h, t) for fixed b?
   -}
 
-  [_,_,_]∩[_,_]-⊆-lem :
-    (b h : ℕ) (t : ℕ₊) (m : ℕ) (f : Hom m b) (iS : is-sieve b h (to-ℕ t))
-    {t' : ℕ₊} {iS' : is-sieve m h (to-ℕ t')}
-    (p : [ b , h , to-ℕ t ]∩[ m , f ] iS == (m , h , to-ℕ t') , iS')
-    (g : Hom h m)
-    → let t'-1 : Fin (Hom-size h m)
-          t'-1 = (t' −1) , ≤→−1< (tcond iS')
+  [_,_,_]∩[_,_]◦-≼ :
+    (b h : ℕ) (t : ℕ₊) (m : ℕ) (f : Hom m b) {iS : is-sieve b h (to-ℕ t)}
+    (g g' : Hom h m)
+    → g' ≼ g
+    → f ◦ g ≼ Hom-idx h b (t −1 , ≤→−1< (tcond iS))
+    → f ◦ g' ≼ Hom-idx h b (t −1 , ≤→−1< (tcond iS))
+  [ b , h , t ]∩[ m , f ]◦-≼ g g' = ≼-trans ∘ ◦-monotone'
 
-          t−1 : Fin (Hom-size h b)
-          t−1 = (t −1) , ≤→−1< (tcond iS) in
-      g ≼ Hom-idx h m (t'-1)
-    → f ◦ g ≼ Hom-idx h b (t−1)
-
-  [ b , h , one@(pos 1) ]∩[ m , f ]-⊆-lem iS {pos (1+ t')} {iS'} p g g≼
-   with topmost-[ b , h , one , iS ]-map-in-img-of? f
-  ... | inl x = {!!}
-  ... | inr x = {!!}
-
-  [ b , h , pos (2+ t) ]∩[ m , f ]-⊆-lem iS {pos (1+ t')} {iS'} p g g≼ = {!!}
 
   private
-    -- Need this for h-of-∩:
     ∩-unc : ((((b , h , t) , iS) , m , f) :
                 Σ[ ((b , h , t) , iS) ∈ Sieve ] Σ[ m ∈ ℕ ] Hom m b)
               → Sieve
     ∩-unc (((b , h , t) , iS) , m , f) = [ b , h , t ]∩[ m , f ] iS
 
 
+  h,t-of-∩ : (b h t : ℕ) {m : ℕ} (f : Hom m b) (iS : is-sieve b h t)
+             → let S' = [ b , h , t ]∩[ m , f ] iS
+               in [ h-of-sieve S' , t-of-sieve S' ]≼[ h , t ]
+
+  h,t-of-∩ b h (1+ t) {m} f iS with [ b , h , t , iS ]-map-in-img-of? f
+  ... | inl in-img
+        with [ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)
+           | inspect ∩-unc (((b , h , t) , is-sieve-prev-t iS) , m , f)
+           | h,t-of-∩ b h t f (is-sieve-prev-t iS)
+           ---
+  ...      | _ , sieve-conds (inl h'=b') _
+           | _
+           | ih
+           = Sieve≼-trans ih Sieve≼-St
+           ---
+  ...      | (b' , h' , .(Hom-size h' b')) , sieve-conds (inr h'<b') (inl idp)
+           | ▹ eq
+           | on-h h'<h = {!incr-level b' h' ≤ h since h' < h and Hom h b is nonempty!}
+           ---
+           {-
+           ∙ [b, h, t]∩[m, f] = (m, h, t') where h < m and t' = Hom-size h m
+           ∙ Hom-size h m ≤ t
+           ∙ Hom-size > 0 by in-img
+           -}
+  ...      | (b' , .h , .(Hom-size h b')) , sieve-conds (inr h<b') (inl idp)
+           | ▹ eq
+           | on-t idp t'≤t = {!!}
+           ---
+  ...      | _ , sieve-conds (inr h'<b') (inr t'<max)
+           | _
+           | on-h h'<h
+           = on-h h'<h
+           ---
+  ...      | _ , sieve-conds (inr h'<b') (inr t'<max)
+           | _
+           | on-t h'=h t'≤t
+           = on-t h'=h (≤-ap-S t'≤t)
+  h,t-of-∩ b h (1+ t) {m} f iS
+      | inr ¬in-img = Sieve≼-trans (h,t-of-∩ b h t f (is-sieve-prev-t iS)) Sieve≼-St
+  h,t-of-∩ b O O f iS = Sieve≼-idp
+  h,t-of-∩ b (1+ h) O f iS
+   with h,t-of-∩ b h (Hom-size h b) f (is-sieve-prev-h iS)
+  ... | on-h u = on-h (<-trans u ltS)
+  ... | on-t p u = on-h (tr (_< 1+ h) (! p) ltS)
+
   h-of-∩ : ∀ b h t {m} {f} iS
            → h-of-sieve ([ b , h , t ]∩[ m , f ] iS) ≤ h
+  h-of-∩ b h t {f = f} iS with h,t-of-∩ b h t f iS
+  ... | on-h u = inr u
+  ... | on-t p _ = inl p
 
+  t-of-∩ : ∀ b h t {m} {f} iS
+           → let S' = [ b , h , t ]∩[ m , f ] iS in
+             (level-cond : h-of-sieve S' == h)
+           → t-of-sieve S' ≤ t
+  t-of-∩ b h t {f = f} iS level-cond with h,t-of-∩ b h t f iS
+  ... | on-h u = ⊥-elim (<-to-≠ u level-cond)
+  ... | on-t _ u = u
+
+  {- Correctness of the intersection function:
+
+  Let [ b , h , t ]∩[ m , f ] = (m, h', t') be a nonempty sieve in normal form. We
+  want that
+    g ∈ S(m, h', t') ⇔ f ∘ g ∈ S(b, h, t);
+  i.e. for g : Hom i m,
+    [ i , Fin-ℕ (Hom-ord g) ]≼[ h' , t' - 1 ]
+  if and only if
+    [ i , Fin-ℕ (Hom-ord (f ◦ g) ]≼[ h , t - 1 ].
+  -}
+
+  [_,_,_,_]∩[_,_]-⊆-lem :
+    (b h : ℕ) (t : ℕ₊) (iS : is-sieve b h (to-ℕ t)) (m : ℕ) (f : Hom m b)
+    → let S'@(_ , sieve-conds _ tcond') = [ b , h , to-ℕ t ]∩[ m , f ] iS
+          b' = b-of-sieve S'
+          h' = h-of-sieve S'
+          t' = t-of-sieve S' in
+      ⦃ pos-cond : O < t' ⦄
+    → {i : ℕ} (g : Hom i m)
+    → [ i , Fin-ℕ (Hom-ord g) ]≼[ h' , (pos t') −1 ]
+    → [ i , Fin-ℕ (Hom-ord (f ◦ g)) ]≼[ h , t −1 ]
+  [ b , h , t , iS ]∩[ m , f ]-⊆-lem ⦃ pos-cond ⦄ {i} g (on-h x) = {!!}
+  [ b , h , t , iS ]∩[ m , f ]-⊆-lem ⦃ pos-cond ⦄ {i} g (on-t x x₁) = {!!}
+
+{-
   h-of-∩ b h (1+ t) {m} {f} iS
-   with topmost-[ b , h , pos (1+ t) , iS ]-map-in-img-of? f
+   with [ b , h , t , iS ]-map-in-img-of? f
   ... | inl in-img
         with [ b , h , t ]∩[ m , f ] (is-sieve-prev-t iS)
            | inspect ∩-unc (((b , h , t) , is-sieve-prev-t iS) , m , f)
@@ -314,13 +402,14 @@ module ∩-Properties where
   ...      | (b' , h' , t') , iS'
            | ▹ eq
            | inr h'<h = {!!}
-                      :> (h-of-sieve (incr-sieve ((b' , h' , t') , iS')) ≤ h)
+                        :> (h-of-sieve (incr-sieve ((b' , h' , t') , iS')) ≤ h)
 
   h-of-∩ b h (1+ t) {m} {f} iS
       | inr ¬in-img = h-of-∩ b h t (is-sieve-prev-t iS)
 
   h-of-∩ b   O    O iS = lteE
   h-of-∩ b (1+ h) O iS = lteSR (h-of-∩ b h (Hom-size h b) (is-sieve-prev-h iS))
+-}
 
   h-of-∩' : ∀ {b h t} iS {m} {f}
             → (i : ℕ) → h ≤ i

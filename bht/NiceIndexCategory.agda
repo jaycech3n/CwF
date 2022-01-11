@@ -53,42 +53,61 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
   ...          | inl  eq = inl (Hom= eq)
   ...          | inr ¬eq = inr (¬eq ∘ ap Hom-ord)
 
-  _≺_ : ∀ {x y} → Hom x y → Hom x y → Type₀
-  f ≺ g = (Hom-ord f) <-Fin (Hom-ord g)
+  abstract
+    _≺_ : ∀ {x y} → Hom x y → Hom x y → Type₀
+    f ≺ g = (Hom-ord f) <-Fin (Hom-ord g)
 
-  _≺?_ : ∀ {x y} → Decidable (_≺_ {x} {y})
-  f ≺? g = (Hom-ord f) <?-Fin (Hom-ord g)
+    _≺?_ : ∀ {x y} → Decidable (_≺_ {x} {y})
+    f ≺? g = (Hom-ord f) <?-Fin (Hom-ord g)
+
+    <-Fin→≺ : ∀ {x y} {f g : Hom x y}
+              → Hom-ord f <-Fin Hom-ord g
+              → f ≺ g
+    <-Fin→≺ u = u
+
+    ≺→<-Fin : ∀ {x y} {f g : Hom x y}
+              → f ≺ g
+              → Hom-ord f <-Fin Hom-ord g
+    ≺→<-Fin u = u
 
   _≼_ : ∀ {x y} → Hom x y → Hom x y → Type i
   f ≼ g = (f == g) ⊔ (f ≺ g)
 
   _≼?_ : ∀ {x y} → Decidable (_≼_ {x} {y})
   f ≼? g with Hom-ord f ≤?-Fin Hom-ord g
-  ...       | inl (inl p) = inl (inl (Hom= (Fin= p)))
-  ...       | inl (inr u) = inl (inr u)
-  ...       | inr ¬eq = inr (λ{(inl p) → ¬eq (inl (ap (fst ∘ Hom-ord) p))
-                             ; (inr u) → ¬eq (inr u)})
-
-  ≺-trans : ∀ {x y} {f g h : Hom x y} → f ≺ g → g ≺ h → f ≺ h
-  ≺-trans = <-trans
-
-  ≼-trans : ∀ {x y} {f g h : Hom x y} → f ≼ g → g ≼ h → f ≼ h
-  ≼-trans u (inl q) = tr (_ ≼_) q u
-  ≼-trans (inl p) = tr (_≼ _) (! p)
-  ≼-trans (inr u) (inr v) = inr (≺-trans u v)
+  ... | inl (inl p) = inl (inl (Hom= (Fin= p)))
+  ... | inl (inr u) = inl (inr (<-Fin→≺ u))
+  ... | inr ¬eq = inr (λ{(inl p) → ¬eq (inl (ap (to-ℕ ∘ Hom-ord) p))
+                       ; (inr u) → ¬eq (inr (≺→<-Fin u))})
 
   module ≺-Reasoning where
-    ≤-Fin→≼ : ∀ {x y : Ob} {f g : Hom x y}
+    ≺-trans : ∀ {x y} {f g h : Hom x y} → f ≺ g → g ≺ h → f ≺ h
+    ≺-trans f≺g g≺h = <-Fin→≺ (<-trans (≺→<-Fin f≺g) (≺→<-Fin g≺h))
+
+    ≼-trans : ∀ {x y} {f g h : Hom x y} → f ≼ g → g ≼ h → f ≼ h
+    ≼-trans u (inl idp) = u
+    ≼-trans (inl idp) = λ v → v
+    ≼-trans (inr u) (inr v) = inr (≺-trans u v)
+
+    ≤-Fin→≼ : ∀ {x y} {f g : Hom x y}
               → Hom-ord f ≤-Fin Hom-ord g
               → f ≼ g
-    ≤-Fin→≼ {x} {y} {f} {g} (inl p) = inl (Hom= (Fin= p))
-    ≤-Fin→≼ {x} {y} {f} {g} (inr u) = inr u
+    ≤-Fin→≼ (inl p) = inl (Hom= (Fin= p))
+    ≤-Fin→≼ (inr u) = inr (<-Fin→≺ u)
 
-    ≼→≤-Fin : ∀ {x y : Ob} {f g : Hom x y}
+    ≼→≤-Fin : ∀ {x y} {f g : Hom x y}
              → f ≼ g
              → Hom-ord f ≤-Fin Hom-ord g
-    ≼→≤-Fin {x} {y} {f} {g} (inl f=g) = inl (ap (fst ∘ Hom-ord) f=g)
-    ≼→≤-Fin {x} {y} {f} {g} (inr f≺g) = inr f≺g
+    ≼→≤-Fin (inl f=g) = inl (ap (to-ℕ ∘ Hom-ord) f=g)
+    ≼→≤-Fin (inr f≺g) = inr (≺→<-Fin f≺g)
+
+    ≼idx0→idx0 : ∀ {x y} {size-cond : O < Hom-size x y} {f : Hom x y}
+                 → f ≼ Hom-idx x y (O , size-cond)
+                 → f == Hom-idx x y (O , size-cond)
+    ≼idx0→idx0 (inl p) = p
+    ≼idx0→idx0 {f = f} (inr u) =
+      ⊥-elim (≮O _ (tr (λ □ → to-ℕ (Hom-ord f) < to-ℕ □)
+                       (Hom-ord-of-idx (O , _)) (≺→<-Fin u)))
 
 
   Σ-Hom? : ∀ {ℓ} {x y} (P : Hom x y → Type ℓ)
