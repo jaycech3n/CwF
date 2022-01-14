@@ -309,9 +309,14 @@ module ∩-Properties where
             h' = h , t' ≤ t
           -}
           | (b' , .h , .(Hom-size h b')) , sieve-conds (inr h<b') (inl idp)
-          | _
+          | ▹ eq
           | on-t idp t'≤t
-            = {!!}
+            = {!!} -- This goal is unprovable; in fact there's a contradiction
+                   -- in the hypotheses. The contradiction seems to rely on the
+                   -- fact that any g in the intersection has the property that
+                   -- f ∘ g is in the original sieve.
+                   --> Maybe: add data witnessing this property to the
+                   -- definition of [_,_,_]∩[_,_]!
 
     ...   {-
             h' < b' , t' < Hom-size h' b'
