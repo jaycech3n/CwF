@@ -71,6 +71,10 @@ S≤→≤ h = ≤-trans lteS h
 <→≤→< k<m (inl idp) = k<m
 <→≤→< k<m (inr m<n) = <-trans k<m m<n
 
+≤→<→≤ : ∀ {k m n} → k ≤ m → m < n → k ≤ n
+≤→<→≤ (inl idp) m<n = inr m<n
+≤→<→≤ (inr k<m) m<n = inr (<-trans k<m m<n)
+
 ¬-< : ∀ {n} → n < n → ⊥
 ¬-< id< = <-to-≠ id< idp
 

@@ -136,6 +136,11 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
   ... | O    | i = ⊥-elim (≮O _ (snd i))
   ... | 1+ n | _ = O<S n
 
+  abstract
+    Hom-size-witness : ∀ {x y} → Hom x y → O < Hom-size x y
+    Hom-size-witness {x} {y} f =
+      ≠O→O< (λ p → –> Fin-equiv-Empty (tr Fin p (Hom-ord f)))
+
 
 record NiceIndexCategory {ℓ} : Type (lsuc ℓ) where
   field ⦃ C ⦄ : LocallyFiniteWildCategoryOn ℕ
