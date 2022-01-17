@@ -217,11 +217,6 @@ Hom-idx[_,_,_,_]-in-img-of?_ :
 Hom-idx[ b , h , t , tcond ]-in-img-of? f =
   Σ-Hom? (λ g → f ◦ g == Hom-idx h b (t , tcond)) (λ g → _ ≟-Hom _)
 
-Hom-idx[_,_,_,_]-in-img-of-[_,_]-ub :
-  (b h t : ℕ) (tcond : t < Hom-size h b) (m : ℕ) (f : Hom m b) (g : Hom h m)
-  → f ◦ g == Hom-idx h b (t , tcond)
-  → Fin-ℕ (Hom-ord g) ≤ t
-
 [_,_,_]∩[_,_] : (b h t : ℕ)
                 (m : ℕ) (f : Hom m b)
                 → is-sieve b h t
