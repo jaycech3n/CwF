@@ -95,7 +95,7 @@ If (Con, Sub, Ty, Tm) is a CwF with a universe U, then there's a "smaller" CwF (
 
 What we're doing above is not the construction of contexts in Shulman's paper, but we're constructing (with SST n) the limit of the universe in the model of the new CwF.
 
-See also the [discussion on the FP Zulip](https://fplab.zulipchat.com/#narrow/stream/122461-general/topic/Shulman's.20universe.20construction/near/263715906).
+See also the [discussion on the FP Lab Zulip](https://fplab.zulipchat.com/#narrow/stream/122461-general/topic/Shulman's.20universe.20construction/near/263715906).
 
 ### Extending the Construction: From Contexts to CwF's?
 
