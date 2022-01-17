@@ -78,6 +78,9 @@ S≤→≤ h = ≤-trans lteS h
 ¬-< : ∀ {n} → n < n → ⊥
 ¬-< id< = <-to-≠ id< idp
 
+S≰ : ∀ {n} → ¬ (1+ n ≤ n)
+S≰ = <-to-≱ ltS
+
 ≤→≠→< : ∀ {m n} → m ≤ n → m ≠ n → m < n
 ≤→≠→< (inl u) v = ⊥-elim (v u)
 ≤→≠→< (inr u) _ = u

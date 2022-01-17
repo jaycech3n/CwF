@@ -80,36 +80,6 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
   ... | inr ¬eq = inr (λ{(inl p) → ¬eq (inl (ap (to-ℕ ∘ Hom-ord) p))
                        ; (inr u) → ¬eq (inr (≺→<-Fin u))})
 
-  module ≺-Reasoning where
-    ≺-trans : ∀ {x y} {f g h : Hom x y} → f ≺ g → g ≺ h → f ≺ h
-    ≺-trans f≺g g≺h = <-Fin→≺ (<-trans (≺→<-Fin f≺g) (≺→<-Fin g≺h))
-
-    ≼-trans : ∀ {x y} {f g h : Hom x y} → f ≼ g → g ≼ h → f ≼ h
-    ≼-trans u (inl idp) = u
-    ≼-trans (inl idp) = λ v → v
-    ≼-trans (inr u) (inr v) = inr (≺-trans u v)
-
-    ≤-Fin→≼ : ∀ {x y} {f g : Hom x y}
-              → Hom-ord f ≤-Fin Hom-ord g
-              → f ≼ g
-    ≤-Fin→≼ (inl p) = inl (Hom= (Fin= p))
-    ≤-Fin→≼ (inr u) = inr (<-Fin→≺ u)
-
-    ≼→≤-Fin : ∀ {x y} {f g : Hom x y}
-             → f ≼ g
-             → Hom-ord f ≤-Fin Hom-ord g
-    ≼→≤-Fin (inl f=g) = inl (ap (to-ℕ ∘ Hom-ord) f=g)
-    ≼→≤-Fin (inr f≺g) = inr (≺→<-Fin f≺g)
-
-    ≼idx0→idx0 : ∀ {x y} {size-cond : O < Hom-size x y} {f : Hom x y}
-                 → f ≼ Hom-idx x y (O , size-cond)
-                 → f == Hom-idx x y (O , size-cond)
-    ≼idx0→idx0 (inl p) = p
-    ≼idx0→idx0 {f = f} (inr u) =
-      ⊥-elim (≮O _ (tr (λ □ → to-ℕ (Hom-ord f) < to-ℕ □)
-                       (Hom-ord-of-idx (O , _)) (≺→<-Fin u)))
-
-
   Σ-Hom? : ∀ {ℓ} {x y} (P : Hom x y → Type ℓ)
            → ((f : Hom x y) → Dec (P f))
            → Dec (Σ[ f ∈ Hom x y ] (P f))
@@ -141,18 +111,61 @@ record LocallyFiniteWildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
     Hom-size-witness {x} {y} f =
       ≠O→O< (λ p → –> Fin-equiv-Empty (tr Fin p (Hom-ord f)))
 
+  module ≺-Reasoning {x y : Ob} where
+    ≺-trans : {f g h : Hom x y} → f ≺ g → g ≺ h → f ≺ h
+    ≺-trans f≺g g≺h = <-Fin→≺ (<-trans (≺→<-Fin f≺g) (≺→<-Fin g≺h))
+
+    ≼-trans : {f g h : Hom x y} → f ≼ g → g ≼ h → f ≼ h
+    ≼-trans u (inl idp) = u
+    ≼-trans (inl idp) = λ v → v
+    ≼-trans (inr u) (inr v) = inr (≺-trans u v)
+
+    ≼→≺→≺ : {f g h : Hom x y} → f ≼ g → g ≺ h → f ≺ h
+    ≼→≺→≺ (inl idp) v = v
+    ≼→≺→≺ (inr u) v = ≺-trans u v
+
+    ≼→≺→≼ : {f g h : Hom x y} → f ≼ g → g ≺ h → f ≼ h
+    ≼→≺→≼ (inl idp) v = inr v
+    ≼→≺→≼ (inr u) v = inr (≺-trans u v)
+
+    ≤-Fin→≼ : {f g : Hom x y} → Hom-ord f ≤-Fin Hom-ord g → f ≼ g
+    ≤-Fin→≼ (inl p) = inl (Hom= (Fin= p))
+    ≤-Fin→≼ (inr u) = inr (<-Fin→≺ u)
+
+    ≼→≤-Fin : {f g : Hom x y} → f ≼ g → Hom-ord f ≤-Fin Hom-ord g
+    ≼→≤-Fin (inl f=g) = inl (ap (to-ℕ ∘ Hom-ord) f=g)
+    ≼→≤-Fin (inr f≺g) = inr (≺→<-Fin f≺g)
+
+    ¬≺ : {f : Hom x y} → ¬ (f ≺ f)
+    ¬≺ {f} = ¬-< ∘ ≺→<-Fin
+
+    module _ {size-cond : O < Hom-size x y} where
+      O-Fin = O , size-cond
+
+      ≼idx0→idx0 : ∀ {f} → f ≼ Hom-idx x y O-Fin → f == Hom-idx x y O-Fin
+      ≼idx0→idx0 (inl p) = p
+      ≼idx0→idx0 {f = f} (inr u) =
+        ⊥-elim (≮O _ (tr (λ □ → to-ℕ (Hom-ord f) < to-ℕ □)
+                         (Hom-ord-of-idx O-Fin) (≺→<-Fin u)))
+
+      idx0≼ : ∀ f → Hom-idx x y O-Fin ≼ f
+      idx0≼ f = ≤-Fin→≼ (tr (_≤-Fin (Hom-ord f)) (! (Hom-ord-of-idx _)) (O≤ _))
+
+      ≺→idx0≺ : ∀ {f g} → f ≺ g → Hom-idx x y O-Fin ≺ g
+      ≺→idx0≺ {f} u = ≼→≺→≺ (idx0≼ f) u
+
 
 record NiceIndexCategory {ℓ} : Type (lsuc ℓ) where
   field ⦃ C ⦄ : LocallyFiniteWildCategoryOn ℕ
   open LocallyFiniteWildCategoryOn C hiding (C) public
   field
     ◦-monotone : ∀ {x y z} {g g' : Hom x y} {f : Hom y z}
-                   → g ≺ g'
-                   → f ◦ g ≺ f ◦ g'
+                 → g ≺ g'
+                 → f ◦ g ≺ f ◦ g'
 
   ◦-monotone' : ∀ {x y z} {g g' : Hom x y} {f : Hom y z}
-                  → g ≼ g'
-                  → f ◦ g ≼ f ◦ g'
+                → g ≼ g'
+                → f ◦ g ≼ f ◦ g'
   ◦-monotone' {f = f} (inl g=g') = inl (ap (f ◦_) g=g')
   ◦-monotone' (inr g≺g') = inr (◦-monotone g≺g')
 
