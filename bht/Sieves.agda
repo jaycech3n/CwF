@@ -320,7 +320,7 @@ module ∩-Properties where
           | (b' , .h , .(Hom-size h b')) , sieve-conds (inr h<b') (inl idp)
           | ▹ eq
           | on-t idp t'≤t
-            = {!-- C-u C-u C-c C-,!}
+            = {!!} -- {!-- C-u C-u C-c C-,!}
                 -- This goal is unprovable; either there's a contradiction
                 -- derivable from the hypotheses, or we need to change some
                 -- definitions...

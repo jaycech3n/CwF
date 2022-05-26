@@ -1,4 +1,5 @@
-### A strategy for implementing type-valued diagrams on (certain) inverse categories <br/> A.k.a.: A generalisation of the bht approach
+### A strategy for implementing type-valued diagrams on (certain) inverse categories
+#### A.k.a.: A generalisation of the bht approach
 
 Everything described in Sieves.agda can be done in higher generality. And maybe
 that's actually easier to implement? For simplicity, I'll talk about *direct*
@@ -9,20 +10,22 @@ Definition (ordered, locally Bishop finite, direct category).
 Consider a category I with objects ℕ, given by
    Hom : ℕ → ℕ → Set
 and the usual structure (composition, associativity, identities).
-(a) I is *direct* if
+
+1. I is *direct* if
       m < n → Hom n m = ∅
       Hom m m = ⊤
     ("non-id arrows only go up")
-(b) I is *locally Bishop-finite* if
+2. I is *locally Bishop-finite* if
       (m n : ℕ) → Σ(k : ℕ). (Hom m n) ≃ Fin k
     ("every homset is finite with explicit decidable total order")
-(c) Let I be locally finite in the sense of (b). The iso (Hom m n) ≃ Fin k
+3. Let I be locally finite in the sense of (b). The iso (Hom m n) ≃ Fin k
     induces a total order < on every homset.
     I is *monotone* if, for every morphism f, post-composition with f is
     monotone,
       (f : Hom m n) (g h : Hom k m) → g < h → f ∘ g < f ∘ h
     ("every Yoneda(f) is monotone")
-I is an *ordered, locally Bishop-finite, direct category* if it satisfies (a-c).
+
+I is an *ordered, locally Bishop-finite, direct category* if it satisfies (1-3).
 
 Note. Direct categories are "the same" as direct semicategories since the
 identities don't do anything.
@@ -46,10 +49,11 @@ given by an object h (typically h < b) and t ∈ 1 ⊎ Hom h b. This is given by
 
 Construction:
 From the pair (h,t), we get a concrete sieve S(h,t) on b as follows:
-∙ for k < h, every g ∈ Hom k b is in the sieve;
-∙ for k = h, a g ∈ Hom k b is in the sieve iff g ≤ t
+
+* for k < h, every g ∈ Hom k b is in the sieve;
+* for k = h, a g ∈ Hom k b is in the sieve iff g ≤ t
              (with (inl *) minimal in 1 ⊎ Hom h b)
-∙ for k > h, no g ∈ Hom k b is in the sieve
+* for k > h, no g ∈ Hom k b is in the sieve
 
 
 Definition (standard, a reference is MacLane-Moerdijk, "Sheaves in geometry
@@ -70,9 +74,11 @@ is a starting sieve on m, i.e. can be represented by (h', t').
 Proof.
 It's not difficult to describe what S' := S(h,t) ∙ f ⊆ ⋃_(k ≤ m) (Hom k m) is.
 For...
+
 ∙ k < h, every g ∈ Hom k m is in S'
 ∙ k = h, a g ∈ Hom k m is in S' iff f ∘ g ≤ t
 ∙ k > h, no g ∈ Hom k m is in S'.
+
 Because of the monotonicity condition on the category I (point c of first
 definition in this file), this is a starting sieve on m, with h' := h and
 t' = (the maximal s ∈ Hom h m such that f ∘ h ≤ t).
@@ -98,6 +104,8 @@ What we're doing above is not the construction of contexts in Shulman's paper, b
 See also the [discussion on the FP Lab Zulip](https://fplab.zulipchat.com/#narrow/stream/122461-general/topic/Shulman's.20universe.20construction/near/263715906).
 
 ### Extending the Construction: From Contexts to CwF's?
+
+Note: This probably doesn't work.
 
 Denote the original CwF by (Con, Sub, Ty, Tm). Denote the empty context by ●.
 Given inverse category I = (Δ₊)op(≤n) as above, the above constructs a context
