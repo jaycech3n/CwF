@@ -5,6 +5,7 @@ module Arithmetic where
 open import Prelude public
 
 -- We use instances for automatic solving of certain inequality constraints.
+
 instance
   O≤-inst : ∀ {n} → O ≤ n
   O≤-inst {n} = O≤ n

@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 {--- Categories with families ---}
 
 {-
@@ -11,8 +13,6 @@ following rules of thumb (which may, however, be broken as needed):
   2. Use repeated transports along paths, instead of transporting along a single
      concatenated path.
 -}
-
-{-# OPTIONS --without-K #-}
 
 module CwF where
 
@@ -31,7 +31,7 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
   field
     ◆ : Con
-    ◆-is-terminal : is-terminal ⦃ C ⦄ ◆
+    ◆-is-terminal : is-terminal ⦃ semi-of-wild-cat ⦃ C ⦄ ⦄ ◆
 
   infixl 40 _[_] _[_]ₜ
   field

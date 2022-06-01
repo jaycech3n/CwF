@@ -18,7 +18,7 @@ open import HoTT
 
 private
   variable
-    i j k : ULevel
+    ℓ₁ ℓ₂ ℓ₃ : ULevel
 
 
 {- Notation -}
@@ -34,20 +34,20 @@ syntax Σ-syntax A (λ x → B) = Σ[ x ∈ A ] B
 
 -- The inspect idiom, copied from the Agda standard library
 
-record Reveal_·_is_ {A : Type i} {B : A → Type j}
-  (f : (x : A) → B x) (x : A) (y : B x) : Type (lmax i j)
+record Reveal_·_is_ {A : Type ℓ₁} {B : A → Type ℓ₂}
+  (f : (x : A) → B x) (x : A) (y : B x) : Type (lmax ℓ₁ ℓ₂)
   where
   constructor ▹
   field eq : f x == y
 
-inspect : ∀ {A : Type i} {B : A → Type j}
+inspect : ∀ {A : Type ℓ₁} {B : A → Type ℓ₂}
           (f : (x : A) → B x) (x : A) → Reveal f · x is f x
 inspect f x = ▹ idp
 
 
 {- Triples -}
 
-module _ {A : Type i} {B : A → Type j} {C : {a : A} (b : B a) → Type k} where
+module _ {A : Type ℓ₁} {B : A → Type ℓ₂} {C : {a : A} (b : B a) → Type ℓ₃} where
   2nd : (u : Σ[ a ∈ A ] Σ[ b ∈ B a ] C b) → B (fst u)
   2nd = fst ∘ snd
 
@@ -57,10 +57,10 @@ module _ {A : Type i} {B : A → Type j} {C : {a : A} (b : B a) → Type k} wher
 
 {- Coproducts -}
 
-inl= : {A : Type i} {B : Type j} {a a' : A} → a == a' → inl a == inl a' :> A ⊔ B
+inl= : {A : Type ℓ₁} {B : Type ℓ₂} {a a' : A} → a == a' → inl a == inl a' :> A ⊔ B
 inl= idp = idp
 
-inr= : {A : Type i} {B : Type j} {b b' : B} → b == b' → inr b == inr b' :> A ⊔ B
+inr= : {A : Type ℓ₁} {B : Type ℓ₂} {b b' : B} → b == b' → inr b == inr b' :> A ⊔ B
 inr= idp = idp
 
 
@@ -68,36 +68,36 @@ inr= idp = idp
 
 -- Could make this dependent, but don't need it.
 
-Maybe : Type i → Type i
+Maybe : Type ℓ₁ → Type ℓ₁
 Maybe A = A ⊔ ⊤
 
-some : {A : Type i} → A → Maybe A
+some : {A : Type ℓ₁} → A → Maybe A
 some a = inl a
 
 pattern none = inr tt
 
-Maybe-elim : {A : Type i} {B : Type j}
+Maybe-elim : {A : Type ℓ₁} {B : Type ℓ₂}
              → Maybe A → B → (A → B) → B
 Maybe-elim m b f = ⊔-elim f (λ _ → b) m
 
-default : {A : Type i} {B : Type j} → B → (A → B) → Maybe A → B
+default : {A : Type ℓ₁} {B : Type ℓ₂} → B → (A → B) → Maybe A → B
 default _ f (inl a) = f a
 default b f none = b
 
-some≠none : {A : Type i} {a : A} → some a ≠ none
+some≠none : {A : Type ℓ₁} {a : A} → some a ≠ none
 some≠none {a = a} = inl≠inr a tt
 
 
 {- Decidable types -}
 
-True : {A : Type i} → Dec A → Bool
+True : {A : Type ℓ₁} → Dec A → Bool
 True (inl _) = true
 True (inr _) = false
 
 
 {- Rewriting transports -}
 
-module _ {A : Type i} {B : A → Type j} {x y : A} where
+module _ {A : Type ℓ₁} {B : A → Type ℓ₂} {x y : A} where
   tr!-tr     : {b : B x} (p : x == y)
                → tr B (! p) (tr B p b) == b
 
@@ -128,7 +128,7 @@ module _ {A : Type i} {B : A → Type j} {x y : A} where
   ==tr!-tr== {p = idp} idp = idp
 
 
-tr-ap-∙ : {A : Type i} {B : Type j} {f : A → B} {C : B → Type k}
+tr-ap-∙ : {A : Type ℓ₁} {B : Type ℓ₂} {f : A → B} {C : B → Type ℓ₃}
           {x y z : A} (p : x == y) (q : y == z) (c : C (f x))
           → tr C (ap f (p ∙ q)) c == tr C (ap f q) (tr C (ap f p) c)
 tr-ap-∙ idp idp c = idp

@@ -9,10 +9,12 @@ private
   variable
     ℓ : ULevel
 
+
 to-ℕ : ∀ {n} → Fin n → ℕ
 to-ℕ = fst
 
--- (In)Equality on Fin
+
+{- (In)Equality on Fin -}
 
 Fin= : ∀ {n} {i j : Fin n} → to-ℕ i == to-ℕ j → i == j
 Fin= {_} {.(fst j) , fstj<n} {j} idp = pair= idp (prop-path <-is-prop _ _)
@@ -63,6 +65,7 @@ Fin-trichotomy (m , m<k) (n , n<k) = Fin-trichotomy-aux m n m<k n<k
   ... | inl m=n = inl (Fin= (ap S (Fin=-elim m=n)))
   ... | inr (inl m<n) = inr (inl (<-ap-S m<n))
   ... | inr (inr n<m) = inr (inr (<-ap-S n<m))
+
 
 {- Proof by exhaustion -}
 
