@@ -13,11 +13,12 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
   field
     Hom-fin : ∀ x y → Σ[ n ∈ ℕ ] (Hom x y ≃ Fin n)
 
-  Hom-size : (x y : Ob) → ℕ
-  Hom-size x y = fst (Hom-fin x y)
+  abstract
+    Hom-size : (x y : Ob) → ℕ
+    Hom-size x y = fst (Hom-fin x y)
 
-  Hom-equiv : (x y : Ob) → Hom x y ≃ Fin (Hom-size x y)
-  Hom-equiv x y = snd (Hom-fin x y)
+    Hom-equiv : (x y : Ob) → Hom x y ≃ Fin (Hom-size x y)
+    Hom-equiv x y = snd (Hom-fin x y)
 
   idx-of : ∀ {x y} → Hom x y → Fin (Hom-size x y)
   idx-of {x} {y} f = –> (Hom-equiv x y) f
@@ -51,9 +52,9 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
     g =∎
 
   _≟-Hom_ : ∀ {x y} → has-dec-eq (Hom x y)
-  f ≟-Hom g with idx-of f ≟-Fin idx-of g
-  ...          | inl  eq = inl (Hom= eq)
-  ...          | inr ¬eq = inr (¬eq ∘ ap idx-of)
+  f ≟-Hom g = if (idx-of f ≟-Fin idx-of g)
+                 (λ  p → inl (Hom= p))
+                 (λ ¬p → inr (¬p ∘ ap idx-of))
 
   Σ-Hom? : ∀ {ℓ} {x y} (P : Hom x y → Type ℓ)
            → ((f : Hom x y) → Dec (P f))
@@ -71,9 +72,9 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
       dec-Fin = Σ-Fin? (P ∘ (<– e)) u'
 
       dec-Hom : Dec (Σ[ f ∈ Hom x y ] P (<– e (–> e f)))
-      dec-Hom with dec-Fin
-      ...        | inl  u = inl (tr-Σ-≃-l (P ∘ <– e) e u)
-      ...        | inr ¬u = inr (λ (f , p) → ¬u (–> e f , p))
+      dec-Hom = if dec-Fin
+                   (λ  u → inl (tr-Σ-≃-l (P ∘ <– e) e u))
+                   (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
 
 
 record SuitableSemicategory : Type₁ where

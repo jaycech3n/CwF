@@ -29,6 +29,13 @@ pattern 2+ n = S (S n)
 Σ-syntax = Σ
 syntax Σ-syntax A (λ x → B) = Σ[ x ∈ A ] B
 
+case : {A : Type ℓ₁} {B : Type ℓ₂} {C : Type ℓ₃}
+       → A ⊔ B → (A → C) → (B → C) → C
+case a⊔b a b = ⊔-rec a b a⊔b
+
+if : {A : Type ℓ₁} {B : Type ℓ₂} → Dec A → (A → B) → (¬ A → B) → B
+if = case
+
 
 {- Inspect -}
 

@@ -70,16 +70,27 @@ full-sieve : ∀ i h → h ≤ i → is-sieve i h (Hom-size i h)
 hcond (full-sieve i h h≤i) = h≤i
 tcond (full-sieve i h h≤i) = inl idp
 
+sieve-from-prev-t : ∀ {i h t} → is-sieve i h (1+ t) → is-sieve i h t
+sieve-from-prev-t iS = sieve-conds (hcond iS) (S≤→≤ (tcond iS))
+
 
 {- Sieve intersection -}
 
 [_,_,_]∩[_,_] : (i h t : ℕ) (m : ℕ) (f : Hom i m) → is-sieve i h t → Sieve
+
+-- Need some simultaneously defined properties of ∩
+
 [ i ,   O  , O ]∩[ m , f ] iS = (m , 0 , 0) ,
                                   empty-sieve m
 [ i , 1+ h , O ]∩[ m , f ] iS = [ i , h , Hom-size i h ]∩[ m , f ]
                                   (full-sieve i h (≤-trans lteS (hcond iS)))
 [ i , h , 1+ t ]∩[ m , f ] iS =
-  ⊔-rec
-    {!!}
-    {!!}
-    {!!}
+  if in-restriction?
+     (λ yes → if (height prev-∩ <? h)
+                 (λ <h → (i , h , {!!}) , {!!})
+                 (λ ≮h → {!!}))
+     (λ no → prev-∩)
+  where
+    [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
+    in-restriction? = Σ-Hom? (λ g → g ◦ f == [t]) (λ g → g ◦ f ≟-Hom [t])
+    prev-∩ = [ i , h , t ]∩[ m , f ] (sieve-from-prev-t iS)
