@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --without-K #-}
 
 module Fin where
 
@@ -12,6 +12,13 @@ private
 
 to-ℕ : ∀ {n} → Fin n → ℕ
 to-ℕ = fst
+
+elem-of-Fin-1 : (m : Fin 1) → to-ℕ m == O
+elem-of-Fin-1 (O , _) = idp
+elem-of-Fin-1 (1+ m , S<1) = ⊥-elim {P = λ _ → 1+ m == O} (S≮1 S<1)
+
+1+Fin : ∀ {n} ((m , _) : Fin n) → 1+ m < n → Fin n
+1+Fin (m , _) h = 1+ m , h
 
 
 {- Equality, inequality -}
@@ -136,11 +143,29 @@ Fin-hfiber-dec {1+ m} {n} f j =
 
 {- Counting -}
 
--- The number of (i : Fin n) satisfying (P i)
-#-Fin : ∀ {n} (P : Fin n → Type ℓ)
-        → ((i : Fin n) → Dec (P i))
-        → Fin (1+ n)
-#-Fin {n = O} P d = 0 , ltS
-#-Fin {n = 1+ n} P d =
-  {!(if (d (n , ltS)) (λ _ → 1) λ _ → 0) +
-    #-Fin {n = n} (P ∘ Fin-S) (d ∘ Fin-S)!}
+-- The number of (i : Fin n) in the range [m, n) satisfying (P i)
+#-Fin-from : ∀ {n} (P : Fin n → Type ℓ)
+             → ((i : Fin n) → Dec (P i))
+             → ((m , _) : Fin n)
+             → {d : ℕ} → {n ∸  m == 1+ d}
+             → Σ[ k ∈ ℕ ] m + k ≤ n
+#-Fin-from {n = n} P f i@(m , m<n) {O} =
+  if (f i)
+     (λ yes → 1 , tr (_≤ n) (+-comm 1 m) (<→S≤ m<n))
+     (λ no → 0 , tr (_≤ n) (! (+-unit-r m)) (inr m<n))
+#-Fin-from {n = n} P f i@(m , m<n) {1+ d} {p} =
+  if (f i)
+     (λ yes → 1+ #-Fin-next-val ,
+              tr (_≤ n)
+                 (3-comm-2 1 m _ ∙ +-assoc m 1 _)
+                 #-Fin-next-cond)
+     (λ no → #-Fin-next-val , S≤→≤ #-Fin-next-cond)
+  where
+    1<n∸m : 1 < n ∸ m
+    1<n∸m = tr (1 <_) (! p) (<-ap-S (O<S _))
+
+    #-Fin-next : Σ[ k ∈ ℕ ] 1+ m + k ≤ n
+    #-Fin-next = #-Fin-from P f (1+ m , <∸→+< 1<n∸m) {d} {∸-move-S-l n m p}
+
+    #-Fin-next-val = fst #-Fin-next
+    #-Fin-next-cond = snd #-Fin-next

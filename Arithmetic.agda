@@ -4,7 +4,24 @@ module Arithmetic where
 
 open import Prelude public
 
--- We use instances for automatic solving of certain inequality constraints.
+
+O+O : ∀ {m n} → m == O → n == O → m + n == O
+O+O {m} {n} p q =
+  m + n =⟨ p |in-ctx (_+ n) ⟩
+  O + n =⟨ q |in-ctx (O +_) ⟩
+  O =∎
+
++==O-r : ∀ {m n} → m + n == O → n == O
++==O-r {m = O} p = p
++==O-r {m = 1+ m} {n} p = ⊥-elim (ℕ-S≠O (m + n) p)
+
+3-comm-2 : ∀ k m n → k + m + n == m + k + n
+3-comm-2 k m n = +-comm k m |in-ctx (_+ n)
+
+
+{- Inequalities -}
+
+-- Automatic inequality constraint solving
 
 instance
   O≤-inst : ∀ {n} → O ≤ n
@@ -23,16 +40,6 @@ instance
   solve-S≤S : {m n : ℕ} ⦃ h : m ≤ n ⦄ → 1+ m ≤ 1+ n
   solve-S≤S ⦃ h ⦄ = ≤-ap-S h
 -}
-
-O+O : ∀ {m n} → m == O → n == O → m + n == O
-O+O {m} {n} p q =
-  m + n =⟨ p |in-ctx (_+ n) ⟩
-  O + n =⟨ q |in-ctx (O +_) ⟩
-  O =∎
-
-+==O-r : ∀ {m n} → m + n == O → n == O
-+==O-r {m = O} p = p
-+==O-r {m = 1+ m} {n} p = ⊥-elim (ℕ-S≠O (m + n) p)
 
 O<→O<+r : ∀ {m n} → O < m → O < m + n
 O<→O<+r {1+ m} {n} x = O<S (m + n)
@@ -76,11 +83,18 @@ S≤→≤ h = ≤-trans lteS h
 ≤→<→≤ (inl idp) m<n = inr m<n
 ≤→<→≤ (inr k<m) m<n = inr (<-trans k<m m<n)
 
+≤+-l : ∀ {m n} → n ≤ m + n
+≤+-l {O} = lteE
+≤+-l {1+ m} {n} = ≤-trans (≤+-l {m} {n}) lteS
+
 ¬-< : ∀ {n} → n < n → ⊥
 ¬-< id< = <-to-≠ id< idp
 
 S≰ : ∀ {n} → ¬ (1+ n ≤ n)
 S≰ = <-to-≱ ltS
+
+S≮1 : ∀ {n} → ¬ (1+ n < S O)
+S≮1 {n} = ≮O n ∘ <-cancel-S
 
 ≤→≠→< : ∀ {m n} → m ≤ n → m ≠ n → m < n
 ≤→≠→< (inl u) v = ⊥-elim (v u)
@@ -123,8 +137,8 @@ infixl 100 _−1
 _−1 : ℕ₊ → ℕ
 pos (1+ n) −1 = n
 
-≤→−1< : {m@(pos m′) : ℕ₊} {n : ℕ} → m′ ≤ n → m −1 < n
-≤→−1< {pos (1+ m′)} = S≤→<
+≤→−1< : {m@(pos m') : ℕ₊} {n : ℕ} → m' ≤ n → m −1 < n
+≤→−1< {pos (1+ m')} = S≤→<
 
 
 {- Monus -}
@@ -139,6 +153,23 @@ O ∸ n = O
 ∸-move-S-l (1+ m) (1+ n) p = ∸-move-S-l m n p
 ∸-move-S-l (1+ O) O p = =-cancel-S p
 ∸-move-S-l (2+ m) O p = =-cancel-S p
+
++∸-assoc : ∀ {k m n} → n < m → k + m ∸ n == k + (m ∸ n)
++∸-assoc {k} {O} {n} ()
++∸-assoc {k} {1+ m} {O} _ rewrite +-comm k (1+ m) = idp
++∸-assoc {k} {1+ m} {1+ n} h rewrite +-βr k m = +∸-assoc (<-cancel-S h)
+
+∸-+ : ∀ m n → n < m →  m ∸ n + n == m
+∸-+ (1+ m) O h rewrite +-unit-r m = idp
+∸-+ (1+ m) (1+ n) h = tr (_== 1+ m)
+                         ( (1 + m) ∸ n + n =⟨ +∸-assoc (<-cancel-S h) |in-ctx (_+ n) ⟩
+                           1 + (m ∸ n) + n =⟨ 3-comm-2 1 _ n ⟩
+                           (m ∸ n + 1) + n =⟨ +-assoc _ 1 n ⟩
+                           m ∸ n + 1+ n =∎)
+                         (∸-+ (1+ m) n (<-trans ltS h))
+
+∸-move-r : ∀ {m n k} → n < m → m ∸ n == k → m == k + n
+∸-move-r {m} {n} {.(m ∸ n)} h idp = ! (∸-+ m n h)
 
 ∸→≤ : ∀ {m n} → m ∸ n == 0 → m ≤ n
 ∸→≤ {O} {n} _ = O≤ n
@@ -155,6 +186,10 @@ O ∸ n = O
 <→∸=S : ∀ {m n} → m < n → n ∸ m == 1+ (n ∸ m ∸ 1)
 <→∸=S {O} {1+ n} _ = ap 1+ (! ∸O)
 <→∸=S {1+ m} {1+ n} = <→∸=S ∘ <-cancel-S
+
+<∸→+< : ∀ {m n k} → m < n ∸ k → m + k < n
+<∸→+< {m} {1+ n} {O} h rewrite +-unit-r m = h
+<∸→+< {m} {1+ n} {1+ k} h = tr (_< 1+ n) (! (+-βr m k)) (<-ap-S (<∸→+< h))
 
 
 {- Binomial coefficients -}
