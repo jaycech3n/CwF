@@ -50,8 +50,8 @@ height ((_ , h , _) , _) = h
 width : Sieve → ℕ
 width ((_ , _ , t) , _) = t
 
-sieve-cond-of : (((i , h , t) , _) : Sieve) → is-sieve i h t
-sieve-cond-of (_ , iS) = iS
+sieve-cond : (((i , h , t) , _) : Sieve) → is-sieve i h t
+sieve-cond (_ , iS) = iS
 
 Sieve= : {s s' : Sieve}
          → apex s == apex s'
@@ -84,13 +84,36 @@ sieve-from-prev-t iS = sieve-conds (hcond iS) (S≤→≤ (tcond iS))
                                   empty-sieve m
 [ i , 1+ h , O ]∩[ m , f ] iS = [ i , h , Hom-size i h ]∩[ m , f ]
                                   (full-sieve i h (≤-trans lteS (hcond iS)))
-[ i , h , 1+ t ]∩[ m , f ] iS =
-  if in-restriction?
-     (λ yes → if (height prev-∩ <? h)
-                 (λ <h → (i , h , {!!}) , {!!})
-                 (λ ≮h → {!!}))
-     (λ no → prev-∩)
-  where
-    [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
-    in-restriction? = Σ-Hom? (λ g → g ◦ f == [t]) (λ g → g ◦ f ≟-Hom [t])
-    prev-∩ = [ i , h , t ]∩[ m , f ] (sieve-from-prev-t iS)
+[ i , h , 1+ t ]∩[ m , f ] iS
+ with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
+... | inr no = [ i , h , t ]∩[ m , f ] (sieve-from-prev-t iS)
+... | inl (w , _) =
+        if (height prev-∩ <? h)
+           (λ <h → (m , h , #-Hom-from-O-val) ,
+                     sieve-conds (inr (Hom-inverse h m w)) #-Hom-from-O-cond)
+           (λ ≮h → {!!})
+      where
+        prev-∩ = [ i , h , t ]∩[ m , f ] (sieve-from-prev-t iS)
+
+        O-Fin = 0 , Hom[ m , h ]-inhab w
+        [O] = Hom[ m , h ]# O-Fin
+        [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
+
+        #-Hom-from-O = #-Hom[ m , h ]-from
+                         (λ g → g ◦ f == [t])
+                         (λ g → g ◦ f ≟-Hom [t]) [O]
+
+        #-Hom-from-O-val : ℕ
+        #-Hom-from-O-val = fst #-Hom-from-O
+
+        #-Hom-from-O-cond : #-Hom-from-O-val ≤ Hom-size m h
+        #-Hom-from-O-cond = tr (λ □ → □ + #-Hom-from-O-val ≤ _)
+                               (ap fst (idx-of-Hom# O-Fin))
+                               (snd #-Hom-from-O)
+
+        [prev] = Hom[ m , h ]# (width prev-∩ , {!!})
+        {-
+        #-Hom-from-prev-width = #-Hom[ m , h ]-from
+                                  (λ g → g ◦ f == [t])
+                                  (λ g → g ◦ f ≟-Hom [t]) [O]
+        -}

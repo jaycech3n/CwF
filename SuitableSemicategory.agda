@@ -20,19 +20,19 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
     Hom-equiv : (x y : Ob) → Hom x y ≃ Fin (Hom-size x y)
     Hom-equiv x y = snd (Hom-fin x y)
 
-  idx-of : ∀ {x y} → Hom x y → Fin (Hom-size x y)
-  idx-of {x} {y} f = –> (Hom-equiv x y) f
+    idx-of : ∀ {x y} → Hom x y → Fin (Hom-size x y)
+    idx-of {x} {y} f = –> (Hom-equiv x y) f
 
-  Hom[_,_]# : ∀ x y → Fin (Hom-size x y) → Hom x y
-  Hom[ x , y ]# i = <– (Hom-equiv x y) i
+    Hom[_,_]# : ∀ x y → Fin (Hom-size x y) → Hom x y
+    Hom[ x , y ]# i = <– (Hom-equiv x y) i
 
-  Hom#idx : ∀ {x y} (f : Hom x y)
-            → Hom[ x , y ]# (idx-of f) == f
-  Hom#idx {x} {y} f = <–-inv-l (Hom-equiv x y) f
+    Hom#idx : ∀ {x y} (f : Hom x y)
+              → Hom[ x , y ]# (idx-of f) == f
+    Hom#idx {x} {y} f = <–-inv-l (Hom-equiv x y) f
 
-  idx-of-Hom# : ∀ {x y} (i : Fin (Hom-size x y))
-                → idx-of (Hom[ x , y ]# i) == i
-  idx-of-Hom# {x} {y} i = <–-inv-r (Hom-equiv x y) i
+    idx-of-Hom# : ∀ {x y} (i : Fin (Hom-size x y))
+                  → idx-of (Hom[ x , y ]# i) == i
+    idx-of-Hom# {x} {y} i = <–-inv-r (Hom-equiv x y) i
 
   Hom-is-set : ∀ {x y} → is-set (Hom x y)
   Hom-is-set {x} {y} = is-set-≃-stable e' (Lift-level Fin-is-set)
@@ -76,6 +76,22 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
                    (λ  u → inl (tr-Σ-≃-l (P ∘ <– e) e u))
                    (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
 
+  -- The number of (g : Hom x y) satisfying f ≤ g and (P g)
+  #-Hom[_,_]-from : ∀ {ℓ} x y (P : Hom x y → Type ℓ)
+                    → ((f : Hom x y) → Dec (P f))
+                    → (f : Hom x y)
+                    → Σ[ k ∈ ℕ ] to-ℕ (idx-of f) + k ≤ Hom-size x y
+  #-Hom[ x , y ]-from P dec f =
+    #-Fin-from {n = Hom-size x y} (P ∘ Hom[ x , y ]#) (dec ∘ Hom[ x , y ]#)
+      (idx-of f) {Hom-size x y ∸ (to-ℕ (idx-of f)) ∸ 1} {<→∸=S (snd (idx-of f))}
+
+  _factors-through?_ : ∀ {x y z} (h : Hom x z) (f : Hom x y)
+                      → Dec (Σ[ g ∈ Hom y z ] g ◦ f == h)
+  h factors-through? f = Σ-Hom? (λ g → (g ◦ f) == h) (λ g → g ◦ f ≟-Hom h)
+
+  Hom[_,_]-inhab : ∀ x y → Hom x y → O < Hom-size x y
+  Hom[ x , y ]-inhab f = ≤→<→< (O≤ _) (snd (idx-of f))
+
 
 record SuitableSemicategory : Type₁ where
   field ⦃ C ⦄ : LocallyFiniteSemicategoryOn ℕ
@@ -83,79 +99,12 @@ record SuitableSemicategory : Type₁ where
   field
     Hom-inverse : ∀ m n → Hom n m → m < n
 
-  {-
-  abstract
-    _≺_ : ∀ {x y} → Hom x y → Hom x y → Type₀
-    f ≺ g = (idx-of f) <-Fin (idx-of g)
-
-    _≺?_ : ∀ {x y} → Decidable (_≺_ {x} {y})
-    f ≺? g = (idx-of f) <?-Fin (idx-of g)
-
-    <-Fin→≺ : ∀ {x y} {f g : Hom x y}
-              → idx-of f <-Fin idx-of g
-              → f ≺ g
-    <-Fin→≺ u = u
-
-    ≺→<-Fin : ∀ {x y} {f g : Hom x y}
-              → f ≺ g
-              → idx-of f <-Fin idx-of g
-    ≺→<-Fin u = u
-
-  _≼_ : ∀ {x y} → Hom x y → Hom x y → Type ℓ
-  f ≼ g = (f == g) ⊔ (f ≺ g)
-
-  _≼?_ : ∀ {x y} → Decidable (_≼_ {x} {y})
-  f ≼? g with idx-of f ≤?-Fin idx-of g
-  ... | inl (inl p) = inl (inl (Hom= (Fin= p)))
-  ... | inl (inr u) = inl (inr (<-Fin→≺ u))
-  ... | inr ¬eq = inr (λ{(inl p) → ¬eq (inl (ap (to-ℕ ∘ idx-of) p))
-                       ; (inr u) → ¬eq (inr (≺→<-Fin u))})
-
-  abstract
-    Hom-size-witness : ∀ {x y} → Hom x y → O < Hom-size x y
-    Hom-size-witness {x} {y} f =
-      ≠O→O< (λ p → –> Fin-equiv-Empty (tr Fin p (idx-of f)))
-
-  module ≺-Reasoning {x y : Ob} where
-    ≺-trans : {f g h : Hom x y} → f ≺ g → g ≺ h → f ≺ h
-    ≺-trans f≺g g≺h = <-Fin→≺ (<-trans (≺→<-Fin f≺g) (≺→<-Fin g≺h))
-
-    ≼-trans : {f g h : Hom x y} → f ≼ g → g ≼ h → f ≼ h
-    ≼-trans u (inl idp) = u
-    ≼-trans (inl idp) = λ v → v
-    ≼-trans (inr u) (inr v) = inr (≺-trans u v)
-
-    ≼→≺→≺ : {f g h : Hom x y} → f ≼ g → g ≺ h → f ≺ h
-    ≼→≺→≺ (inl idp) v = v
-    ≼→≺→≺ (inr u) v = ≺-trans u v
-
-    ≼→≺→≼ : {f g h : Hom x y} → f ≼ g → g ≺ h → f ≼ h
-    ≼→≺→≼ (inl idp) v = inr v
-    ≼→≺→≼ (inr u) v = inr (≺-trans u v)
-
-    ≤-Fin→≼ : {f g : Hom x y} → idx-of f ≤-Fin idx-of g → f ≼ g
-    ≤-Fin→≼ (inl p) = inl (Hom= (Fin= p))
-    ≤-Fin→≼ (inr u) = inr (<-Fin→≺ u)
-
-    ≼→≤-Fin : {f g : Hom x y} → f ≼ g → idx-of f ≤-Fin idx-of g
-    ≼→≤-Fin (inl f=g) = inl (ap (to-ℕ ∘ idx-of) f=g)
-    ≼→≤-Fin (inr f≺g) = inr (≺→<-Fin f≺g)
-
-    ¬≺ : {f : Hom x y} → ¬ (f ≺ f)
-    ¬≺ {f} = ¬-< ∘ ≺→<-Fin
-
-    module _ {size-cond : O < Hom-size x y} where
-      O-Fin = O , size-cond
-
-      ≼idx0→idx0 : ∀ {f} → f ≼ Hom[ x , y ]# O-Fin → f == Hom[ x , y ]# O-Fin
-      ≼idx0→idx0 (inl p) = p
-      ≼idx0→idx0 {f = f} (inr u) =
-        ⊥-elim (≮O _ (tr (λ □ → to-ℕ (idx-of f) < to-ℕ □)
-                         (idx-of-Hom# O-Fin) (≺→<-Fin u)))
-
-      idx0≼ : ∀ f → Hom[ x , y ]# O-Fin ≼ f
-      idx0≼ f = ≤-Fin→≼ (tr (_≤-Fin (idx-of f)) (! (idx-of-Hom# _)) (O≤ _))
-
-      ≺→idx0≺ : ∀ {f g} → f ≺ g → Hom[ x , y ]# O-Fin ≺ g
-      ≺→idx0≺ {f} u = ≼→≺→≺ (idx0≼ f) u
-  -}
+{-
+record WellPresentedSemicategory : Type₁ where
+  field ⦃ C ⦄ : SuitableSemicategory
+  open SuitableSemicategory C hiding (C) public
+  field
+    Hom-monotone : ∀ k m n (f : Hom n m) (g h : Hom m k)
+                   → idx-of g <-Fin idx-of h
+                   → idx-of (g ◦ f) ≤-Fin idx-of (h ◦ f)
+-}
