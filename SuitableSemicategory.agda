@@ -77,7 +77,8 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
                    (λ ¬u → inr (λ (f , p) → ¬u (–> e f , p)))
 
   -- The number of (g : Hom x y) satisfying f ≤ g and (P g)
-  #-Hom[_,_]-from : ∀ {ℓ} x y (P : Hom x y → Type ℓ)
+  #-Hom[_,_]-from : ∀ {ℓ} x y
+                    → (P : Hom x y → Type ℓ)
                     → ((f : Hom x y) → Dec (P f))
                     → (f : Hom x y)
                     → Σ[ k ∈ ℕ ] to-ℕ (idx-of f) + k ≤ Hom-size x y

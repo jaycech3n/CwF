@@ -81,67 +81,86 @@ sieve-from-next-h iS = sieve-conds (≤-trans lteS (hcond iS)) lteE
 
 [_,_,_]∩[_,_] : (i h t : ℕ) (m : ℕ) (f : Hom i m) → is-sieve i h t → Sieve
 
-apex-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
-            → apex ([ i , h , t ]∩[ m , f ] iS) == m
-
-height-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
-              → height ([ i , h , t ]∩[ m , f ] iS) ≤ h
+width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
+             → height ([ i , h , t ]∩[ m , f ] iS) == h
+             → width ([ i , h , t ]∩[ m , f ] iS) ≤ Hom-size m h
 
 monotone-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
              → {t' : ℕ} → {1+ t' == t}
-             → (s : ℕ)
-             → s < width ([ i , h , t ]∩[ m , f ] iS)
-             → to-ℕ (idx-of ((Hom[ m , h ]# (s , {!!})) ◦ f)) ≤ t'
+             → (p : height ([ i , h , t ]∩[ m , f ] iS) == h)
+             → (s : ℕ) (lt : s < width ([ i , h , t ]∩[ m , f ] iS))
+             → let slt : s < Hom-size m h
+                   slt = <→≤→< lt (width-of-∩ i h t m f iS p) in
+               to-ℕ (idx-of ((Hom[ m , h ]# (s , slt)) ◦ f)) ≤ t'
 
 [ i , h , 1+ t ]∩[ m , f ] iS
  with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
 ... | inr no = [ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)
-... | inl (w , _) =
-        if (height prev-∩ <? h)
-           (λ <h → (m , h , #-Hom-from-O-val) ,
-                     sieve-conds (inr (Hom-inverse h m w)) #-Hom-from-O-cond)
-           (λ ≮h → (m , h , {!!}) ,
-                     {!!})
-      where
-        prev-∩ = [ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)
+... | inl (w , _)
+       with height ([ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)) <? h
+...       | inl prev-height<h =
+              (m , h , #-Hom-from-O-val) ,
+                sieve-conds (inr (Hom-inverse h m w)) #-Hom-from-O-cond
+            where
+              -- If the height of the previous intersection (i, h, t)∩(m, f) is
+              -- less than h, then we know (by monotonicity; but we don't need
+              -- to prove this here) that [0] ∘ f = [t], so we start counting
+              -- from there.
 
-        O-Fin = 0 , Hom[ m , h ]-inhab w
-        [O] = Hom[ m , h ]# O-Fin
-        [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
+              O-Fin = 0 , Hom[ m , h ]-inhab w
+              [O] = Hom[ m , h ]# O-Fin
+              [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
 
-        #-Hom-from-O = #-Hom[ m , h ]-from
-                         (λ g → g ◦ f == [t])
-                         (λ g → g ◦ f ≟-Hom [t]) [O]
+              #-Hom-from-O = #-Hom[ m , h ]-from
+                               (λ g → g ◦ f == [t])
+                               (λ g → g ◦ f ≟-Hom [t])
+                               [O]
 
-        #-Hom-from-O-val : ℕ
-        #-Hom-from-O-val = fst #-Hom-from-O
+              #-Hom-from-O-val = fst #-Hom-from-O
 
-        #-Hom-from-O-cond : #-Hom-from-O-val ≤ Hom-size m h
-        #-Hom-from-O-cond = tr (λ □ → □ + #-Hom-from-O-val ≤ _)
-                               (ap fst (idx-of-Hom# O-Fin))
-                               (snd #-Hom-from-O)
+              #-Hom-from-O-cond : #-Hom-from-O-val ≤ Hom-size m h
+              #-Hom-from-O-cond = tr (λ □ → □ + #-Hom-from-O-val ≤ _)
+                                     (ap fst (idx-of-Hom# O-Fin))
+                                     (snd #-Hom-from-O)
 
-        [prev-∩-width] = Hom[ m , h ]# (width prev-∩ , {!!})
-        {-
-        #-Hom-from-prev-width = #-Hom[ m , h ]-from
+...       | inr prev-height≮h =
+              (m , h , prev-width + #-Hom-from-prev-val) ,
+                sieve-conds (inr (Hom-inverse h m w)) #-Hom-from-prev-cond
+            where
+              -- If prev-width := height((i, h, t)∩(m, f)) ≮ h (and so in fact
+              -- equals h) then we start counting from prev-width. Here we need
+              -- to prove that prev-width < |Hom m h| strictly.
+
+              prev-∩ = [ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)
+              prev-width = width prev-∩
+
+              prev-width-cond : prev-width < Hom-size m h
+              prev-width-cond = {!!}
+
+              [prev-width] = Hom[ m , h ]# (prev-width , prev-width-cond)
+              [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
+
+              #-Hom-from-prev = #-Hom[ m , h ]-from
                                   (λ g → g ◦ f == [t])
-                                  (λ g → g ◦ f ≟-Hom [t]) [O]
-        -}
+                                  (λ g → g ◦ f ≟-Hom [t])
+                                  [prev-width]
+
+              #-Hom-from-prev-val = fst #-Hom-from-prev
+
+              #-Hom-from-prev-cond : prev-width + #-Hom-from-prev-val ≤ Hom-size m h
+              #-Hom-from-prev-cond =
+                tr (λ □ → □ + #-Hom-from-prev-val ≤ _)
+                   (ap to-ℕ (idx-of-Hom# (prev-width , prev-width-cond)))
+                   (snd #-Hom-from-prev)
+
 [ i ,   O  , O ]∩[ m , f ] iS = (m , 0 , 0) ,
                                   empty-sieve m
 [ i , 1+ h , O ]∩[ m , f ] iS = [ i , h , Hom-size i h ]∩[ m , f ]
                                   (full-sieve i h (≤-trans lteS (hcond iS)))
 
-apex-of-∩ i h (1+ t) m f iS
- with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
-... | inr no = apex-of-∩ i h t m f (sieve-from-next-t iS)
-... | inl yes
-       with height ([ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)) <? h
-...       | inl <h = idp
-...       | inr ≮h = idp
-apex-of-∩ i O O m f iS = idp
-apex-of-∩ i (1+ h) O m f iS = apex-of-∩ i h (Hom-size i h) m f (sieve-from-next-h iS)
 
+height-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
+              → height ([ i , h , t ]∩[ m , f ] iS) ≤ h
 height-of-∩ i h (1+ t) m f iS
  with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
 ... | inr no = height-of-∩ i h t m f (sieve-from-next-t iS)
@@ -152,5 +171,78 @@ height-of-∩ i h (1+ t) m f iS
 height-of-∩ i O O m f iS = lteE
 height-of-∩ i (1+ h) O m f iS =
   ≤-trans (height-of-∩ i h (Hom-size i h) m f (sieve-from-next-h iS)) lteS
+
+
+-- The definition of width-of-∩ duplicates the where clauses in the definition
+-- of [_,_,_]∩[_,_]. We could merge the two, but then things might get a bit
+-- harder to read.
+
+width-of-∩ i h (1+ t) m f iS p
+ with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
+... | inr no = width-of-∩ i h t m f (sieve-from-next-t iS) p
+... | inl (w , _)
+       with height ([ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)) <? h
+...       | inl prev-height<h = #-Hom-from-O-cond
+            where
+              O-Fin = 0 , Hom[ m , h ]-inhab w
+              [O] = Hom[ m , h ]# O-Fin
+              [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
+
+              #-Hom-from-O = #-Hom[ m , h ]-from
+                               (λ g → g ◦ f == [t])
+                               (λ g → g ◦ f ≟-Hom [t])
+                               [O]
+
+              #-Hom-from-O-val = fst #-Hom-from-O
+
+              #-Hom-from-O-cond : #-Hom-from-O-val ≤ Hom-size m h
+              #-Hom-from-O-cond = tr (λ □ → □ + #-Hom-from-O-val ≤ _)
+                                     (ap fst (idx-of-Hom# O-Fin))
+                                     (snd #-Hom-from-O)
+...       | inr prev-height≮h = #-Hom-from-prev-cond
+            where
+              prev-∩ = [ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)
+              prev-width = width prev-∩
+
+              prev-width-cond : prev-width < Hom-size m h
+              prev-width-cond = {!!}
+
+              [prev-width] = Hom[ m , h ]# (prev-width , prev-width-cond)
+              [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
+
+              #-Hom-from-prev = #-Hom[ m , h ]-from
+                                  (λ g → g ◦ f == [t])
+                                  (λ g → g ◦ f ≟-Hom [t])
+                                  [prev-width]
+
+              #-Hom-from-prev-val = fst #-Hom-from-prev
+
+              #-Hom-from-prev-cond : prev-width + #-Hom-from-prev-val ≤ Hom-size m h
+              #-Hom-from-prev-cond =
+                tr (λ □ → □ + #-Hom-from-prev-val ≤ _)
+                   (ap to-ℕ (idx-of-Hom# (prev-width , prev-width-cond)))
+                   (snd #-Hom-from-prev)
+
+width-of-∩ i O O m f iS p = O≤ _
+width-of-∩ i (1+ h) O m f iS p = ⊥-elim (S≰ contr)
+  where
+    height≤h : height ([ i , h , Hom-size i h ]∩[ m , f ] (sieve-from-next-h iS)) ≤ h
+    height≤h = height-of-∩ i h (Hom-size i h) m f (sieve-from-next-h iS)
+
+    contr : 1+ h ≤ h
+    contr = tr (_≤ h) p height≤h
+
+
+apex-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
+            → apex ([ i , h , t ]∩[ m , f ] iS) == m
+apex-of-∩ i h (1+ t) m f iS
+ with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
+... | inr no = apex-of-∩ i h t m f (sieve-from-next-t iS)
+... | inl yes
+       with height ([ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)) <? h
+...       | inl <h = idp
+...       | inr ≮h = idp
+apex-of-∩ i O O m f iS = idp
+apex-of-∩ i (1+ h) O m f iS = apex-of-∩ i h (Hom-size i h) m f (sieve-from-next-h iS)
 
 monotone-∩ = {!!}
