@@ -85,14 +85,6 @@ width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
              → height ([ i , h , t ]∩[ m , f ] iS) == h
              → width ([ i , h , t ]∩[ m , f ] iS) ≤ Hom-size m h
 
-monotone-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
-             → {t' : ℕ} → {1+ t' == t}
-             → (p : height ([ i , h , t ]∩[ m , f ] iS) == h)
-             → (s : ℕ) (lt : s < width ([ i , h , t ]∩[ m , f ] iS))
-             → let slt : s < Hom-size m h
-                   slt = <→≤→< lt (width-of-∩ i h t m f iS p) in
-               to-ℕ (idx-of ((Hom[ m , h ]# (s , slt)) ◦ f)) ≤ t'
-
 [ i , h , 1+ t ]∩[ m , f ] iS
  with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
 ... | inr no = [ i , h , t ]∩[ m , f ] (sieve-from-next-t iS)
@@ -244,5 +236,3 @@ apex-of-∩ i h (1+ t) m f iS
 ...       | inr ≮h = idp
 apex-of-∩ i O O m f iS = idp
 apex-of-∩ i (1+ h) O m f iS = apex-of-∩ i h (Hom-size i h) m f (sieve-from-next-h iS)
-
-monotone-∩ = {!!}

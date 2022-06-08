@@ -100,7 +100,7 @@ record SuitableSemicategory : Type₁ where
   field
     Hom-inverse : ∀ m n → Hom n m → m < n
 
-{-
+
 record WellPresentedSemicategory : Type₁ where
   field ⦃ C ⦄ : SuitableSemicategory
   open SuitableSemicategory C hiding (C) public
@@ -108,4 +108,3 @@ record WellPresentedSemicategory : Type₁ where
     Hom-monotone : ∀ k m n (f : Hom n m) (g h : Hom m k)
                    → idx-of g <-Fin idx-of h
                    → idx-of (g ◦ f) ≤-Fin idx-of (h ◦ f)
--}
