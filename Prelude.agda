@@ -18,7 +18,7 @@ open import HoTT
 
 private
   variable
-    ℓ₁ ℓ₂ ℓ₃ : ULevel
+    ℓ ℓ₁ ℓ₂ ℓ₃ : ULevel
 
 
 {- Notation -}
@@ -75,10 +75,10 @@ inr= idp = idp
 
 -- Could make this dependent, but don't need it.
 
-Maybe : Type ℓ₁ → Type ℓ₁
+Maybe : Type ℓ → Type ℓ
 Maybe A = A ⊔ ⊤
 
-some : {A : Type ℓ₁} → A → Maybe A
+some : {A : Type ℓ} → A → Maybe A
 some a = inl a
 
 pattern none = inr tt
@@ -91,13 +91,13 @@ default : {A : Type ℓ₁} {B : Type ℓ₂} → B → (A → B) → Maybe A �
 default _ f (inl a) = f a
 default b f none = b
 
-some≠none : {A : Type ℓ₁} {a : A} → some a ≠ none
+some≠none : {A : Type ℓ} {a : A} → some a ≠ none
 some≠none {a = a} = inl≠inr a tt
 
 
 {- Decidable types -}
 
-True : {A : Type ℓ₁} → Dec A → Bool
+True : {A : Type ℓ} → Dec A → Bool
 True (inl _) = true
 True (inr _) = false
 
