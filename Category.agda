@@ -1,60 +1,52 @@
-{--- Categories in HoTT ---}
-
 {-# OPTIONS --without-K #-}
 
 module Category where
 
-open import Prelude public
+open import Semicategory public
 
 
-{- Various flavors of "category" -}
+{- Categories -}
 
--- "Wild" constructions are those which are neither truncated nor required to be
--- coherent.
-
-record WildCategoryOn {i} (Ob : Type i) : Type (lsuc i) where
-  infixr 40 _◦_
+record WildCategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
+  field ⦃ WildSemicategory-on-Ob ⦄ : WildSemicategoryOn Ob
+  open WildSemicategoryOn WildSemicategory-on-Ob public
   field
-    Hom : Ob → Ob → Type i
-    _◦_ : ∀ {x y z} → Hom y z → Hom x y → Hom x z
-    id  : ∀ {x} → Hom x x
-
-    ass : ∀ {x y z w} {f : Hom z w} {g : Hom y z} {h : Hom x y}
-          → (f ◦ g) ◦ h == f ◦ (g ◦ h)
+    id : ∀ {x} → Hom x x
     idl : ∀ {x y} {f : Hom x y} → id ◦ f == f
     idr : ∀ {x y} {f : Hom x y} → f ◦ id == f
 
-record WildCategory {i} : Type (lsuc i) where
+record WildCategory {ℓ} : Type (lsuc ℓ) where
   field
-    Ob  : Type i
+    Ob  : Type ℓ
     WildCategory-on-Ob : WildCategoryOn Ob
   open WildCategoryOn WildCategory-on-Ob public
 
-record PreCategory {i} : Type (lsuc i) where
-  field ⦃ C ⦄ : WildCategory {i}
+record PreCategory {ℓ} : Type (lsuc ℓ) where
+  field ⦃ C ⦄ : WildCategory {ℓ}
   open WildCategory C public
   field
     Hom-is-set : ∀ {x y} → is-set (Hom x y)
 
-record StrictCategory {i} : Type (lsuc i) where
-  field ⦃ C ⦄ : PreCategory {i}
+record StrictCategory {ℓ} : Type (lsuc ℓ) where
+  field ⦃ C ⦄ : PreCategory {ℓ}
   open PreCategory C hiding (C) public
   field
     Ob-is-set  : is-set Ob
 
--- Isomorphism
 
-module _ {i} ⦃ C : WildCategory {i} ⦄ where
+{- Isomorphism -}
+
+module _ {ℓ} ⦃ C : WildCategory {ℓ} ⦄ where
   open WildCategory C
 
-  record is-iso  {x y : Ob} (f : Hom x y) : Type i where
+  record is-iso  {x y : Ob} (f : Hom x y) : Type ℓ where
     field
       g : Hom y x
       g∘f : g ◦ f == id
       f∘g : f ◦ g == id
 
   infix 30 _≅_
-  record _≅_ (x y : Ob) : Type i where
+  record _≅_ (x y : Ob) : Type ℓ where
     field
       f : Hom x y
       f-is-iso : is-iso f
@@ -65,13 +57,14 @@ module _ {i} ⦃ C : WildCategory {i} ⦄ where
     ; f-is-iso = record { g = id ; g∘f = idl ; f∘g = idl }
     }
 
--- Univalent category
 
-record Category {i} : Type (lsuc i) where
-  field ⦃ C ⦄ : PreCategory {i}
+{- Univalent category -}
+
+record Category {ℓ} : Type (lsuc ℓ) where
+  field ⦃ C ⦄ : PreCategory {ℓ}
   open PreCategory C hiding (C) public
   field
-    id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso {i} {x} {y})
+    id-to-iso-is-equiv : (x y : Ob) → is-equiv (id-to-iso {ℓ} {x} {y})
 
 
 {- Coercions -}
@@ -80,20 +73,19 @@ wild-of-pre-cat = PreCategory.C
 pre-of-strict-cat = StrictCategory.C
 pre-of-cat = Category.C
 
-wild-of-strict-cat : ∀ {i} → StrictCategory {i} → WildCategory {i}
+wild-of-strict-cat : ∀ {ℓ} → StrictCategory {ℓ} → WildCategory {ℓ}
 wild-of-strict-cat = wild-of-pre-cat ∘ pre-of-strict-cat
 
-wild-of-cat : ∀ {i} → Category {i} → WildCategory {i}
+wild-of-cat : ∀ {ℓ} → Category {ℓ} → WildCategory {ℓ}
 wild-of-cat = wild-of-pre-cat ∘ pre-of-cat
 
+-- Semicategory structure
 
-{- Properties of objects -}
-
-module _ {i} ⦃ C : WildCategory {i} ⦄  where
-  open WildCategory C
-
-  is-initial : (x : Ob) → Type i
-  is-initial x = (y : Ob) → is-contr (Hom x y)
-
-  is-terminal : (x : Ob) → Type i
-  is-terminal x = (y : Ob) → is-contr (Hom y x)
+instance
+  semi-of-wild-cat : ∀ {ℓ} ⦃ C : WildCategory {ℓ} ⦄ → WildSemicategory {ℓ}
+  semi-of-wild-cat ⦃ C ⦄ = record
+    { Ob = WildCategory.Ob C
+    ; WildSemicategory-on-Ob =
+        WildSemicategory-on-Ob (WildCategory.WildCategory-on-Ob C)
+    }
+    where open WildCategoryOn

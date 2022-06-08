@@ -35,13 +35,13 @@ module _ {i}
                 → Ty (SCT (1+ i))
   Sk-unc ((b , h , t) , iS) i icond = Sk[ b , h , t , iS ] i icond
 
-  Sk→[_,_,_,_]∩[_,_] : (b h t : ℕ) (iS : is-sieve b h t)
-                       (m : ℕ) (f : Hom m b)
-                       (i : ℕ) (icond : h ≤ i)
-                       → Tm (Sk[ b , h , t , iS ] i icond)
-                       → Tm (Sk-unc
-                              ([ b , h , t ]∩[ m , f ] iS)
-                              i (h-of-∩' iS i icond))
+  Sk[_,_,_,_]∩[_,_] : (b h t : ℕ) (iS : is-sieve b h t)
+                      (m : ℕ) (f : Hom m b)
+                      (i : ℕ) (icond : h ≤ i)
+                      → Tm (Sk[ b , h , t , iS ] i icond)
+                      → Tm (Sk-unc
+                             ([ b , h , t ]∩[ m , f ] iS)
+                             i (h-of-∩' iS i icond))
 
   -- The matching object
   M[_] : (h i : ℕ) → h ≤ i → Ty (SCT i)
@@ -78,14 +78,14 @@ module _ {i}
 
   open is-sieve
 
-  Sk→[ b , h , 1+ t , iS ]∩[ m , f ] i icond s = {!!}
-  Sk→[ b , O , O , iS ]∩[ m , f ] i icond s = ̂*
-  Sk→[ b , 1+ h , O , iS ]∩[ m , f ] O (inl ())
-  Sk→[ b , 1+ h , O , iS ]∩[ m , f ] (1+ i) icond s =
+  Sk[ b , h , 1+ t , iS ]∩[ m , f ] i icond s = {!!}
+  Sk[ b , O , O , iS ]∩[ m , f ] i icond s = ̂*
+  Sk[ b , 1+ h , O , iS ]∩[ m , f ] O (inl ())
+  Sk[ b , 1+ h , O , iS ]∩[ m , f ] (1+ i) icond s =
     tr Tm
        (Sk-unc=
          {s  = [ b , h , Hom-size h b ]∩[ m , f ] _}
          {s' = [ b , 1+ h , O ]∩[ m , f ] iS }
          idp)
-       (Sk→[ b , h , Hom-size h b , is-sieve-prev-h iS ]∩[ m , f ]
+       (Sk[ b , h , Hom-size h b , is-sieve-prev-h iS ]∩[ m , f ]
            (1+ i) (S≤→≤ icond) s)

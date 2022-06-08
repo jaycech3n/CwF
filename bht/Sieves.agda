@@ -1,6 +1,6 @@
 {--- Sieves in "nice enough" index categories ---}
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --allow-unsolved-metas #-}
 
 open import bht.NiceIndexCategory
 open import Arithmetic
