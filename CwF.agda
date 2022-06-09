@@ -15,7 +15,6 @@ following rules of thumb (which may, however, be broken as needed):
 
 module CwF where
 
-open import Arithmetic public
 open import Category public
 
 

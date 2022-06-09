@@ -2,11 +2,13 @@
 
 open import SuitableSemicategory
 
-module Sieves {ℓ} {Ob : Type ℓ} ⦃ C : LocallyFiniteSemicategoryOn Ob ⦄
-  (_≟-Ob_ : has-dec-eq Ob)
-  where
+module Sieves {ℓ}
+  {Ob : Type ℓ}
+  ⦃ C : LocallyFiniteSemicategoryOn Ob ⦄
+  (_≟-Ob_ : has-dec-eq Ob) where
 
 open LocallyFiniteSemicategoryOn C
+
 open import DSM _≟-Ob_
 
 
@@ -30,7 +32,7 @@ abstract
    with x ≟-Ob x
   ... | inl p rewrite is-set-UIP Ob-is-set p
               with g factors-through? f
-  ...            | inl (w , q) = equiv (λ _ → ∣ {!!} ∣) {!!} {!!} {!!}
-  ...            | inr ¬factor = {!!}
+  ...            | inl w = prop-equiv (λ _ → ∣ w ∣) (λ _ → tt)
+  ...            | inr ¬factor = prop-equiv ⊥-elim (Trunc-elim ¬factor)
   ⦅_⦆-correct {x} {y} {z} f g
-      | inr ¬p = {!!}
+      | inr ¬p = prop-equiv ⊥-elim (Trunc-elim (λ _ → ¬p idp))

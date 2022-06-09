@@ -4,9 +4,10 @@
 
 open import SuitableSemicategory
 
-module DSM {ℓ} {Ob : Type ℓ} ⦃ C : LocallyFiniteSemicategoryOn Ob ⦄
-  (_≟-Ob_ : has-dec-eq Ob) -- so Ob is a set
-  where
+module DSM {ℓ}
+  {Ob : Type ℓ}
+  ⦃ C : LocallyFiniteSemicategoryOn Ob ⦄
+  (_≟-Ob_ : has-dec-eq Ob) where
 
 open LocallyFiniteSemicategoryOn C
 
@@ -29,3 +30,6 @@ add-arrow (u , v , g) σ (x , y , f) =
             (λ{ idp → True (f ≟-Hom g)})
             (λ no → σ (x , y , f)) })
      (λ no → σ (x , y , f))
+
+_∩_ : DSM → DSM → DSM
+(σ ∩ σ') f = σ f and σ' f

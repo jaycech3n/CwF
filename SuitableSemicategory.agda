@@ -3,7 +3,6 @@
 module SuitableSemicategory where
 
 open import Semicategory public
-open import Fin public
 
 
 record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where

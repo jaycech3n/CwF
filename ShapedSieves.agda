@@ -3,7 +3,6 @@
 {--- Shaped sieves in well presented semicategories ---}
 
 open import SuitableSemicategory
-open import Fin
 
 module ShapedSieves ⦃ I : WellPresentedSemicategory ⦄ where
 open WellPresentedSemicategory I
@@ -79,8 +78,8 @@ shape-from-next-h iS = sieve-conds (≤-trans lteS (hcond iS)) lteE
 
 {- Interpretation of shapes
 
-In this section we define the interpretation of a sieve shape (i, h, t) in terms
-of decidable subsets of morphisms of I.
+We define the interpretation of a sieve shape (i, h, t) in terms of decidable
+subsets of morphisms of I.
 -}
 
 ⟦_,_,_⟧ : (i h t : ℕ) → is-sieve i h t → DSM
@@ -89,6 +88,8 @@ of decidable subsets of morphisms of I.
   where [t] = Hom[ i , h ]# (t , <→≤→< ltS (tcond iS))
 ⟦ i , O , O ⟧ iS = Ø
 ⟦ i , 1+ h , O ⟧ iS = ⟦ i , h , Hom-size i h ⟧ (shape-from-next-h iS)
+
+
 
 
 {- Shape intersection -}

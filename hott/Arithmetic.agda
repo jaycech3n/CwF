@@ -1,8 +1,8 @@
 {-# OPTIONS --without-K #-}
 
-module Arithmetic where
+module hott.Arithmetic where
 
-open import Prelude public
+open import hott.Base
 
 
 O+O : ∀ {m n} → m == O → n == O → m + n == O

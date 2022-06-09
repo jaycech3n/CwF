@@ -1,9 +1,9 @@
 {-# OPTIONS --without-K #-}
 
-module Fin where
+module hott.Fin where
 
-open import Prelude public
-open import Arithmetic public
+open import hott.Base
+open import hott.Arithmetic
 
 private
   variable
