@@ -1,8 +1,7 @@
 {-# OPTIONS --without-K #-}
 
-{--- Categories with families ---}
+{--- Categories with families
 
-{-
 We formalize CwFs as generalized algebraic theories following Dybjer ("Internal
 Type Theory", 1996) and others.
 
@@ -164,9 +163,9 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
         =∎
 
-      {- Weakening -}
+      {- Weakening
 
-      {- Given A : Ty Γ and f : Sub Δ Γ, we get the weakening (f ʷ A) of f by A
+      Given A : Ty Γ and f : Sub Δ Γ, we get the weakening (f ʷ A) of f by A
       that, intuitively, acts as f does, and leaves the "free variable x : A"
       alone.  This diagram commutes:
 

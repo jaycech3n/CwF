@@ -3,8 +3,7 @@
 module SuitableSemicategory where
 
 open import Semicategory public
-open import Equivalence
-open import Fin
+open import Fin public
 
 
 record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
@@ -86,8 +85,11 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
     #-Fin-from {n = Hom-size x y} (P ∘ Hom[ x , y ]#) (dec ∘ Hom[ x , y ]#)
       (idx-of f) {Hom-size x y ∸ (to-ℕ (idx-of f)) ∸ 1} {<→∸=S (snd (idx-of f))}
 
+  _factors-through_ : ∀ {x y z} (h : Hom x z) (f : Hom x y) → Type ℓ
+  _factors-through_ {y = y} {z} h f = Σ[ g ∈ Hom y z ] g ◦ f == h
+
   _factors-through?_ : ∀ {x y z} (h : Hom x z) (f : Hom x y)
-                      → Dec (Σ[ g ∈ Hom y z ] g ◦ f == h)
+                      → Dec (h factors-through f)
   h factors-through? f = Σ-Hom? (λ g → (g ◦ f) == h) (λ g → g ◦ f ≟-Hom h)
 
   Hom[_,_]-inhab : ∀ x y → Hom x y → O < Hom-size x y

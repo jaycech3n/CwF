@@ -31,16 +31,6 @@ instance
   O<-inst : ∀ {n} → O < 1+ n
   O<-inst {n} = O<S n
 
-{-
-instance
-  S<S-inst : {m n : ℕ} ⦃ m<n : m < n ⦄ → 1+ m < 1+ n
-  S<S-inst ⦃ m<n ⦄ = <-ap-S m<n
-
-instance
-  solve-S≤S : {m n : ℕ} ⦃ h : m ≤ n ⦄ → 1+ m ≤ 1+ n
-  solve-S≤S ⦃ h ⦄ = ≤-ap-S h
--}
-
 O<→O<+r : ∀ {m n} → O < m → O < m + n
 O<→O<+r {1+ m} {n} x = O<S (m + n)
 

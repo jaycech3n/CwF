@@ -1,8 +1,8 @@
 {-# OPTIONS --without-K #-}
 
-module Equivalence where
+module hott.Equivalence where
 
-open import Prelude
+open import hott.Base
 
 private
   variable

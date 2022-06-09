@@ -5,7 +5,7 @@
 open import SuitableSemicategory
 
 module DSM {ℓ} {Ob : Type ℓ} ⦃ C : LocallyFiniteSemicategoryOn Ob ⦄
-  (_≟-Ob_ : has-dec-eq Ob)
+  (_≟-Ob_ : has-dec-eq Ob) -- so Ob is a set
   where
 
 open LocallyFiniteSemicategoryOn C
