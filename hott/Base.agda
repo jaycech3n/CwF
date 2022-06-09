@@ -88,7 +88,8 @@ Maybe A = A ⊔ ⊤
 some : {A : Type ℓ} → A → Maybe A
 some a = inl a
 
-pattern none = inr tt
+none : {A : Type ℓ} → Maybe A
+none = inr tt
 
 Maybe-elim : {A : Type ℓ₁} {B : Type ℓ₂}
              → Maybe A → B → (A → B) → B
@@ -96,7 +97,7 @@ Maybe-elim m b f = ⊔-elim f (λ _ → b) m
 
 default : {A : Type ℓ₁} {B : Type ℓ₂} → B → (A → B) → Maybe A → B
 default _ f (inl a) = f a
-default b f none = b
+default b f (inr _) = b
 
 some≠none : {A : Type ℓ} {a : A} → some a ≠ none
 some≠none {a = a} = inl≠inr a tt
@@ -104,9 +105,9 @@ some≠none {a = a} = inl≠inr a tt
 
 {- Decidable types -}
 
-True : {A : Type ℓ} → Dec A → Bool
-True (inl _) = true
-True (inr _) = false
+to-Bool : {A : Type ℓ} → Dec A → Bool
+to-Bool (inl _) = true
+to-Bool (inr _) = false
 
 is-true : Bool → Type₀
 is-true true = ⊤

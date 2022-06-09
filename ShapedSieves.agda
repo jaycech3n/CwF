@@ -10,27 +10,30 @@ open WellPresentedSemicategory I
 open import DSM _≟-ℕ_
 
 
-{- Sieve shapes -}
+{- Sieve shapes
 
-record is-sieve (i h t : ℕ) : Type₀ where
-  constructor sieve-conds
+"Shapes" are just triples of numbers satisfying certain conditions.
+-}
+
+record is-shape (i h t : ℕ) : Type₀ where
+  constructor shape-conds
   field
     hcond : h ≤ i
     tcond : t ≤ Hom-size i h
 
-open is-sieve
+open is-shape
 
-is-sieve= : ∀ {i h t} {iS iS' : is-sieve i h t}
+is-shape= : ∀ {i h t} {iS iS' : is-shape i h t}
             → hcond iS == hcond iS'
             → tcond iS == tcond iS'
             → iS == iS'
-is-sieve= idp idp = idp
+is-shape= idp idp = idp
 
-is-sieve-is-prop : ∀ {i h t} → is-prop (is-sieve i h t)
-is-sieve-is-prop = all-paths-is-prop
-                   λ{(sieve-conds hcond tcond)
-                     (sieve-conds hcond' tcond')
-                   → is-sieve= (prop-path ≤-is-prop hcond hcond')
+is-shape-is-prop : ∀ {i h t} → is-prop (is-shape i h t)
+is-shape-is-prop = all-paths-is-prop
+                   λ{(shape-conds hcond tcond)
+                     (shape-conds hcond' tcond')
+                   → is-shape= (prop-path ≤-is-prop hcond hcond')
                                (prop-path ≤-is-prop tcond tcond')}
 
 Shape : Type₀
@@ -38,7 +41,7 @@ Shape = Σ[ s ∈ ℕ × ℕ × ℕ ]
           let i = fst s
               h = 2nd s
               t = 3rd s
-          in is-sieve i h t
+          in is-shape i h t
 
 apex : Shape → ℕ
 apex ((i , _ , _) , _) = i
@@ -49,54 +52,56 @@ height ((_ , h , _) , _) = h
 width : Shape → ℕ
 width ((_ , _ , t) , _) = t
 
-sieve-cond : (((i , h , t) , _) : Shape) → is-sieve i h t
-sieve-cond (_ , iS) = iS
+shape-cond : (((i , h , t) , _) : Shape) → is-shape i h t
+shape-cond (_ , iS) = iS
 
 Shape= : {s s' : Shape}
          → apex s == apex s'
          → height s == height s'
          → width s == width s'
          → s == s'
-Shape= idp idp idp = pair= idp (prop-path is-sieve-is-prop _ _)
+Shape= idp idp idp = pair= idp (prop-path is-shape-is-prop _ _)
 
 -- Basic shapes
 
-empty-sieve : ∀ i → is-sieve i 0 0
-hcond (empty-sieve i) = O≤ _
-tcond (empty-sieve i) = O≤ _
+empty-shape : ∀ i → is-shape i 0 0
+hcond (empty-shape i) = O≤ _
+tcond (empty-shape i) = O≤ _
 
-full-sieve : ∀ i h → h ≤ i → is-sieve i h (Hom-size i h)
-hcond (full-sieve i h h≤i) = h≤i
-tcond (full-sieve i h h≤i) = lteE
+full-shape : ∀ i h → h ≤ i → is-shape i h (Hom-size i h)
+hcond (full-shape i h h≤i) = h≤i
+tcond (full-shape i h h≤i) = lteE
 
-shape-from-next-t : ∀ {i h t} → is-sieve i h (1+ t) → is-sieve i h t
-shape-from-next-t iS = sieve-conds (hcond iS) (S≤→≤ (tcond iS))
+shape-from-next-t : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
+shape-from-next-t iS = shape-conds (hcond iS) (S≤→≤ (tcond iS))
 
-shape-from-next-h : ∀ {i h} → is-sieve i (1+ h) O → is-sieve i h (Hom-size i h)
-shape-from-next-h iS = sieve-conds (≤-trans lteS (hcond iS)) lteE
+shape-from-next-h : ∀ {i h} → is-shape i (1+ h) O → is-shape i h (Hom-size i h)
+shape-from-next-h iS = shape-conds (≤-trans lteS (hcond iS)) lteE
 
 
-{- Interpretation of shapes
+{- Shaped sieves
 
-We define the interpretation of a sieve shape (i, h, t) in terms of decidable
-subsets of morphisms of I.
+The shape conditions ensure that shapes properly encode certain sieves, defined here.
 -}
 
-⟦_,_,_⟧ : (i h t : ℕ) → is-sieve i h t → DSM
+⟦_,_,_⟧ : (i h t : ℕ) → is-shape i h t → DSM
 ⟦ i , h , 1+ t ⟧ iS =
-  add-arrow (i , h , [t]) (⟦ i , h , t ⟧ (shape-from-next-t iS))
-  where [t] = Hom[ i , h ]# (t , <→≤→< ltS (tcond iS))
+  add-arrow [t] (⟦ i , h , t ⟧ (shape-from-next-t iS))
+    where [t] = Hom[ i , h ]# (t , <→≤→< ltS (tcond iS))
 ⟦ i , O , O ⟧ iS = Ø
 ⟦ i , 1+ h , O ⟧ iS = ⟦ i , h , Hom-size i h ⟧ (shape-from-next-h iS)
 
-
+⟦_,_,_⟧-base : (i h t : ℕ) (iS : is-shape i h t)
+               → (h' : ℕ) → h' < h → (f : Hom i h')
+               → f ∈ₘ ⟦ i , h , t ⟧ iS
+⟦_,_,_⟧-base = {!!}
 
 
 {- Shape intersection -}
 
-[_,_,_]∩[_,_] : (i h t : ℕ) (m : ℕ) (f : Hom i m) → is-sieve i h t → Shape
+[_,_,_]∩[_,_] : (i h t : ℕ) (m : ℕ) (f : Hom i m) → is-shape i h t → Shape
 
-width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
+width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-shape i h t)
              → height ([ i , h , t ]∩[ m , f ] iS) == h
              → width ([ i , h , t ]∩[ m , f ] iS) ≤ Hom-size m h
 
@@ -107,7 +112,7 @@ width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
        with height ([ i , h , t ]∩[ m , f ] (shape-from-next-t iS)) <? h
 ...       | inl prev-height<h =
               (m , h , #-Hom-from-O-val) ,
-                sieve-conds (inr (Hom-inverse h m w)) #-Hom-from-O-cond
+                shape-conds (inr (Hom-inverse h m w)) #-Hom-from-O-cond
             where
               -- If the height of the previous intersection (i, h, t)∩(m, f) is
               -- less than h, then we know (by monotonicity; but we don't need
@@ -132,7 +137,7 @@ width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
 
 ...       | inr prev-height≮h =
               (m , h , prev-width + #-Hom-from-prev-val) ,
-                sieve-conds (inr (Hom-inverse h m w)) #-Hom-from-prev-cond
+                shape-conds (inr (Hom-inverse h m w)) #-Hom-from-prev-cond
             where
               -- If prev-width := height((i, h, t)∩(m, f)) ≮ h (and so in fact
               -- equals h) then we start counting from prev-width. Here we need
@@ -161,12 +166,12 @@ width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
                    (snd #-Hom-from-prev)
 
 [ i ,   O  , O ]∩[ m , f ] iS = (m , 0 , 0) ,
-                                  empty-sieve m
+                                  empty-shape m
 [ i , 1+ h , O ]∩[ m , f ] iS = [ i , h , Hom-size i h ]∩[ m , f ]
-                                  (full-sieve i h (≤-trans lteS (hcond iS)))
+                                  (full-shape i h (≤-trans lteS (hcond iS)))
 
 
-height-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
+height-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-shape i h t)
               → height ([ i , h , t ]∩[ m , f ] iS) ≤ h
 height-of-∩ i h (1+ t) m f iS
  with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
@@ -240,7 +245,7 @@ width-of-∩ i (1+ h) O m f iS p = ⊥-elim (S≰ contr)
     contr = tr (_≤ h) p height≤h
 
 
-apex-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-sieve i h t)
+apex-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-shape i h t)
             → apex ([ i , h , t ]∩[ m , f ] iS) == m
 apex-of-∩ i h (1+ t) m f iS
  with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
