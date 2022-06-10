@@ -15,7 +15,7 @@ to-ℕ = fst
 
 elem-of-Fin-1 : (m : Fin 1) → to-ℕ m == O
 elem-of-Fin-1 (O , _) = idp
-elem-of-Fin-1 (1+ m , S<1) = ⊥-elim {P = λ _ → 1+ m == O} (S≮1 S<1)
+elem-of-Fin-1 (1+ m , S<1) = ⊥-rec (S≮1 S<1)
 
 1+Fin : ∀ {n} ((m , _) : Fin n) → 1+ m < n → Fin n
 1+Fin (m , _) h = 1+ m , h

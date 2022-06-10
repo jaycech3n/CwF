@@ -1,9 +1,16 @@
 {-# OPTIONS --without-K #-}
 
+{--- Booleans, decidable types and boolean reflection ---}
+
 module hott.Bool where
 
 open import hott.Base
 
+private
+  variable ℓ : ULevel
+
+
+{- Bool -}
 
 not : Bool → Bool
 not true = false
@@ -16,3 +23,40 @@ false and _ = false
 _or_ : Bool → Bool → Bool
 true or _ = true
 false or b = b
+
+
+{- Reflection -}
+
+-- Rudimentary boolean reflection
+
+to-Bool : {A : Type ℓ} → Dec A → Bool
+to-Bool (inl _) = true
+to-Bool (inr _) = false
+
+is-true : Bool → Type₀
+is-true true = ⊤
+is-true false = ⊥
+
+⌞_⌟ : {b : Bool} (m : is-true b) → b == true
+⌞_⌟ {true} m = idp
+
+ans-sym : ∀ a b → (a and b) == (b and a)
+ans-sym true true = idp
+ans-sym true false = idp
+ans-sym false true = idp
+ans-sym false false = idp
+
+or-sym : ∀ a b → (a or b) == (b or a)
+or-sym true true = idp
+or-sym true false = idp
+or-sym false true = idp
+or-sym false false = idp
+
+
+{- Decidable types -}
+
+=-refl-bool : {A : Type ℓ} (_≟_ : has-dec-eq A) (a : A)
+              → to-Bool (a ≟ a) == true
+=-refl-bool (_≟_) a with a ≟ a
+... | inl _ = idp
+... | inr ¬p = ⊥-rec (¬p idp)

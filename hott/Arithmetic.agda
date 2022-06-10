@@ -13,7 +13,7 @@ O+O {m} {n} p q =
 
 +==O-r : ∀ {m n} → m + n == O → n == O
 +==O-r {m = O} p = p
-+==O-r {m = 1+ m} {n} p = ⊥-elim (ℕ-S≠O (m + n) p)
++==O-r {m = 1+ m} {n} p = ⊥-rec (ℕ-S≠O (m + n) p)
 
 3-comm-2 : ∀ k m n → k + m + n == m + k + n
 3-comm-2 k m n = +-comm k m |in-ctx (_+ n)
@@ -87,11 +87,11 @@ S≮1 : ∀ {n} → ¬ (1+ n < S O)
 S≮1 {n} = ≮O n ∘ <-cancel-S
 
 ≤→≠→< : ∀ {m n} → m ≤ n → m ≠ n → m < n
-≤→≠→< (inl u) v = ⊥-elim (v u)
+≤→≠→< (inl u) v = ⊥-rec (v u)
 ≤→≠→< (inr u) _ = u
 
 ≠O→O< : ∀ {n} → n ≠ O → O < n
-≠O→O< {O}    u = ⊥-elim (u idp)
+≠O→O< {O}    u = ⊥-rec (u idp)
 ≠O→O< {1+ n} _ = O<S n
 
 =-cancel-S : ∀ {m n} → 1+ m == 1+ n :> ℕ → m == n

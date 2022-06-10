@@ -68,6 +68,7 @@ empty-shape : ∀ i → is-shape i 0 0
 hcond (empty-shape i) = O≤ _
 tcond (empty-shape i) = O≤ _
 
+-- Note Hom-size i h could be 0!
 full-shape : ∀ i h → h ≤ i → is-shape i h (Hom-size i h)
 hcond (full-shape i h h≤i) = h≤i
 tcond (full-shape i h h≤i) = lteE
@@ -77,6 +78,20 @@ shape-from-next-t iS = shape-conds (hcond iS) (S≤→≤ (tcond iS))
 
 shape-from-next-h : ∀ {i h} → is-shape i (1+ h) O → is-shape i h (Hom-size i h)
 shape-from-next-h iS = shape-conds (≤-trans lteS (hcond iS)) lteE
+
+-- Shape normal forms
+
+normal : (i h t : ℕ) → is-shape i h t → Type₀
+normal i O O _ = ⊤
+normal i O (1+ t) _ = ⊤
+normal i (1+ h) O _ = ⊥
+normal i (1+ h) (1+ t) _ = ⊤
+
+empty : (i h t : ℕ) → is-shape i h t → Type₀
+empty i O O _ = ⊤
+empty i O (1+ t) _ = ⊥
+empty i (1+ h) O _ = ⊥ -- *could* represent the empty sieve
+empty i (1+ h) (1+ t) _ = ⊥
 
 
 {- Shaped sieves
@@ -91,10 +106,13 @@ The shape conditions ensure that shapes properly encode certain sieves, defined 
 ⟦ i , O , O ⟧ iS = Ø
 ⟦ i , 1+ h , O ⟧ iS = ⟦ i , h , Hom-size i h ⟧ (shape-from-next-h iS)
 
-⟦_,_,_⟧-base : (i h t : ℕ) (iS : is-shape i h t)
-               → (h' : ℕ) → h' < h → (f : Hom i h')
-               → f ∈ₘ ⟦ i , h , t ⟧ iS
-⟦_,_,_⟧-base = {!!}
+module _ where
+  --⟦_,_,_⟧-last : 
+
+  ⟦_,_,_⟧-base : (i h t : ℕ) (iS : is-shape i h t)
+                 → (h' : ℕ) → h' < h → (f : Hom i h')
+                 → f ∈ₘ ⟦ i , h , t ⟧ iS
+  ⟦_,_,_⟧-base = {!!}
 
 
 {- Shape intersection -}
@@ -236,7 +254,7 @@ width-of-∩ i h (1+ t) m f iS p
                    (snd #-Hom-from-prev)
 
 width-of-∩ i O O m f iS p = O≤ _
-width-of-∩ i (1+ h) O m f iS p = ⊥-elim (S≰ contr)
+width-of-∩ i (1+ h) O m f iS p = ⊥-rec (S≰ contr)
   where
     height≤h : height ([ i , h , Hom-size i h ]∩[ m , f ] (shape-from-next-h iS)) ≤ h
     height≤h = height-of-∩ i h (Hom-size i h) m f (shape-from-next-h iS)

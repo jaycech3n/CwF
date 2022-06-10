@@ -101,14 +101,3 @@ default b f (inr _) = b
 
 some≠none : {A : Type ℓ} {a : A} → some a ≠ none
 some≠none {a = a} = inl≠inr a tt
-
-
-{- Decidable types -}
-
-to-Bool : {A : Type ℓ} → Dec A → Bool
-to-Bool (inl _) = true
-to-Bool (inr _) = false
-
-is-true : Bool → Type₀
-is-true true = ⊤
-is-true false = ⊥
