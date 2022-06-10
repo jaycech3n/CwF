@@ -10,6 +10,19 @@ open WellPresentedSemicategory I
 open import DSM _≟-ℕ_
 
 
+{- Downward sieves -}
+
+⟦_,_,1+_⟧ : (i h t : ℕ) → t < Hom-size i h → DSM
+⟦ i , h ,1+ t ⟧ tcond {x} {y} f
+ with x ≟-ℕ i | y ≤? h
+... | inl idp | inl (inl idp) = to-Bool (to-ℕ (idx-of f) ≤? t)
+... | inl idp | inl (inr y<h) = true
+... | inl idp | inr y≰h = false
+... | inr x≠i | _ = false
+
+-- Could prove a correctness lemma for the above definition if we wanted.
+
+
 {- Sieve shapes
 
 "Shapes" are just triples of numbers satisfying certain conditions.
@@ -92,27 +105,6 @@ empty i O O _ = ⊤
 empty i O (1+ t) _ = ⊥
 empty i (1+ h) O _ = ⊥ -- *could* represent the empty sieve
 empty i (1+ h) (1+ t) _ = ⊥
-
-
-{- Shaped sieves
-
-The shape conditions ensure that shapes properly encode certain sieves, defined here.
--}
-
-⟦_,_,_⟧ : (i h t : ℕ) → is-shape i h t → DSM
-⟦ i , h , 1+ t ⟧ iS =
-  add-arrow [t] (⟦ i , h , t ⟧ (shape-from-next-t iS))
-    where [t] = Hom[ i , h ]# (t , <→≤→< ltS (tcond iS))
-⟦ i , O , O ⟧ iS = Ø
-⟦ i , 1+ h , O ⟧ iS = ⟦ i , h , Hom-size i h ⟧ (shape-from-next-h iS)
-
-module _ where
-  --⟦_,_,_⟧-last : 
-
-  ⟦_,_,_⟧-base : (i h t : ℕ) (iS : is-shape i h t)
-                 → (h' : ℕ) → h' < h → (f : Hom i h')
-                 → f ∈ₘ ⟦ i , h , t ⟧ iS
-  ⟦_,_,_⟧-base = {!!}
 
 
 {- Shape intersection -}
