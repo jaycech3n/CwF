@@ -29,46 +29,52 @@ f ∈ₘ σ = is-true (σ f)
 _⊆ₘ_ : DSM → DSM → Type ℓ
 σ ⊆ₘ σ' = ∀ {x} {y} {f : Hom x y} → (f ∈ₘ σ) → (f ∈ₘ σ')
 
--- Operations on DSMs
-
 Ø : DSM
 Ø _ = false
 
 _∩_ : DSM → DSM → DSM
 (σ ∩ σ') f = σ f and σ' f
 
-add-arrow : {u v : Ob} → Hom u v → DSM → DSM
-add-arrow {u} {v} g σ {x} {y} f
- with x ≟-Ob u | y ≟-Ob v
-... | inl idp  | inl idp = σ f or to-Bool (f ≟-Hom g)
-... | inl idp  | inr _   = σ f
-... | inr _    | _       = σ f
+_∪_ : DSM → DSM → DSM
+(σ ∪ σ') f = σ f or σ' f
 
-add-arrow-⊆ : ∀ {σ : DSM} {u v} {g : Hom u v}
-              → σ ⊆ₘ add-arrow g σ
-add-arrow-⊆ {σ} {u = u} {v} {x = x} {y} m
- with x ≟-Ob u | y ≟-Ob v
-... | inl idp  | inl idp rewrite ⌞ m ⌟ = _
-... | inl idp  | inr _   = m
-... | inr _    | _       = m
 
-add-arrow-new : ∀ {x y} (f : Hom x y) {σ : DSM}
-                → f ∈ₘ add-arrow f σ
-add-arrow-new {x} {y} f {σ} with x ≟-Ob x
-... | inl p rewrite is-set-UIP Ob-is-set p
-            with y ≟-Ob y
-...            | inl q rewrite is-set-UIP Ob-is-set q
-                             | =-refl-bool _≟-Hom_ f
-                             | or-sym (σ f) true
-                       = _
-...            | inr ¬q = ⊥-rec (¬q idp)
-add-arrow-new {x} {y} f {σ}
-    | inr ¬p = ⊥-rec (¬p idp)
+{- Decidable subsets of hom-sets
 
-{- Probably need this at some point:
-add-arrow-compl : ∀ {u v} (g : Hom u v) {σ : DSM}
-                    {x y} (f : Hom x y)
-                  → ¬ (f ∈ₘ σ)
-                  → {!¬ (f == g)!}
-                  → ¬ f ∈ₘ add-arrow f σ
+Restricted form of DSM, fixing the source and target.
 -}
+
+-- TODO [Josh]: Do we actually only need the stuff in this section to define
+-- [_,_,_]∩[_,_]; and not the full generality of sieves and DSMs?
+
+DSHom[_,_] : ∀ x y → Type ℓ
+DSHom[ x , y ] = Hom x y → Bool
+
+DSM-of : ∀ {x y} → DSHom[ x , y ] → DSM
+DSM-of {x} {y} σ {u} {v} g
+ with u ≟-Ob x | v ≟-Ob y
+... | inr _    | _       = false
+... | inl _    | inr _   = false
+... | inl idp  | inl idp = σ g
+
+module _ where
+  size-aux : ∀ {x y} → DSHom[ x , y ]
+             → (t : ℕ) → t < Hom-size x y
+             → Σ[ n ∈ ℕ ] n ≤ 1+ t
+  size-aux {x} {y} σ O u =
+    Bool-rec (1 , ≤-ap-S lteE) (0 , O≤ _) (σ [0])
+    where [0] = Hom[ x , y ]# (O , u)
+  size-aux {x} {y} σ (1+ t) u =
+    Bool-rec (1+ prev-size , ≤-ap-S prev-size-cond)
+             (prev-size , ≤-trans prev-size-cond lteS)
+             (σ [1+t])
+    where
+      [1+t] = Hom[ x , y ]# (1+ t , u)
+      rec = size-aux σ t (<-trans ltS u)
+      prev-size = fst rec
+      prev-size-cond = snd rec
+
+  size : ∀ {x y} → DSHom[ x , y ] → Σ[ n ∈ ℕ ] n ≤ Hom-size x y
+  size {x} {y} σ with Hom-size x y | inspect (Hom-size x) y
+  ... | O    | _ = O , lteE
+  ... | S n  | with-eq p = size-aux σ n (tr (n <_) (! p) ltS)
