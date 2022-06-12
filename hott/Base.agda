@@ -51,12 +51,12 @@ if = case
 record Reveal_·_is_ {A : Type ℓ₁} {B : A → Type ℓ₂}
   (f : (x : A) → B x) (x : A) (y : B x) : Type (lmax ℓ₁ ℓ₂)
   where
-  constructor ▹
+  constructor with-eq
   field eq : f x == y
 
 inspect : ∀ {A : Type ℓ₁} {B : A → Type ℓ₂}
           (f : (x : A) → B x) (x : A) → Reveal f · x is f x
-inspect f x = ▹ idp
+inspect f x = with-eq idp
 
 
 {- Triples -}
@@ -101,3 +101,12 @@ default b f (inr _) = b
 
 some≠none : {A : Type ℓ} {a : A} → some a ≠ none
 some≠none {a = a} = inl≠inr a tt
+
+
+{- Decidable -}
+
+⊥-dec : Dec ⊥
+⊥-dec = inr (λ x → x)
+
+⊤-dec : Dec ⊤
+⊤-dec = true

@@ -23,6 +23,3 @@ tr-Σ-≃-l C e (b , c) = <– e b , tr C (! (<–-inv-r e b)) c
 tr-Σ-≃-r : {A : Type ℓ₁} {B : Type ℓ₂} (C : A → Type ℓ₃) (e : A ≃ B)
            → Σ[ a ∈ A ] C a → Σ[ b ∈ B ] C (<– e b)
 tr-Σ-≃-r C e (a , c) = –> e a , tr C (! (<–-inv-l e a)) c
-
-is-set-≃-stable : ∀ {ℓ} {A B : Type ℓ} (e : A ≃ B) → is-set A → is-set B
-is-set-≃-stable e is-set-A = tr _ (ua e) is-set-A

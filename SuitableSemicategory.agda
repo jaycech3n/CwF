@@ -33,7 +33,7 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
     idx-of-Hom# {x} {y} i = <–-inv-r (Hom-equiv x y) i
 
   Hom-is-set : ∀ {x y} → is-set (Hom x y)
-  Hom-is-set {x} {y} = is-set-≃-stable e' (Lift-level Fin-is-set)
+  Hom-is-set {x} {y} = equiv-preserves-level e' ⦃ Lift-level Fin-is-set ⦄
                          where
                          n = Hom-size x y
                          e = Hom-equiv x y
@@ -59,7 +59,7 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
            → Dec (Σ[ f ∈ Hom x y ] (P f))
   Σ-Hom? {ℓ} {x} {y} P u =
     tr (Dec ∘ Σ (Hom x y)) (λ= (ap P ∘ <–-inv-l e)) dec-Hom
-    where
+      where
       n = Hom-size x y
       e = Hom-equiv x y
 
