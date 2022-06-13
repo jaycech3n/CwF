@@ -1,6 +1,6 @@
 {-# OPTIONS --without-K #-}
 
-{--- Decidable subsets of morphisms in well presented semicategories ---}
+{--- Decidable subsets of morphisms ---}
 
 open import SuitableSemicategory
 
@@ -47,10 +47,10 @@ Restricted form of DSM, fixing the source and target.
 -- TODO [Josh]: Do we actually only need the stuff in this section to define
 -- [_,_,_]∩[_,_]; and not the full generality of sieves and DSMs?
 
-DSHom[_,_] : ∀ x y → Type ℓ
-DSHom[ x , y ] = Hom x y → Bool
+DSHom : ∀ x y → Type ℓ
+DSHom x y = Hom x y → Bool
 
-DSM-of : ∀ {x y} → DSHom[ x , y ] → DSM
+DSM-of : ∀ {x y} → DSHom x y → DSM
 DSM-of {x} {y} σ {u} {v} g
  with u ≟-Ob x | v ≟-Ob y
 ... | inr _    | _       = false
@@ -58,7 +58,7 @@ DSM-of {x} {y} σ {u} {v} g
 ... | inl idp  | inl idp = σ g
 
 module _ where
-  size-aux : ∀ {x y} → DSHom[ x , y ]
+  size-aux : ∀ {x y} → DSHom x y
              → (t : ℕ) → t < Hom-size x y
              → Σ[ n ∈ ℕ ] n ≤ 1+ t
   size-aux {x} {y} σ O u =
@@ -74,7 +74,7 @@ module _ where
       prev-size = fst rec
       prev-size-cond = snd rec
 
-  size : ∀ {x y} → DSHom[ x , y ] → Σ[ n ∈ ℕ ] n ≤ Hom-size x y
+  size : ∀ {x y} → DSHom x y → Σ[ n ∈ ℕ ] n ≤ Hom-size x y
   size {x} {y} σ with Hom-size x y | inspect (Hom-size x) y
   ... | O    | _ = O , lteE
   ... | S n  | with-eq p = size-aux σ n (tr (n <_) (! p) ltS)

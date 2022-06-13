@@ -12,15 +12,29 @@ open import DSM _≟-ℕ_
 
 {- Downward sieves -}
 
-⟦_,_,1+_⟧ : (i h t : ℕ) → t < Hom-size i h → DSM
-⟦ i , h ,1+ t ⟧ tcond {x} {y} f
- with x ≟-ℕ i | y ≤? h
-... | inl idp | inl (inl idp) = to-Bool (to-ℕ (idx-of f) ≤? t)
-... | inl idp | inl (inr y<h) = true
-... | inl idp | inr y≰h = false
-... | inr x≠i | _ = false
+-- All arrows (i → y) for y < h
+full-sieve : (i h : ℕ) → DSM
+full-sieve i h {x} {y} f
+  with x ≟-ℕ i | y <? h
+... | inl idp  | inl y<h = true
+... | inl idp  | inr y≮h = false
+... | inr x≠i  | _       = false
 
--- Could prove a correctness lemma for the above definition if we wanted.
+-- First t-many arrows (i → h)
+level : (i h t : ℕ) → t ≤ Hom-size i h → DSHom i h
+level i h t u f = to-Bool (to-ℕ (idx-of f) <? t)
+
+⟦_,_,_⟧ : (i h t : ℕ) → t ≤ Hom-size i h → DSM
+⟦ i , h , t ⟧ tcond = full-sieve i h ∪ DSM-of (level i h t tcond)
+
+-- (factors [t] f) is the subset of factors of [t] through f, i.e. of
+-- (g : Hom m h) such that g ∘ f == [t].
+factors : ∀ {i h m} → Hom i h → Hom i m → DSHom m h
+factors [t] f g = to-Bool (g ◦ f ≟-Hom [t])
+
+factors-cumul : ∀ {i h m} → (t : Fin (Hom-size i h)) → Hom i m → DSHom m h
+factors-cumul t f g = to-Bool (idx-of (g ◦ f) ≤?-Fin t)
+
 
 
 {- Sieve shapes
@@ -110,6 +124,22 @@ empty i (1+ h) (1+ t) _ = ⊥
 {- Shape intersection -}
 
 [_,_,_]∩[_,_] : (i h t : ℕ) (m : ℕ) (f : Hom i m) → is-shape i h t → Shape
+[ i , h , 1+ t ]∩[ m , f ] iS
+ with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
+... | inr no = [ i , h , t ]∩[ m , f ] (shape-from-next-t iS)
+... | inl (w , _) = (m , h , new-width) ,
+                      shape-conds (inr (Hom-inverse m h w)) width-cond
+      where
+        incr-width : Σ[ t ∈ ℕ ] t ≤ Hom-size m h
+        incr-width = size (factors-cumul (t , S≤→< (tcond iS)) f)
+
+        new-width = fst incr-width
+        width-cond = snd incr-width
+[ i ,   O  , O ]∩[ m , f ] iS = (m , 0 , 0) , empty-shape m
+[ i , 1+ h , O ]∩[ m , f ] iS = [ i , h , Hom-size i h ]∩[ m , f ]
+                                  (full-shape i h (≤-trans lteS (hcond iS)))
+
+{- Old approach
 
 width-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-shape i h t)
              → height ([ i , h , t ]∩[ m , f ] iS) == h
@@ -266,3 +296,4 @@ apex-of-∩ i h (1+ t) m f iS
 ...       | inr ≮h = idp
 apex-of-∩ i O O m f iS = idp
 apex-of-∩ i (1+ h) O m f iS = apex-of-∩ i h (Hom-size i h) m f (shape-from-next-h iS)
+-}

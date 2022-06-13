@@ -99,7 +99,7 @@ record SuitableSemicategory : Type₁ where
   field ⦃ C ⦄ : LocallyFiniteSemicategoryOn ℕ
   open LocallyFiniteSemicategoryOn C hiding (C) public
   field
-    Hom-inverse : ∀ m n → Hom n m → m < n
+    Hom-inverse : ∀ n m → Hom n m → m < n
 
 
 record WellPresentedSemicategory : Type₁ where
