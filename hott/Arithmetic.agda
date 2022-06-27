@@ -28,8 +28,20 @@ instance
   O≤-inst {n} = O≤ n
 
 instance
+  lteE-inst : ∀ {n} → 1+ n ≤ 1+ n
+  lteE-inst = lteE
+
+instance
+  lteS-inst : ∀ {n} → 1+ n ≤ 2+ n
+  lteS-inst = lteS
+
+instance
   O<-inst : ∀ {n} → O < 1+ n
   O<-inst {n} = O<S n
+
+instance
+  ltS-inst : ∀ {n} → n < 1+ n
+  ltS-inst {n} = ltS
 
 O<→O<+r : ∀ {m n} → O < m → O < m + n
 O<→O<+r {1+ m} {n} x = O<S (m + n)

@@ -1,8 +1,8 @@
 {-# OPTIONS --without-K #-}
 
-module SuitableSemicategory where
+module SuitableSemicategories where
 
-open import Semicategory public
+open import Semicategories public
 
 
 record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where

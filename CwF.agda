@@ -15,7 +15,7 @@ following rules of thumb (which may, however, be broken as needed):
 
 module CwF where
 
-open import Category public
+open import Categories public
 
 
 {- Basic CwF structures -}

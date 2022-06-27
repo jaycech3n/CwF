@@ -1,8 +1,8 @@
 {-# OPTIONS --without-K #-}
 
-module Category where
+module Categories where
 
-open import Semicategory public
+open import Semicategories public
 
 
 {- Categories -}
@@ -80,7 +80,6 @@ wild-of-cat : ∀ {ℓ} → Category {ℓ} → WildCategory {ℓ}
 wild-of-cat = wild-of-pre-cat ∘ pre-of-cat
 
 -- Semicategory structure
-
 instance
   semi-of-wild-cat : ∀ {ℓ} ⦃ C : WildCategory {ℓ} ⦄ → WildSemicategory {ℓ}
   semi-of-wild-cat ⦃ C ⦄ = record

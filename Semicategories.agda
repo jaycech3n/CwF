@@ -1,11 +1,9 @@
 {-# OPTIONS --without-K #-}
 
-module Semicategory where
+module Semicategories where
 
 open import Prelude public
 
-
-{- Semicategories -}
 
 -- "Wild" constructions are those which are neither truncated nor required to be
 -- coherent.

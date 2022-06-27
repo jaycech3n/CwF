@@ -1,17 +1,18 @@
 {-# OPTIONS --without-K #-}
 
-{--- Decidable subsets of morphisms ---}
+open import SuitableSemicategories
 
-open import SuitableSemicategory
+{--- Decidable subsets of morphisms in suitable semicategories ---}
 
 module DSM {ℓ}
-  {Ob : Type ℓ}
+  { Ob : Type ℓ }
   ⦃ C : LocallyFiniteSemicategoryOn Ob ⦄
-  (_≟-Ob_ : has-dec-eq Ob) where
+  ( _≟-Ob_ : has-dec-eq Ob ) where
 
 open LocallyFiniteSemicategoryOn C
 
--- Important fact
+
+-- Important
 Ob-is-set : is-set Ob
 Ob-is-set = dec-eq-is-set _≟-Ob_
 
@@ -58,6 +59,8 @@ DSM-of {x} {y} σ {u} {v} g
 ... | inl idp  | inl idp = σ g
 
 module _ where
+  -- (size-aux {x} {y} σ t _) is the number of arrows f: x → y, up to and
+  -- including [t], in σ.
   size-aux : ∀ {x y} → DSHom x y
              → (t : ℕ) → t < Hom-size x y
              → Σ[ n ∈ ℕ ] n ≤ 1+ t

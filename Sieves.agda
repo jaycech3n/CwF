@@ -1,15 +1,15 @@
 {-# OPTIONS --without-K #-}
 
-open import SuitableSemicategory
+open import SuitableSemicategories
 
 module Sieves {ℓ}
-  {Ob : Type ℓ}
+  { Ob : Type ℓ }
   ⦃ C : LocallyFiniteSemicategoryOn Ob ⦄
-  (_≟-Ob_ : has-dec-eq Ob) where
-
-open LocallyFiniteSemicategoryOn C
+  ( _≟-Ob_ : has-dec-eq Ob ) where
 
 open import DSM _≟-Ob_ public
+
+open LocallyFiniteSemicategoryOn C
 
 
 {- Principal sieves -}
