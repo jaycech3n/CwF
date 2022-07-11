@@ -53,18 +53,18 @@ M[ i , h , 1+ t ] iS at .(1+ h) ⦃ ltS ⦄ =
   where
     prev-M : Ty (SCT (1+ h))
     prev-M = M[ i , h , t ] (shape-from-next-t iS) at (1+ h)
+
+    M⃗-int : (i h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : Hom i m )
+             → let ∩-hcond = ≤→<→< (height-of-∩ i h t m f iS) ltS
+               in Tm (M[ i , h , t ] iS at (1+ h)
+                      ̂→ M-unc ([ i , h , t ]∩[ m , f ] iS) at (1+ h) ⦃ ∩-hcond ⦄)
+    M⃗-int i h t iS {m} f = ̂λ {!!}
+
 M[ i , h , 1+ t ] iS at (1+ h⁺) ⦃ ltSR u ⦄ =
   M[ i , h , 1+ t ] iS at h⁺ ⦃ u ⦄ ⁺
 M[ i , 1+ h , O ] iS at h⁺ ⦃ u ⦄ =
   M[ i , h , Hom-size i h ] (shape-from-next-h iS) at h⁺ ⦃ <-trans ltS u ⦄
 M[ i , O , O ] iS at h⁺ = ̂⊤
-{-
-M[ i , 1+ h , 1+ t ] iS at .(2+ h) ⦃ ltS ⦄ =
-  ̂Σ[ x ∈ prev-M ] {!--fill the [t]th face (context SCT (1+ h) ∷ prev-M)!}
-  where
-    prev-M : Ty (SCT (1+ h))
-    prev-M = M[ i , h , t ] (shape-from-next-t iS) at (1+ h)
--}
 
 module eq-lemmas where
   M-lvl-cond-irr : (i h t : ℕ) (iS : is-shape i h t)
