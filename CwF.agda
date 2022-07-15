@@ -20,7 +20,7 @@ open import Categories public
 
 {- Basic CwF structures -}
 
-record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
+record TyTmStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
   open WildCategory C
     renaming
     ( Ob to Con
@@ -33,14 +33,14 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
 
   infixl 40 _[_] _[_]ₜ
   field
-    Ty    : Con → Type i
+    Ty    : Con → Type ℓ
     _[_]  : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
     []-id : ∀ {Γ} {A : Ty Γ} → A [ id ] == A
     []-◦  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} -- Greek capital
                                                              -- epsilon "\GE"
             → A [ g ◦ f ] == A [ g ] [ f ]
 
-    Tm     : ∀ {Γ} (A : Ty Γ) → Type i
+    Tm     : ∀ {Γ} (A : Ty Γ) → Type ℓ
     _[_]ₜ  : ∀ {Γ Δ} {A : Ty Δ} → Tm A → (f : Sub Γ Δ) → Tm (A [ f ])
     []ₜ-id : ∀ {Γ} {A : Ty Γ} {t : Tm A} → tr Tm []-id (t [ id ]ₜ) == t
     []ₜ-◦  : ∀ {Γ Δ Ε} {f : Sub Γ Δ} {g : Sub Δ Ε} {A : Ty Ε} {t : Tm A}
@@ -69,7 +69,7 @@ record TyTmStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open definitions public
 
 
-record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
+record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
   field ⦃ T ⦄ : TyTmStructure C
   open TyTmStructure T public
 
@@ -177,10 +177,17 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
       -}
 
       _ʷ_ : ∀ {Δ Γ} (f : Sub Δ Γ) (A : Ty Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
-      f ʷ A = (f ◦ π (A [ f ]) ,, tr Tm (! []-◦) (υ (A [ f ])))
+      f ʷ A = f ◦ π (A [ f ]) ,, tr Tm (! []-◦) (υ (A [ f ]))
 
       ʷ-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → π A ◦ (f ʷ A) == f ◦ π (A [ f ])
       ʷ-comm = βπ
+
+      -- Version of _ʷ_ with explicit equality
+      _ᵂ[_,_,_] : ∀ {Δ Γ} (f : Sub Δ Γ) (B : Ty Δ) (A : Ty Γ) (p : A [ f ] == B)
+                  → Sub (Δ ∷ B) (Γ ∷ A)
+      _ᵂ[_,_,_] {Δ} {Γ} f B A p = tr (λ □ → Sub (Δ ∷ □) (Γ ∷ A)) p (f ʷ A)
+        -- Could also copy the definition of _ʷ_ and fiddle around with
+        -- heterogenous equalities?
 
       {- Given f : Sub Δ Γ, A : Ty Γ, and a : Tm A, we have the two "single-step"
       compositions from Δ to Γ ∷ A:
@@ -383,7 +390,7 @@ record WildCwFStructure {i} (C : WildCategory {i}) : Type (lsuc i) where
   open definitions public
 
 
-record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
+record StrictCwFStructure {ℓ} (C : StrictCategory {ℓ}) : Type (lsuc ℓ) where
   field ⦃ W ⦄ : WildCwFStructure (wild-of-strict-cat C)
 
   open WildCwFStructure W hiding (T) public
@@ -401,7 +408,7 @@ record StrictCwFStructure {i} (C : StrictCategory {i}) : Type (lsuc i) where
 
 {- Coercion -}
 
-wild-of-strict-cwf : ∀ {i} {C : StrictCategory {i}}
+wild-of-strict-cwf : ∀ {ℓ} {C : StrictCategory {ℓ}}
                        ⦃ T : TyTmStructure (wild-of-strict-cat C) ⦄
                      → StrictCwFStructure C
                      → WildCwFStructure (wild-of-strict-cat C)
@@ -413,8 +420,8 @@ wild-of-strict-cwf = StrictCwFStructure.W
 -- Many of the following formulations loosely follow those in "Shallow Embedding
 -- of Type Theory is Morally Correct" (Kaposi, Kovács, Kraus '18).
 
-record PiStructure {i}
-  {C : WildCategory {i}} (cwf : WildCwFStructure C) : Type (lsuc i)
+record PiStructure {ℓ}
+  {C : WildCategory {ℓ}} (cwf : WildCwFStructure C) : Type (lsuc ℓ)
   where
   open WildCwFStructure cwf
 
@@ -469,8 +476,8 @@ record PiStructure {i}
   open definitions public
 
 
-record SigmaStructure {i}
-  {C : WildCategory {i}} (cwf : WildCwFStructure C) : Type (lsuc i)
+record SigmaStructure {ℓ}
+  {C : WildCategory {ℓ}} (cwf : WildCwFStructure C) : Type (lsuc ℓ)
   where
   open WildCwFStructure cwf
   field
@@ -520,8 +527,8 @@ record SigmaStructure {i}
   open definitions public
 
 
-record UnitStructure {i}
-  {C : WildCategory {i}} (cwf : WildCwFStructure C) : Type (lsuc i)
+record UnitStructure {ℓ}
+  {C : WildCategory {ℓ}} (cwf : WildCwFStructure C) : Type (lsuc ℓ)
   where
   open WildCwFStructure cwf
 
@@ -540,8 +547,8 @@ record UnitStructure {i}
 -- "Universe" of types. This is not the universe internalizing all types in Γ;
 -- rather, a base type family.
 
-record UStructure {i}
-  {C : WildCategory {i}} (cwf : WildCwFStructure C) : Type (lsuc i)
+record UStructure {ℓ}
+  {C : WildCategory {ℓ}} (cwf : WildCwFStructure C) : Type (lsuc ℓ)
   where
   open WildCwFStructure cwf
 
