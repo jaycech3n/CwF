@@ -100,14 +100,14 @@ factors-cumul t f g = to-Bool (idx-of (g ◦ f) ≤?-Fin t)
 [ i , 1+ h , O ]∩[ m , f ] iS = [ i , h , Hom-size i h ]∩[ m , f ]
                                   (full-shape i h (≤-trans lteS (hcond iS)))
 
-height-of-∩ : (i h t : ℕ) (m : ℕ) (f : Hom i m) (iS : is-shape i h t)
+height-of-∩ : (i h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : Hom i m)
               → height ([ i , h , t ]∩[ m , f ] iS) ≤ h -- normalize this h?
-height-of-∩ i h (1+ t) m f iS
+height-of-∩ i h (1+ t) iS f
  with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
-... | inr no = height-of-∩ i h t m f (shape-from-next-t iS)
+... | inr no = height-of-∩ i h t (shape-from-next-t iS) f
 ... | inl yes = lteE
-height-of-∩ i O O m f iS = lteE
-height-of-∩ i (1+ h) O m f iS =
+height-of-∩ i O O iS f = lteE
+height-of-∩ i (1+ h) O iS f =
   ≤-trans
-    (height-of-∩ i h (Hom-size i h) m f (shape-from-next-h iS))
+    (height-of-∩ i h (Hom-size i h) (shape-from-next-h iS) f)
     lteS
