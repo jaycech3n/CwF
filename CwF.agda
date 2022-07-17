@@ -99,12 +99,17 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
   private
     module definitions where
 
+      {- Terms from sections -}
+
+      tm_of : ∀ {Γ} (A : Ty Γ) (σ : Sub Γ (Γ ∷ A)) (p : π A ◦ σ == id) → Tm A
+      tm A of σ p = tr Tm ((! []-◦) ∙ (A [= p ]) ∙ []-id) (υ A [ σ ]ₜ)
+
       {- Exhanging transport and substitution -}
 
       tr-,, : ∀ {Γ Δ} {A : Ty Γ} {A' : Ty (Γ ∷ A)}
                 {f : Sub Δ Γ} {t : Tm (A [ π A ])} {t' : Tm (A [ f ])}
                 (eq : A [ π A ] == A')
-              → tr Tm eq t [ f ,, t' ]ₜ
+              → (tr Tm eq t) [ f ,, t' ]ₜ
                 ==
                 tr Tm (ap _[ f ,, t' ] eq) (t [ f ,, t' ]ₜ)
       tr-,, idp = idp
@@ -162,13 +167,13 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
 
         =∎
 
-      {- Weakening
+      {- Weakening substitutions
 
-      Given A : Ty Γ and f : Sub Δ Γ, we get the weakening (f ʷ A) of f by A
+      Given A : Ty Γ and f : Sub Δ Γ, we get the weakening (f ↑ A) of f by A
       that, intuitively, acts as f does, and leaves the "free variable x : A"
       alone.  This diagram commutes:
 
-                          f ʷ A
+                          f ↑ A
                  Δ ∷ A[f] -----> Γ ∷ A
           π (A[f]) |               | π A
                    ↓               ↓
@@ -176,17 +181,17 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
                            f
       -}
 
-      _ʷ_ : ∀ {Δ Γ} (f : Sub Δ Γ) (A : Ty Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
-      f ʷ A = f ◦ π (A [ f ]) ,, tr Tm (! []-◦) (υ (A [ f ]))
+      _↑_ : ∀ {Δ Γ} (f : Sub Δ Γ) (A : Ty Γ) → Sub (Δ ∷ A [ f ]) (Γ ∷ A)
+      f ↑ A = f ◦ π (A [ f ]) ,, tr Tm (! []-◦) (υ (A [ f ]))
 
-      ʷ-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → π A ◦ (f ʷ A) == f ◦ π (A [ f ])
-      ʷ-comm = βπ
+      ↑-comm : ∀ {Δ Γ} {A : Ty Γ} {f : Sub Δ Γ} → π A ◦ (f ↑ A) == f ◦ π (A [ f ])
+      ↑-comm = βπ
 
-      -- Version of _ʷ_ with explicit equality
+      -- Version of _↑_ with explicit equality
       _ᵂ[_,_,_] : ∀ {Δ Γ} (f : Sub Δ Γ) (B : Ty Δ) (A : Ty Γ) (p : A [ f ] == B)
                   → Sub (Δ ∷ B) (Γ ∷ A)
-      _ᵂ[_,_,_] {Δ} {Γ} f B A p = tr (λ □ → Sub (Δ ∷ □) (Γ ∷ A)) p (f ʷ A)
-        -- Could also copy the definition of _ʷ_ and fiddle around with
+      _ᵂ[_,_,_] {Δ} {Γ} f B A p = tr (λ □ → Sub (Δ ∷ □) (Γ ∷ A)) p (f ↑ A)
+        -- Could also copy the definition of _↑_ and fiddle around with
         -- heterogenous equalities?
 
       {- Given f : Sub Δ Γ, A : Ty Γ, and a : Tm A, we have the two "single-step"
@@ -194,7 +199,7 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
 
                 add a[f]
             Δ -----------> Δ ∷ A[f]
-          f |                | f ʷ A
+          f |                | f ↑ A
             ↓                ↓
             Γ -----------> Γ ∷ A
                  add a
@@ -207,7 +212,7 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
       The first is easy: -}
 
       ,,-◦-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-                  → (id ,, a [ id ]ₜ) ◦ f == (f ,, (a [ f ]ₜ))
+                  → (id ,, a [ id ]ₜ) ◦ f == (f ,, a [ f ]ₜ)
       ,,-◦-join f a =
         (id ,, a [ id ]ₜ) ◦ f
 
@@ -228,10 +233,10 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
       {- The second is a bit more work. We use the universal property ,,-uniq,
       and have to prove a somewhat lengthy reduction. -}
 
-      π∘ʷ∘,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-               → π A ◦ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) == f
-      π∘ʷ∘,, f a = ! ass
-                 ∙ (ʷ-comm |in-ctx (_◦ (id ,, a [ f ]ₜ [ id ]ₜ)))
+      π∘↑∘,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+               → π A ◦ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) == f
+      π∘↑∘,, f a = ! ass
+                 ∙ (↑-comm |in-ctx (_◦ (id ,, a [ f ]ₜ [ id ]ₜ)))
                  ∙ ass
                  ∙ (βπ |in-ctx (f ◦_))
                  ∙ idr
@@ -241,7 +246,7 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
           lemma : υ A [ f ◦ π (A [ f ]) ,, tr Tm (! []-◦) (υ (A [ f ])) ]ₜ
                       [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
                   ==
-                  a [ π A ]ₜ [ f ʷ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+                  a [ π A ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
           lemma =
             υ A [ f ◦ π (A [ f ]) ,, tr Tm (! []-◦) (υ (A [ f ])) ]ₜ
                 [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
@@ -302,55 +307,68 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
              |in-ctx _[ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
              ⟩
 
-            a [ π A ]ₜ [ f ʷ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
+            a [ π A ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ
 
             =∎
 
-          calc : υ A [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+          calc : υ A [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
                  ==
-                 a [ π A ]ₜ [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+                 a [ π A ]ₜ [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
           calc =
-            υ A [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+            υ A [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
             =⟨ tr==-==tr! []ₜ-◦ ⟩
               tr Tm (! []-◦)
                 (υ A [ _ ,, tr Tm (! []-◦) (υ (A [ f ])) ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
             =⟨ lemma |in-ctx (tr Tm (! []-◦)) ⟩
-              tr Tm (! []-◦) (a [ π A ]ₜ [ f ʷ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
+              tr Tm (! []-◦) (a [ π A ]ₜ [ f ↑ A ]ₜ [ id ,, a [ f ]ₜ [ id ]ₜ ]ₜ)
             =⟨ []ₜ-◦' ⟩
-            a [ π A ]ₜ [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+            a [ π A ]ₜ [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
             =∎
 
-          calc' : tr Tm []-◦ (tr Tm (! (A [= π∘ʷ∘,, f a ])) (a [ f ]ₜ))
+          calc' : tr Tm []-◦ (tr Tm (! (A [= π∘↑∘,, f a ])) (a [ f ]ₜ))
                   ==
-                  a [ π A ]ₜ [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+                  a [ π A ]ₜ [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
           calc' =
-            tr Tm []-◦ (tr Tm (! (A [= π∘ʷ∘,, f a ])) (a [ f ]ₜ))
-            =⟨ ==tr-tr!== (! ([]ₜ-eq (π∘ʷ∘,, f a))) |in-ctx (tr Tm []-◦) ⟩
-              tr Tm []-◦ (a [ π A ◦ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ)
+            tr Tm []-◦ (tr Tm (! (A [= π∘↑∘,, f a ])) (a [ f ]ₜ))
+            =⟨ ==tr-tr!== (! ([]ₜ-eq (π∘↑∘,, f a))) |in-ctx (tr Tm []-◦) ⟩
+              tr Tm []-◦ (a [ π A ◦ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ)
             =⟨ []ₜ-◦ ⟩
-            a [ π A ]ₜ [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+            a [ π A ]ₜ [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
             =∎
 
-      υ-ʷ-,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-               → υ A [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
+      υ-↑-,, : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
+               → υ A [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ]ₜ
                  ==
-                 tr Tm []-◦ (tr Tm (! (A [= π∘ʷ∘,, f a ])) (a [ f ]ₜ))
-      υ-ʷ-,, f a = technical.calc ∙ ! technical.calc'
+                 tr Tm []-◦ (tr Tm (! (A [= π∘↑∘,, f a ])) (a [ f ]ₜ))
+      υ-↑-,, f a = technical.calc ∙ ! technical.calc'
 
       ◦-,,-join : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-                  → (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) == (f ,, (a [ f ]ₜ))
+                  → (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) == (f ,, (a [ f ]ₜ))
       ◦-,,-join {A = A} f a =
-        (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ)
-        =⟨ ,,-uniq ((f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ))
-                   (π∘ʷ∘,, f a) (υ-ʷ-,, f a) ⟩
+        (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ)
+        =⟨ ,,-uniq ((f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ))
+                   (π∘↑∘,, f a) (υ-↑-,, f a) ⟩
         (f ,, a [ f ]ₜ)
         =∎
 
       ◦-,,-exch : ∀ {Δ Γ} {A : Ty Γ} (f : Sub Δ Γ) (a : Tm A)
-                  → (id ,, a [ id ]ₜ) ◦ f == (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ)
+                  → (id ,, a [ id ]ₜ) ◦ f == (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ)
       ◦-,,-exch f a = ,,-◦-join f a  ∙ ! (◦-,,-join f a)
 
-      {- More on substitution -}
+      {- Weakening types and terms -}
+
+      infixl 40 _ʷ_ _ʷₜ_
+
+      _ʷ_ : ∀ {Γ} → Ty Γ → (A : Ty Γ) → Ty (Γ ∷ A)
+      T ʷ A = T [ π A ]
+
+      _ʷₜ_ : ∀ {Γ} {T : Ty Γ} → Tm T → (A : Ty Γ) → Tm (T ʷ A)
+      t ʷₜ A = t [ π A ]ₜ
+
+      _⁺ : ∀ {Γ} (A : Ty Γ) → Ty (Γ ∷ A)
+      A ⁺ = A ʷ A
+
+      {- Term substitution -}
 
       infix 40 _[[_]] _[[_]]ₜ
 
@@ -361,31 +379,22 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
                 → Tm (B [[ a ]])
       b [[ a ]]ₜ = b [ id ,, a [ id ]ₜ ]ₜ
 
-      -- "Exchange"-type law for substitutions
+      -- Term substitution in a weakened type is trivial
+      ʷ-[[]] : ∀ {Γ} (T A : Ty Γ) (a : Tm A) → T ʷ A [[ a ]] == T
+      ʷ-[[]] T A a = ! []-◦ ∙ (T [= βπ ]) ∙ []-id
 
+      -- "Commutativity" law
       []-[[]] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
-                → B [ f ʷ A ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
-
+                → B [ f ↑ A ] [[ a [ f ]ₜ ]] == B [[ a ]] [ f ]
       []-[[]] {Δ} {Γ} {A} {B} {f} {a} =
-        B [ f ʷ A ] [[ a [ f ]ₜ ]]               =⟨ ! []-◦ ⟩
-        B [ (f ʷ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ B [= ! (◦-,,-exch f a) ] ⟩
+        B [ f ↑ A ] [[ a [ f ]ₜ ]]               =⟨ ! []-◦ ⟩
+        B [ (f ↑ A) ◦ (id ,, a [ f ]ₜ [ id ]ₜ) ] =⟨ B [= ! (◦-,,-exch f a) ] ⟩
         B [ (id ,, a [ id ]ₜ) ◦ f ]              =⟨ []-◦ ⟩
         B [ id ,, a [ id ]ₜ ] [ f ]              =∎
 
       [[]]-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} {f : Sub Δ Γ} {a : Tm A}
-                → B [[ a ]] [ f ] == B [ f ʷ A ] [[ a [ f ]ₜ ]]
+                → B [[ a ]] [ f ] == B [ f ↑ A ] [[ a [ f ]ₜ ]]
       [[]]-[] = ! []-[[]]
-
-      -- Lifting types and terms to weakened contexts
-
-      _⁺ : ∀ {Γ} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
-      _⁺ {A = A} B = B [ π A ]
-
-      _⁺ₜ : ∀ {Γ} {A B : Ty Γ} → Tm A → Tm (A [ π B ])
-      _⁺ₜ {B = B} t = t [ π B ]ₜ
-
-      _⁺⁺ : ∀ {Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)} → Ty Γ → Ty (Γ ∷ A ∷ B)
-      _⁺⁺ {A = A} {B = B} C = C [ π A ] [ π B ]
 
   open definitions public
 
@@ -436,10 +445,10 @@ record PiStructure {ℓ}
     -- Substitution
 
     ̂Π-[] : ∀ {Δ Γ} {A B} {f : Sub Δ Γ}
-           → (̂Π A B) [ f ] == ̂Π (A [ f ]) (B [ f ʷ A ])
+           → (̂Π A B) [ f ] == ̂Π (A [ f ]) (B [ f ↑ A ])
 
     ̂λ-[] : ∀ {Δ Γ} {A} {B : Ty (Γ ∷ A)} {b : Tm B} {f : Sub Δ Γ}
-           → (̂λ b) [ f ]ₜ == ̂λ (b [ f ʷ A ]ₜ) [ Tm ↓ ̂Π-[] ]
+           → (̂λ b) [ f ]ₜ == ̂λ (b [ f ↑ A ]ₜ) [ Tm ↓ ̂Π-[] ]
 
   private
     module definitions where
@@ -456,22 +465,22 @@ record PiStructure {ℓ}
              → (A ̂→ B) [ f ] == (A [ f ] ̂→ B [ f ])
       ̂→-[] {_} {_} {A} {B} {f}
         = (̂Π A (B [ π A ])) [ f ]
-        =⟨ ̂Π-[] ⟩ ̂Π (A [ f ]) (B [ π A ] [ f ʷ A ])
-        =⟨ ! []-◦ |in-ctx (λ □ → ̂Π _ □) ⟩ ̂Π (A [ f ]) (B [ π A ◦ (f ʷ A) ])
-        =⟨ ʷ-comm |in-ctx (λ □ → ̂Π _ (B [ □ ])) ⟩ ̂Π (A [ f ]) (B [ f ◦ π (A [ f ]) ])
+        =⟨ ̂Π-[] ⟩ ̂Π (A [ f ]) (B [ π A ] [ f ↑ A ])
+        =⟨ ! []-◦ |in-ctx (λ □ → ̂Π _ □) ⟩ ̂Π (A [ f ]) (B [ π A ◦ (f ↑ A) ])
+        =⟨ ↑-comm |in-ctx (λ □ → ̂Π _ (B [ □ ])) ⟩ ̂Π (A [ f ]) (B [ f ◦ π (A [ f ]) ])
         =⟨ []-◦   |in-ctx (λ □ → ̂Π _ □) ⟩ ̂Π (A [ f ]) (B [ f ] [ π (A [ f ]) ]) =∎
 
-      -- Function application
-
-      _`_ : ∀ {Γ} {A : Ty Γ} {B}
-            → (f : Tm (̂Π A B)) (a : Tm A)
-            → Tm (B [[ a ]])
-      f ` a = (app f) [[ a ]]ₜ
-
+      infixl 30 _⃗[_]ₜ
       _⃗[_]ₜ : ∀ {Δ Γ} {A B : Ty Γ}
               → (f : Tm (A ̂→ B)) (σ : Sub Δ Γ)
               → Tm (A [ σ ] ̂→ B [ σ ])
       f ⃗[ σ ]ₜ = tr Tm ̂→-[] (f [ σ ]ₜ)
+
+      -- Function application
+      _`_ : ∀ {Γ} {A : Ty Γ} {B}
+            → (f : Tm (̂Π A B)) (a : Tm A)
+            → Tm (B [[ a ]])
+      f ` a = (app f) [[ a ]]ₜ
 
   open definitions public
 
@@ -500,7 +509,7 @@ record SigmaStructure {ℓ}
     -- Substitution
 
     ̂Σ-[] : ∀ {Δ Γ} {A B} {f : Sub Δ Γ}
-          → (̂Σ A B) [ f ] == ̂Σ (A [ f ]) (B [ f ʷ A ])
+          → (̂Σ A B) [ f ] == ̂Σ (A [ f ]) (B [ f ↑ A ])
 
     ،-[] : ∀ {Δ Γ} {A : Ty Γ} {B : Ty (Γ ∷ A)}
            {a : Tm A} {b : Tm (B [[ a ]])} {f : Sub Δ Γ}
