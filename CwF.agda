@@ -357,16 +357,19 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
 
       {- Weakening types and terms -}
 
-      infixl 40 _ʷ_ _ʷₜ_
+      infixl 40 _ʷ_ _ʷ̇ _ʷₜ_ _⁺
 
       _ʷ_ : ∀ {Γ} → Ty Γ → (A : Ty Γ) → Ty (Γ ∷ A)
       T ʷ A = T [ π A ]
 
-      _ʷₜ_ : ∀ {Γ} {T : Ty Γ} → Tm T → (A : Ty Γ) → Tm (T ʷ A)
-      t ʷₜ A = t [ π A ]ₜ
+      _ʷ̇  : ∀ {Γ} {A : Ty Γ} → Ty Γ → Ty (Γ ∷ A)
+      _ʷ̇  {A = A} T = T ʷ A
 
       _⁺ : ∀ {Γ} (A : Ty Γ) → Ty (Γ ∷ A)
       A ⁺ = A ʷ A
+
+      _ʷₜ_ : ∀ {Γ} {T : Ty Γ} → Tm T → (A : Ty Γ) → Tm (T ʷ A)
+      t ʷₜ A = t [ π A ]ₜ
 
       {- Term substitution -}
 
@@ -452,6 +455,16 @@ record PiStructure {ℓ}
 
   private
     module definitions where
+
+      {- Function application -}
+
+      _`_ : ∀ {Γ} {A : Ty Γ} {B}
+            → (f : Tm (̂Π A B)) (a : Tm A)
+            → Tm (B [[ a ]])
+      f ` a = (app f) [[ a ]]ₜ
+
+      {- Syntax -}
+
       ̂Π' : ∀ {Γ} (A : Ty Γ) (B : Tm (A [ π A ]) → Ty (Γ ∷ A)) → Ty Γ
       ̂Π' A B = ̂Π A (B (υ A))
 
@@ -460,6 +473,8 @@ record PiStructure {ℓ}
       infixr 35 _̂→_
       _̂→_ : ∀ {Γ} (A B : Ty Γ) → Ty Γ
       A ̂→ B = ̂Π A (B [ π A ])
+
+      {- Substitution -}
 
       ̂→-[] : ∀ {Δ Γ} {A B : Ty Γ} {f : Sub Δ Γ}
              → (A ̂→ B) [ f ] == (A [ f ] ̂→ B [ f ])
@@ -476,11 +491,10 @@ record PiStructure {ℓ}
               → Tm (A [ σ ] ̂→ B [ σ ])
       f ⃗[ σ ]ₜ = tr Tm ̂→-[] (f [ σ ]ₜ)
 
-      -- Function application
-      _`_ : ∀ {Γ} {A : Ty Γ} {B}
-            → (f : Tm (̂Π A B)) (a : Tm A)
-            → Tm (B [[ a ]])
-      f ` a = (app f) [[ a ]]ₜ
+      {- Weakening -}
+
+      _⃗ʷₜ : ∀ {Γ} {A B C : Ty Γ} → Tm ((A ̂→ B) ʷ C) → Tm (A ʷ C ̂→ B ʷ C)
+      f ⃗ʷₜ = tr Tm ̂→-[] f
 
   open definitions public
 
