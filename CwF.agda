@@ -188,9 +188,9 @@ record WildCwFStructure {ℓ} (C : WildCategory {ℓ}) : Type (lsuc ℓ) where
       ↑-comm = βπ
 
       -- Version of _↑_ with explicit equality
-      _ᵂ[_,_,_] : ∀ {Δ Γ} (f : Sub Δ Γ) (B : Ty Δ) (A : Ty Γ) (p : A [ f ] == B)
+      _↑[_,_,_] : ∀ {Δ Γ} (f : Sub Δ Γ) (B : Ty Δ) (A : Ty Γ) (p : A [ f ] == B)
                   → Sub (Δ ∷ B) (Γ ∷ A)
-      _ᵂ[_,_,_] {Δ} {Γ} f B A p = tr (λ □ → Sub (Δ ∷ □) (Γ ∷ A)) p (f ↑ A)
+      _↑[_,_,_] {Δ} {Γ} f B A p = tr (λ □ → Sub (Δ ∷ □) (Γ ∷ A)) p (f ↑ A)
         -- Could also copy the definition of _↑_ and fiddle around with
         -- heterogenous equalities?
 
