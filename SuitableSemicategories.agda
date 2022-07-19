@@ -106,8 +106,7 @@ record SuitableSemicategory : Type₁ where
     endo-Hom-empty n with Hom-size n n | inspect (Hom-size n) n
     ... | O    | _ = idp
     ... | 1+ m | with-eq p =
-      ⊥-elim (¬-< (Hom-inverse n n (
-        Hom[ n , n ]# (m , tr (m <_) (! p) ltS))))
+      ⊥-elim (¬-< (Hom-inverse n n (Hom[ n , n ]# (m , tr (m <_) (! p) ltS))))
 
 
 record WellPresentedSemicategory : Type₁ where

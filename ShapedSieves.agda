@@ -96,9 +96,9 @@ factors-cumul t f g = to-Bool (idx-of (g ◦ f) ≤?-Fin t)
 
         new-width = fst incr-width
         width-cond = snd incr-width
-[ i ,   O  , O ]∩[ m , f ] iS = (m , O , O) , empty-shape m
 [ i , 1+ h , O ]∩[ m , f ] iS = [ i , h , Hom-size i h ]∩[ m , f ]
                                   (full-shape i h (≤-trans lteS (hcond iS)))
+[ i ,   O  , O ]∩[ m , f ] iS = (m , O , O) , empty-shape m
 
 height-of-∩ : (i h t : ℕ) (iS : is-shape i h t) {m : ℕ} (f : Hom i m)
               → height ([ i , h , t ]∩[ m , f ] iS) ≤ h -- normalize this h?
@@ -112,13 +112,27 @@ height-of-∩ i (1+ h) O iS f =
     (height-of-∩ i h (Hom-size i h) (shape-from-next-h iS) f)
     lteS
 
--- Some normalization issues to deal with here.......
+{- Some normalization issues to deal with in the following definition.......
+
+   In a bit more detail: the definition of [_,_,_]∩[_,_] always gives the
+   *minimum* (lexicographic) shape representative of its isomorphism class, so
+   that the equality
+     [ i , h , t ]∩[ m , f ] iS == (m , m ∸ 1 , Hom-size m (m ∸ 1))    (*)
+   is only true up to the equivalence relation. For example, what happens if
+     Hom-size m (m ∸ 1)
+   is zero?
+
+   So it seems like we need to normalize the RHS of (*).
+-}
+
 shape-eq-[_,_,_]∩[_,_] :
   (i h t m : ℕ) (f : Hom i m) (iS : is-shape i h t)
   → ⦃ m ≤ h ⦄
   → [ i , h , t ]∩[ m , f ] iS
     == (m , m ∸ 1 , Hom-size m (m ∸ 1)) , full-shape m (m ∸ 1) ∸1-≤
 shape-eq-[ i , h , 1+ t ]∩[ m , f ] iS ⦃ u ⦄ = {!!}
-shape-eq-[ i , 1+ h , O ]∩[ m , f ] iS ⦃ u ⦄ = {!!}
+shape-eq-[ i , 1+ h , O ]∩[ .(1+ h) , f ] iS ⦃ inl idp ⦄ = {!!}
+shape-eq-[ i , 1+ h , O ]∩[ m , f ] iS ⦃ inr u ⦄ =
+  shape-eq-[ i , h , Hom-size i h ]∩[ m , f ] (shape-from-next-h iS) ⦃ <S→≤ u ⦄
 shape-eq-[ i , O , O ]∩[ .O , f ] iS ⦃ inl idp ⦄ =
   Shape= idp idp (! (endo-Hom-empty O))
