@@ -111,3 +111,14 @@ height-of-∩ i (1+ h) O iS f =
   ≤-trans
     (height-of-∩ i h (Hom-size i h) (shape-from-next-h iS) f)
     lteS
+
+-- Some normalization issues to deal with here.......
+shape-eq-[_,_,_]∩[_,_] :
+  (i h t m : ℕ) (f : Hom i m) (iS : is-shape i h t)
+  → ⦃ m ≤ h ⦄
+  → [ i , h , t ]∩[ m , f ] iS
+    == (m , m ∸ 1 , Hom-size m (m ∸ 1)) , full-shape m (m ∸ 1) ∸1-≤
+shape-eq-[ i , h , 1+ t ]∩[ m , f ] iS ⦃ u ⦄ = {!!}
+shape-eq-[ i , 1+ h , O ]∩[ m , f ] iS ⦃ u ⦄ = {!!}
+shape-eq-[ i , O , O ]∩[ .O , f ] iS ⦃ inl idp ⦄ =
+  Shape= idp idp (! (endo-Hom-empty O))

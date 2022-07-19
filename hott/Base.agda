@@ -110,3 +110,7 @@ some≠none {a = a} = inl≠inr a tt
 
 ⊤-dec : Dec ⊤
 ⊤-dec = true
+
+dne : {A : Type ℓ} → Dec A → ¬ (¬ A) → A
+dne (inl a) ¬¬a = a
+dne (inr ¬a) ¬¬a = ⊥-elim (¬¬a ¬a)

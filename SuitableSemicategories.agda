@@ -101,6 +101,14 @@ record SuitableSemicategory : Type₁ where
   field
     Hom-inverse : ∀ n m → Hom n m → m < n
 
+  abstract
+    endo-Hom-empty : ∀ n → Hom-size n n == O
+    endo-Hom-empty n with Hom-size n n | inspect (Hom-size n) n
+    ... | O    | _ = idp
+    ... | 1+ m | with-eq p =
+      ⊥-elim (¬-< (Hom-inverse n n (
+        Hom[ n , n ]# (m , tr (m <_) (! p) ltS))))
+
 
 record WellPresentedSemicategory : Type₁ where
   field ⦃ C ⦄ : SuitableSemicategory

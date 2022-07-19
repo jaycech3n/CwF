@@ -89,7 +89,7 @@ S≤→≤ h = ≤-trans lteS h
 ≤+-l {O} = lteE
 ≤+-l {1+ m} {n} = ≤-trans (≤+-l {m} {n}) lteS
 
-¬-< : ∀ {n} → n < n → ⊥
+¬-< : ∀ {n} → ¬ (n < n)
 ¬-< id< = <-to-≠ id< idp
 
 S≰ : ∀ {n} → ¬ (1+ n ≤ n)
@@ -151,6 +151,14 @@ O ∸ n = O
 1+ m ∸ O = 1+ m
 1+ m ∸ 1+ n = m ∸ n
 
+∸O : ∀ {n} → n ∸ O == n
+∸O {O} = idp
+∸O {1+ n} = idp
+
+∸1-≤ : ∀ {m} → m ∸ 1 ≤ m
+∸1-≤ {O} = lteE
+∸1-≤ {1+ m} = tr (_≤ 1+ m) (! ∸O) lteS
+
 ∸-move-S-l : ∀ {k} m n → m ∸ n == 1+ k → m ∸ 1+ n == k
 ∸-move-S-l (1+ m) (1+ n) p = ∸-move-S-l m n p
 ∸-move-S-l (1+ O) O p = =-cancel-S p
@@ -173,17 +181,13 @@ O ∸ n = O
 ∸-move-r : ∀ {m n k} → n < m → m ∸ n == k → m == k + n
 ∸-move-r {m} {n} {.(m ∸ n)} h idp = ! (∸-+ m n h)
 
-∸→≤ : ∀ {m n} → m ∸ n == 0 → m ≤ n
+∸→≤ : ∀ {m n} → m ∸ n == O → m ≤ n
 ∸→≤ {O} {n} _ = O≤ n
 ∸→≤ {1+ m} {1+ n} p = ≤-ap-S (∸→≤ p)
 
 ∸→< : ∀ {m n k} → m ∸ n == 1+ k → n < m
 ∸→< {1+ m} {O} _ = O<S m
 ∸→< {1+ m} {1+ n} p = <-ap-S (∸→< p)
-
-∸O : ∀ {n} → n ∸ O == n
-∸O {O} = idp
-∸O {1+ n} = idp
 
 <→∸=S : ∀ {m n} → m < n → n ∸ m == 1+ (n ∸ m ∸ 1)
 <→∸=S {O} {1+ n} _ = ap 1+ (! ∸O)
