@@ -72,11 +72,51 @@ empty-shape i = shape-conds (O≤ _) (O≤ _)
 full-shape : ∀ i h → h ≤ i → is-shape i h (Hom-size i h)
 full-shape i h h≤i = shape-conds h≤i lteE
 
+full-shape' : ∀ i → is-shape i i O
+full-shape' i = shape-conds lteE (O≤ _)
+
 shape-from-next-t : ∀ {i h t} → is-shape i h (1+ t) → is-shape i h t
 shape-from-next-t iS = shape-conds (hcond iS) (S≤→≤ (tcond iS))
 
 shape-from-next-h : ∀ {i h} → is-shape i (1+ h) O → is-shape i h (Hom-size i h)
 shape-from-next-h {i} {h} iS = full-shape i h (≤-trans lteS (hcond iS))
+
+-- Need this lemma for shape normalization. "nd" is for non-degenerate; a
+-- degenerate shape is one of the form (i, 1+ h, 0).
+nd-shape-height : ∀ i h t → is-shape i h (1+ t) → h < i
+nd-shape-height i .i t (shape-conds (inl idp) tcond)
+  rewrite endo-Hom-empty i = ⊥-rec (S≰O t tcond)
+nd-shape-height i h t (shape-conds (inr u) _) = u
+
+
+{- Shape normalization -}
+
+norm↓ : ∀ i h t → is-shape i h t → Shape
+norm↓ i h (1+ t) iS = (i , h , 1+ t) , iS
+norm↓ i (1+ h) O iS = norm↓ i h (Hom-size i h) (shape-from-next-h iS)
+norm↓ i O O iS = (i , O , O) , iS
+
+norm↑ : ∀ i h t → is-shape i h t → Shape
+norm↑ i .i _ (shape-conds (inl idp) _) = (i , i , O) , full-shape' i
+norm↑ i h t (shape-conds (inr h<i) (inl t=max)) =
+  (i , 1+ h , O) , (shape-conds (<→S≤ h<i) (O≤ _))
+  -- In this case we *don't* want to pattern match on t=max, otherwise the proof
+  -- of norm↑-full below does not go through!
+norm↑ i h t iS@(shape-conds (inr h<i) (inr t<max)) = (i , h , t) , iS
+
+norm↑-nonfull : ∀ i h t iS → t < Hom-size i h → h == height (norm↑ i h t iS)
+norm↑-nonfull i .i t (shape-conds (inl idp) _) _ = idp
+norm↑-nonfull i h .(Hom-size i h) (shape-conds (inr _) (inl idp)) u = ⊥-rec (¬-< u)
+norm↑-nonfull i h t (shape-conds (inr _) (inr _)) _ = idp
+
+norm↑-full : ∀ i h iS → h < i → 1+ h == height (norm↑ i h (Hom-size i h) iS)
+norm↑-full i .i (shape-conds (inl idp) _) u = ⊥-rec (¬-< u)
+norm↑-full i h (shape-conds (inr _) (inl p)) _ = idp
+norm↑-full i h (shape-conds (inr _) (inr q)) _ = ⊥-rec (¬-< q)
+
+norm∙ : ∀ i h t → is-shape i h t → Shape
+norm∙ i h O iS = (i , h , O) , iS
+norm∙ i h (1+ t) iS = {!!}
 
 
 {- Shape intersection -}
@@ -120,19 +160,67 @@ height-of-∩ i (1+ h) O iS f =
      [ i , h , t ]∩[ m , f ] iS == (m , m ∸ 1 , Hom-size m (m ∸ 1))    (*)
    is only true up to the equivalence relation. For example, what happens if
      Hom-size m (m ∸ 1)
-   is zero?
+   is zero? So it seems like we need to normalize the RHS of (*).
 
-   So it seems like we need to normalize the RHS of (*).
+   But also, the constraint that m be "small enough" relative to the
+   (i,h,t)-sieve references h which is representative-dependent, and causes
+   problems with the recursion.
 -}
 
-shape-eq-[_,_,_]∩[_,_] :
+[_,_,_]∩[_↓,_]-eq :
+  (i h t m : ℕ) (f : Hom i m) (iS : is-shape i h t)
+  → ⦃ m ≤ height (norm↓ i h t iS) ⦄
+  → [ i , h , t ]∩[ m , f ] iS
+    == norm↓ m m O (full-shape' m)
+
+[_,_,_]∩[_↑,_]-eq :
+  (i h t m : ℕ) (f : Hom i m) (iS : is-shape i h t)
+  → ⦃ m ≤ height (norm↑ i h t iS) ⦄
+  → [ i , h , t ]∩[ m , f ] iS
+    == norm↓ m m O (full-shape' m)
+
+[_,_,_]∩[_,_]-eq :
   (i h t m : ℕ) (f : Hom i m) (iS : is-shape i h t)
   → ⦃ m ≤ h ⦄
   → [ i , h , t ]∩[ m , f ] iS
-    == (m , m ∸ 1 , Hom-size m (m ∸ 1)) , full-shape m (m ∸ 1) ∸1-≤
-shape-eq-[ i , h , 1+ t ]∩[ m , f ] iS ⦃ u ⦄ = {!!}
-shape-eq-[ i , 1+ h , O ]∩[ .(1+ h) , f ] iS ⦃ inl idp ⦄ = {!!}
-shape-eq-[ i , 1+ h , O ]∩[ m , f ] iS ⦃ inr u ⦄ =
-  shape-eq-[ i , h , Hom-size i h ]∩[ m , f ] (shape-from-next-h iS) ⦃ <S→≤ u ⦄
-shape-eq-[ i , O , O ]∩[ .O , f ] iS ⦃ inl idp ⦄ =
-  Shape= idp idp (! (endo-Hom-empty O))
+    == norm↓ m m O (full-shape' m)
+
+[ i , h , 1+ t ]∩[ m ↓, f ]-eq iS
+  with Hom[ i , h ]# (t , S≤→< (tcond iS)) factors-through? f
+[ i , h , 1+ t ]∩[ m ↓, f ]-eq iS ⦃ u ⦄
+  | inr no = [ i , h , t ]∩[ m , f ]-eq (shape-from-next-t iS) ⦃ u ⦄
+[ i , h , 1+ t ]∩[ m ↓, f ]-eq iS ⦃ u ⦄
+  | inl (w , _) = {!!}
+[ i , 1+ h , O ]∩[ m ↓, f ]-eq iS =
+  [ i , h , Hom-size i h ]∩[ m ↓, f ]-eq (shape-from-next-h iS)
+[ i , O , O ]∩[ .O ↓, f ]-eq iS ⦃ inl idp ⦄ = Shape= idp idp idp
+
+[ i , h , 1+ t ]∩[ m ↑, f ]-eq iS = {!!}
+[ i , 1+ h , O ]∩[ m ↑, f ]-eq iS@(shape-conds hcond (inr O<Hom-size)) ⦃ u ⦄ =
+  [ i , h , Hom-size i h ]∩[ m ↑, f ]-eq iS' ⦃ tr (m ≤_) ((! p) ∙ q) u ⦄
+  where
+    iS' : is-shape i h (Hom-size i h)
+    iS' = shape-from-next-h iS
+
+    p : 1+ h == height (norm↑ i (1+ h) O iS)
+    p = norm↑-nonfull i (1+ h) O iS O<Hom-size
+
+    q : 1+ h == height (norm↑ i h (Hom-size i h) iS')
+    q = norm↑-full i h iS' (S≤→< hcond)
+[ .(1+ h) , 1+ h , O ]∩[ m ↑, f ]-eq iS@(shape-conds (inl idp) (inl _)) =
+  [ 1+ h , h , Hom-size (1+ h) h ]∩[ m ↑, f ]-eq (shape-from-next-h iS)
+[ i , 1+ h , O ]∩[ m ↑, f ]-eq iS@(shape-conds (inr x) (inl p)) =
+  {!!}
+[ .O , O , O ]∩[ m ↑, f ]-eq (shape-conds (inl idp) tcond₁) =
+  [ O , O , O ]∩[ m ↓, f ]-eq (empty-shape O)
+[ i , O , O ]∩[ m ↑, f ]-eq (shape-conds (inr _) (inl t=max)) = {!!}
+[ i , O , O ]∩[ m ↑, f ]-eq (shape-conds (inr _) (inr t<max)) =
+  [ i , O , O ]∩[ m ↓, f ]-eq (empty-shape i)
+
+[ i , h , 1+ t ]∩[ m , f ]-eq iS = {!!}
+[ i , 1+ h , O ]∩[ m , f ]-eq iS ⦃ u ⦄ =
+  [ i , h , Hom-size i h ]∩[ m ↑, f ]-eq iS' ⦃ tr (m ≤_) p u ⦄
+  where
+    iS' = shape-from-next-h iS
+    p = norm↑-full i h iS' (S≤→< (hcond iS))
+[ i , O , O ]∩[ .O , f ]-eq iS ⦃ inl idp ⦄ = idp
