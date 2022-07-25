@@ -77,19 +77,19 @@ shape-from-next-h {i} {h} iS = full-shape i h (≤-trans lteS (hcond iS))
 
 {- Shape normalization -}
 
-norm↓ : ∀ i h t → is-shape i h t → Shape
-norm↓ i h (1+ t) iS = (i , h , 1+ t) , iS
-norm↓ i (1+ h) O iS = norm↓ i h (Hom-size i h) (shape-from-next-h iS)
-norm↓ i O O iS = (i , O , O) , iS
+norm : ∀ i h t → is-shape i h t → Shape
+norm i h (1+ t) iS = (i , h , 1+ t) , iS
+norm i (1+ h) O iS = (i , h , Hom-size i h) , shape-from-next-h iS
+norm i O O iS = (i , O , O) , iS
 
-apex-of-norm↓ : ∀ i h t iS → apex (norm↓ i h t iS) == i
-apex-of-norm↓ i h (1+ t) iS = idp
-apex-of-norm↓ i (1+ h) O iS = apex-of-norm↓ i h (Hom-size i h) (shape-from-next-h iS)
-apex-of-norm↓ i O O iS = idp
+apex-of-norm : ∀ i h t iS → apex (norm i h t iS) == i
+apex-of-norm i h (1+ t) iS = idp
+apex-of-norm i (1+ h) O iS = idp
+apex-of-norm i O O iS = idp
 
-norm↓-skolem : ∀ i h t iS
-               → let s = norm↓ i h t iS
-                     p = apex-of-norm↓ i h t iS
+norm-skolem : ∀ i h t iS
+               → let s = norm i h t iS
+                     p = apex-of-norm i h t iS
                      iS' = tr (λ □ → is-shape □ (height s) (width s)) p (snd s)
                  in s == (i , height s , width s) , iS'
-norm↓-skolem i h t iS = Shape= (apex-of-norm↓ i h t iS) idp idp
+norm-skolem i h t iS = Shape= (apex-of-norm i h t iS) idp idp

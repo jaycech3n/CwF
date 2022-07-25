@@ -95,6 +95,9 @@ S≤→≤ h = ≤-trans lteS h
 S≰ : ∀ {n} → ¬ (1+ n ≤ n)
 S≰ = <-to-≱ ltS
 
+S≮ : ∀ {n} → ¬ (1+ n < n)
+S≮ = ⊥-rec ∘ S≰ ∘ inr
+
 S≮1 : ∀ {n} → ¬ (1+ n < S O)
 S≮1 {n} = ≮O n ∘ <-cancel-S
 

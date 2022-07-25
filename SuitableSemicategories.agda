@@ -32,6 +32,9 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
                   → idx-of (Hom[ x , y ]# i) == i
     idx-of-Hom# {x} {y} i = <–-inv-r (Hom-equiv x y) i
 
+    idx-of<Hom-size : ∀ {x y} (f : Hom x y) → to-ℕ (idx-of f) < Hom-size x y
+    idx-of<Hom-size f = snd (idx-of f)
+
   ℕ-idx-of : ∀ {x y} → Hom x y → ℕ
   ℕ-idx-of {x} {y} = to-ℕ ∘ idx-of {x} {y}
 

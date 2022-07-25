@@ -24,6 +24,27 @@ Sieve i h t iS x y f =
 Sieve-unc : Shape → DSM
 Sieve-unc ((i , h , t) , iS) = Sieve i h t iS
 
+Sieve-norm-ptwise-eq : ∀ i h t iS x y f
+                       → Sieve i h t iS x y f == Sieve-unc (norm i h t iS) x y f
+Sieve-norm-ptwise-eq i h (1+ t) iS x y f = idp
+Sieve-norm-ptwise-eq i O O iS x y f = idp
+Sieve-norm-ptwise-eq  i (1+ h) O iS x y f with x ≟-ℕ i
+... | inr x≠i = idp
+... | inl idp
+      with y ≤? h | y ≤? 1+ h
+...   | inr y≰h       | inr _ = idp
+...   | inr y≰h       | inl (inl idp) = idp
+...   | inl (inr y<h) | inl (inr _) = idp
+...   | inr y≰h       | inl (inr y<Sh) = ⊥-rec (y≰h (<S→≤ y<Sh))
+...   | inl (inr y<h) | inr y≰Sh = ⊥-rec (y≰Sh (inr (ltSR y<h)))
+...   | inl (inr y<h) | inl (inl idp) = ⊥-rec (S≮ y<h)
+...   | inl (inl idp) | inr h≰Sh = ⊥-rec (h≰Sh lteS)
+...   | inl (inl idp) | inl (inr _)
+        with (ℕ-idx-of f <? Hom-size i h)
+...     | inl _ = idp
+...     | inr idx≮Hom-size = ⊥-rec (idx≮Hom-size (idx-of<Hom-size f))
+
+{-
 Sieve-norm↓-ptwise : ∀ i h t iS x y f
                      → Sieve i h t iS x y f == Sieve-unc (norm↓ i h t iS) x y f
 Sieve-norm↓-ptwise i h (1+ t) iS x y f = idp
@@ -45,6 +66,7 @@ Sieve-norm↓-ptwise i (1+ h) O iS x y f
 ...      | inl (inr u) | inl (inl idp) = {!ok!}
 ...      | inl (inr u) | inl (inr y<Sh) = idp
 ...      | inl (inr u) | inr y≰Sh = {!ok!}
+-}
 {-
       with y ≤? 1+ h      | y ≤? height (norm↓ i h (Hom-size i h)
                                                (shape-from-next-h iS))
