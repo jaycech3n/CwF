@@ -40,11 +40,11 @@ is-true false = ⊥
 ⌞_⌟ : {b : Bool} (m : is-true b) → b == true
 ⌞_⌟ {true} m = idp
 
-ans-sym : ∀ a b → (a and b) == (b and a)
-ans-sym true true = idp
-ans-sym true false = idp
-ans-sym false true = idp
-ans-sym false false = idp
+and-sym : ∀ a b → (a and b) == (b and a)
+and-sym true true = idp
+and-sym true false = idp
+and-sym false true = idp
+and-sym false false = idp
 
 or-sym : ∀ a b → (a or b) == (b or a)
 or-sym true true = idp

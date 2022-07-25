@@ -2,7 +2,7 @@
 
 open import SuitableSemicategories
 
-{--- Decidable subsets of morphisms in suitable semicategories ---}
+{--- Decidable subsets of morphisms in locally finite semicats ---}
 
 module DSM {ℓ}
   { Ob : Type ℓ }
@@ -20,24 +20,30 @@ Ob-is-set = dec-eq-is-set _≟-Ob_
 {- Decidable subsets of morphisms -}
 
 DSM : Type ℓ
-DSM = {x y : Ob} → Hom x y → Bool
+DSM = (x y : Ob) → Hom x y → Bool
 
--- Membership
+⟦_⟧ : DSM → {x y : Ob} → Hom x y → Bool
+⟦ σ ⟧ {x} {y} = σ x y
+
 _∈ₘ_ : {x y : Ob} → Hom x y → DSM → Type₀
-f ∈ₘ σ = is-true (σ f)
+f ∈ₘ σ = is-true (⟦ σ ⟧ f)
 
--- Subset
 _⊆ₘ_ : DSM → DSM → Type ℓ
 σ ⊆ₘ σ' = ∀ {x} {y} {f : Hom x y} → (f ∈ₘ σ) → (f ∈ₘ σ')
 
 Ø : DSM
-Ø _ = false
+Ø _ _ _ = false
 
 _∩_ : DSM → DSM → DSM
-(σ ∩ σ') f = σ f and σ' f
+(σ ∩ σ') _ _ f = ⟦ σ ⟧ f and ⟦ σ' ⟧ f
 
 _∪_ : DSM → DSM → DSM
-(σ ∪ σ') f = σ f or σ' f
+(σ ∪ σ') _ _ f = ⟦ σ ⟧ f or ⟦ σ' ⟧ f
+
+DSM= : {σ σ' : DSM}
+       → (∀ x y → (f : Hom x y) → σ x y f == σ' x y f)
+       → σ == σ'
+DSM= = λ=₃
 
 
 {- Decidable subsets of hom-sets
@@ -45,14 +51,11 @@ _∪_ : DSM → DSM → DSM
 Restricted form of DSM, fixing the source and target.
 -}
 
--- TODO [Josh]: Do we actually only need the stuff in this section to define
--- [_,_,_]∩[_,_]; and not the full generality of sieves and DSMs?
-
 DSHom : ∀ x y → Type ℓ
 DSHom x y = Hom x y → Bool
 
 DSM-of : ∀ {x y} → DSHom x y → DSM
-DSM-of {x} {y} σ {u} {v} g
+DSM-of {x} {y} σ u v g
  with u ≟-Ob x | v ≟-Ob y
 ... | inr _    | _       = false
 ... | inl _    | inr _   = false
@@ -65,7 +68,7 @@ module _ where
              → (t : ℕ) → t < Hom-size x y
              → Σ[ n ∈ ℕ ] n ≤ 1+ t
   size-aux {x} {y} σ O u =
-    Bool-rec (1 , ≤-ap-S lteE) (0 , O≤ _) (σ [0])
+    Bool-rec (1 , ≤-ap-S lteE) (O , O≤ _) (σ [0])
     where [0] = Hom[ x , y ]# (O , u)
   size-aux {x} {y} σ (1+ t) u =
     Bool-rec (1+ prev-size , ≤-ap-S prev-size-cond)

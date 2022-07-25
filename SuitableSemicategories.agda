@@ -32,6 +32,9 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
                   → idx-of (Hom[ x , y ]# i) == i
     idx-of-Hom# {x} {y} i = <–-inv-r (Hom-equiv x y) i
 
+  ℕ-idx-of : ∀ {x y} → Hom x y → ℕ
+  ℕ-idx-of {x} {y} = to-ℕ ∘ idx-of {x} {y}
+
   Hom-is-set : ∀ {x y} → is-set (Hom x y)
   Hom-is-set {x} {y} = equiv-preserves-level e' ⦃ Lift-level Fin-is-set ⦄
                          where
@@ -79,10 +82,10 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
                     → (P : Hom x y → Type ℓ)
                     → ((f : Hom x y) → Dec (P f))
                     → (f : Hom x y)
-                    → Σ[ k ∈ ℕ ] to-ℕ (idx-of f) + k ≤ Hom-size x y
+                    → Σ[ k ∈ ℕ ] ℕ-idx-of f + k ≤ Hom-size x y
   #-Hom[ x , y ]-from P dec f =
     #-Fin-from {n = Hom-size x y} (P ∘ Hom[ x , y ]#) (dec ∘ Hom[ x , y ]#)
-      (idx-of f) {Hom-size x y ∸ (to-ℕ (idx-of f)) ∸ 1} {<→∸=S (snd (idx-of f))}
+      (idx-of f) {Hom-size x y ∸ ℕ-idx-of f ∸ 1} {<→∸=S (snd (idx-of f))}
 
   _factors-through_ : ∀ {x y z} (h : Hom x z) (f : Hom x y) → Type ℓ
   _factors-through_ {y = y} {z} h f = Σ[ g ∈ Hom y z ] g ◦ f == h
