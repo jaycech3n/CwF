@@ -25,21 +25,20 @@ DSM = (x y : Ob) → Hom x y → Bool
 ⟦_⟧ : DSM → {x y : Ob} → Hom x y → Bool
 ⟦ σ ⟧ {x} {y} = σ x y
 
-_∈ₘ_ : {x y : Ob} → Hom x y → DSM → Type₀
-f ∈ₘ σ = is-true (⟦ σ ⟧ f)
-
-_⊆ₘ_ : DSM → DSM → Type ℓ
-σ ⊆ₘ σ' = ∀ {x} {y} {f : Hom x y} → (f ∈ₘ σ) → (f ∈ₘ σ')
-
 Ø : DSM
 Ø _ _ _ = false
 
+infix 80 _∩_ _∪_
 _∩_ : DSM → DSM → DSM
 (σ ∩ σ') _ _ f = ⟦ σ ⟧ f and ⟦ σ' ⟧ f
 
 _∪_ : DSM → DSM → DSM
 (σ ∪ σ') _ _ f = ⟦ σ ⟧ f or ⟦ σ' ⟧ f
 
+
+{- Some lemmas -}
+
+-- DSM extensionality
 DSM= : {σ σ' : DSM}
        → (∀ x y → (f : Hom x y) → σ x y f == σ' x y f)
        → σ == σ'

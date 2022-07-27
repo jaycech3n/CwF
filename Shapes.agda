@@ -59,11 +59,11 @@ Shape= idp idp idp = pair= idp (prop-path is-shape-is-prop _ _)
 
 {- Basic shapes -}
 
-degenerate-shape : ∀ i h → h ≤ i → is-shape i h O
-degenerate-shape i h h≤i = shape-conds h≤i (O≤ _)
+degen-shape : ∀ i h → h ≤ i → is-shape i h O
+degen-shape i h h≤i = shape-conds h≤i (O≤ _)
 
 empty-shape : ∀ i → is-shape i O O
-empty-shape i = degenerate-shape i O (O≤ _)
+empty-shape i = degen-shape i O (O≤ _)
 
 full-shape : ∀ i h → h ≤ i → is-shape i h (Hom-size i h)
 full-shape i h h≤i = shape-conds h≤i lteE
@@ -81,15 +81,3 @@ norm : ∀ i h t → is-shape i h t → Shape
 norm i h (1+ t) iS = (i , h , 1+ t) , iS
 norm i (1+ h) O iS = (i , h , Hom-size i h) , shape-from-next-h iS
 norm i O O iS = (i , O , O) , iS
-
-apex-of-norm : ∀ i h t iS → apex (norm i h t iS) == i
-apex-of-norm i h (1+ t) iS = idp
-apex-of-norm i (1+ h) O iS = idp
-apex-of-norm i O O iS = idp
-
-norm-skolem : ∀ i h t iS
-               → let s = norm i h t iS
-                     p = apex-of-norm i h t iS
-                     iS' = tr (λ □ → is-shape □ (height s) (width s)) p (snd s)
-                 in s == (i , height s , width s) , iS'
-norm-skolem i h t iS = Shape= (apex-of-norm i h t iS) idp idp

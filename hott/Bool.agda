@@ -33,12 +33,9 @@ to-Bool : {A : Type ℓ} → Dec A → Bool
 to-Bool (inl _) = true
 to-Bool (inr _) = false
 
-is-true : Bool → Type₀
-is-true true = ⊤
-is-true false = ⊥
-
-⌞_⌟ : {b : Bool} (m : is-true b) → b == true
-⌞_⌟ {true} m = idp
+reflect : {A : Type ℓ} → A → (d : Dec A) → to-Bool d == true
+reflect _ (inl a) = idp
+reflect x (inr ¬a) = ⊥-rec (¬a x)
 
 and-sym : ∀ a b → (a and b) == (b and a)
 and-sym true true = idp

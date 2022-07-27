@@ -3,89 +3,67 @@
 open import SuitableSemicategories
 
 module Sieves ⦃ I : SuitableSemicategory ⦄ where
-
 open SuitableSemicategory I
 
 open import DSM _≟-ℕ_ public
-open import Shapes
+open import Shapes public
 
 
 {- Linear sieves -}
 
-Sieve : (i h t : ℕ) (iS : is-shape i h t) → DSM
-Sieve i h t iS x y f =
-  if (x ≟-ℕ i)
-     (λ{ idp → if (y ≤? h)
-                  (λ{ (inl y=h) → to-Bool (ℕ-idx-of f <? t )
-                    ; (inr y<h) → true })
-                  (λ no → false) })
-     (λ no → false)
+sieve[_,_,_] : (i h t : ℕ) (iS : is-shape i h t) → DSM
+sieve[ i , h , t ] iS x y = χ (x ≟-ℕ i) (y ≤? h)
+  where
+  χ : ∀ {x y} → Dec (x == i) → Dec (y ≤ h) → Hom x y → Bool
+  χ (inl idp) (inl (inl y=h)) f = to-Bool (ℕ-idx-of f <? t)
+  χ (inl idp) (inl (inr y<h)) _ = true
+  χ (inl idp) (inr y≰h) _ = false
+  χ (inr x≠i) _ _ = false
 
-Sieve-unc : Shape → DSM
-Sieve-unc ((i , h , t) , iS) = Sieve i h t iS
+sieve-unc : Shape → DSM
+sieve-unc ((i , h , t) , iS) = sieve[ i , h , t ] iS
 
-Sieve-norm-ptwise-eq : ∀ i h t iS x y f
-                       → Sieve i h t iS x y f == Sieve-unc (norm i h t iS) x y f
-Sieve-norm-ptwise-eq i h (1+ t) iS x y f = idp
-Sieve-norm-ptwise-eq i O O iS x y f = idp
-Sieve-norm-ptwise-eq  i (1+ h) O iS x y f with x ≟-ℕ i
-... | inr x≠i = idp
-... | inl idp
-      with y ≤? h | y ≤? 1+ h
-...   | inr y≰h       | inr _ = idp
-...   | inr y≰h       | inl (inl idp) = idp
-...   | inl (inr y<h) | inl (inr _) = idp
-...   | inr y≰h       | inl (inr y<Sh) = ⊥-rec (y≰h (<S→≤ y<Sh))
-...   | inl (inr y<h) | inr y≰Sh = ⊥-rec (y≰Sh (inr (ltSR y<h)))
-...   | inl (inr y<h) | inl (inl idp) = ⊥-rec (S≮ y<h)
-...   | inl (inl idp) | inr h≰Sh = ⊥-rec (h≰Sh lteS)
-...   | inl (inl idp) | inl (inr _)
-        with (ℕ-idx-of f <? Hom-size i h)
-...     | inl _ = idp
-...     | inr idx≮Hom-size = ⊥-rec (idx≮Hom-size (idx-of<Hom-size f))
+sieve-norm-eq : ∀ i h t iS → sieve[ i , h , t ] iS == sieve-unc (norm i h t iS)
+sieve-norm-eq i h (1+ t) iS = idp
+sieve-norm-eq i O O iS = idp
+sieve-norm-eq i (1+ h) O iS = DSM= ptwise
+  where
+  ptwise : ∀ x y f
+    → sieve[ i , 1+ h , O ] iS x y f
+      == sieve-unc ((i , h , Hom-size i h) , shape-from-next-h iS) x y f
+  ptwise x y f
+   with x ≟-ℕ i | y ≤? h        | y ≤? 1+ h
+  ... | inl idp | inl (inl idp) | inl (inr _)
+        rewrite reflect (idx-of<Hom-size f) (ℕ-idx-of f <? Hom-size x y) = idp
+  ... | inl idp | inl (inl idp) | inr h≮Sh = ⊥-rec (h≮Sh lteS)
+  ... | inl idp | inl (inr y<h) | inl (inl idp) = ⊥-rec (S≮ y<h)
+  ... | inl idp | inl (inr _)   | inl (inr _) = idp
+  ... | inl idp | inl (inr y<h) | inr y≰Sh = ⊥-rec (y≰Sh (inr (ltSR y<h)))
+  ... | inl idp | inr _         | inl (inl _) = idp
+  ... | inl idp | inr y≰h       | inl (inr y<Sh) = ⊥-rec (y≰h (<S→≤ y<Sh))
+  ... | inl idp | inr _         | inr _ = idp
+  ... | inr x≠i | _             | _ = idp
 
-{-
-Sieve-norm↓-ptwise : ∀ i h t iS x y f
-                     → Sieve i h t iS x y f == Sieve-unc (norm↓ i h t iS) x y f
-Sieve-norm↓-ptwise i h (1+ t) iS x y f = idp
-Sieve-norm↓-ptwise i O O iS x y f = idp
-Sieve-norm↓-ptwise i (1+ h) O iS x y f
- rewrite norm↓-skolem i (1+ h) O iS
- with x ≟-ℕ i
-... | inr x≠i = idp
-... | inl idp
-      with y ≤? height (norm↓ i h (Hom-size i h) (shape-from-next-h iS))
-         | y ≤? 1+ h
-...      | inr y≰h↓ | inl (inl idp) = idp
-...      | inr y≰h↓ | inl (inr y<Sh) = {!this one is a problem if we use the
-                                       current def of norm↓!}
-...      | inr y≰h↓ | inr y≰Sh = idp
-...      | inl (inl idp) | inl (inl p) = {!!}
-...      | inl (inl idp) | inl (inr u) = {!!}
-...      | inl (inl idp) | inr h↓≰Sh = {!ok!}
-...      | inl (inr u) | inl (inl idp) = {!ok!}
-...      | inl (inr u) | inl (inr y<Sh) = idp
-...      | inl (inr u) | inr y≰Sh = {!ok!}
--}
-{-
-      with y ≤? 1+ h      | y ≤? height (norm↓ i h (Hom-size i h)
-                                               (shape-from-next-h iS))
-...      | inl (inl idp)  | inl (inl p) = {!!}
-...      | inl (inl idp)  | inl (inr u) = {!!}
-...      | inl (inl idp)  | inr y≰h↓ = idp
-...      | inl (inr y<Sh) | inl y≤h↓ = {!!}
-...      | inl (inr y<Sh) | inr y≰h↓ = {!!}
-...      | inr y≰Sh       | inl y≤h↓ = {!!}
-...      | inr y≰Sh       | inr y≰h↓ = idp
--}
+empty-sieve-eq : ∀ i iS → sieve[ i , O , O ] iS == Ø
+empty-sieve-eq i iS = DSM= ptwise
+  where
+  ptwise : ∀ x y f → sieve[ i , O , O ] iS x y f == Ø x y f
+  ptwise x y f with x ≟-ℕ i | y ≤? O
+  ... | inl idp | inl (inl idp) = idp
+  ... | inl idp | inr _ = idp
+  ... | inr x≠i | _ = idp
+
 
 {- Principal sieves -}
 
 ⦅_⦆ : {x y : ℕ} → Hom x y → DSM
-⦅_⦆ {x} f u _ g with u ≟-ℕ x
-... | inl idp = to-Bool (g factors-through? f)
-... | inr _ = false
+⦅_⦆ {x} f u v = χ (u ≟-ℕ x)
+  where
+  χ : ∀ {u v} → Dec (u == x) → Hom u v → Bool
+  χ (inl idp) g = to-Bool (g factors-through? f)
+  χ (inr _) g = false
 
+-- Test
 ⦅_⦆-correct : ∀ {x y z : ℕ} (f : Hom x y)
               → (g : Hom x z)
               → ⟦ ⦅ f ⦆ ⟧ g == to-Bool (g factors-through? f)

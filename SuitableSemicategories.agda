@@ -94,7 +94,7 @@ record LocallyFiniteSemicategoryOn {ℓ} (Ob : Type ℓ) : Type (lsuc ℓ) where
   _factors-through_ {y = y} {z} h f = Σ[ g ∈ Hom y z ] g ◦ f == h
 
   _factors-through?_ : ∀ {x y z} (h : Hom x z) (f : Hom x y)
-                      → Dec (h factors-through f)
+                       → Dec (h factors-through f)
   h factors-through? f = Σ-Hom? (λ g → (g ◦ f) == h) (λ g → g ◦ f ≟-Hom h)
 
   Hom[_,_]-inhab : ∀ x y → Hom x y → O < Hom-size x y
