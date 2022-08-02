@@ -115,7 +115,7 @@ record SuitableSemicategory : Type₁ where
       ⊥-elim (¬-< (Hom-inverse n n (Hom[ n , n ]# (m , tr (m <_) (! p) ltS))))
 
 
-record WellPresentedSemicategory : Type₁ where
+record WellOrientedSemicategory : Type₁ where
   field ⦃ C ⦄ : SuitableSemicategory
   open SuitableSemicategory C hiding (C) public
   field

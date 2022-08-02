@@ -12,7 +12,6 @@ module DSM {ℓ}
 open LocallyFiniteSemicategoryOn C
 
 
--- Important
 Ob-is-set : is-set Ob
 Ob-is-set = dec-eq-is-set _≟-Ob_
 
@@ -28,21 +27,33 @@ DSM = (x y : Ob) → Hom x y → Bool
 Ø : DSM
 Ø _ _ _ = false
 
-infix 80 _∩_ _∪_
-_∩_ : DSM → DSM → DSM
-(σ ∩ σ') _ _ f = ⟦ σ ⟧ f and ⟦ σ' ⟧ f
-
-_∪_ : DSM → DSM → DSM
-(σ ∪ σ') _ _ f = ⟦ σ ⟧ f or ⟦ σ' ⟧ f
-
-
-{- Some lemmas -}
-
--- DSM extensionality
 DSM= : {σ σ' : DSM}
        → (∀ x y → (f : Hom x y) → σ x y f == σ' x y f)
        → σ == σ'
 DSM= = λ=₃
+
+
+{- Restriction
+
+The restriction (σ ⊙ f) of a DSM σ along a morphism f is the set of arrows g
+such that (g ◦ f) is in σ.
+-}
+
+infix 80 _⊙_
+_⊙_ : DSM → ∀ {x y} (f : Hom x y) → DSM
+_⊙_ σ {x} {y} f u v = χ (u ≟-Ob y)
+  where
+  χ : ∀ {u v} → Dec (u == y) → Hom u v → Bool
+  χ (inl idp) g = ⟦ σ ⟧ (g ◦ f)
+  χ (inr _) g = false
+
+Ø-⊙ : ∀ {x y} {f : Hom x y} → Ø ⊙ f == Ø
+Ø-⊙ {x} {y} {f} = DSM= ptwise
+  where
+  ptwise : ∀ u v g → (Ø ⊙ f) u v g == Ø u v g
+  ptwise u v g with u ≟-Ob y
+  ... | inl idp = idp
+  ... | inr _ = idp
 
 
 {- Decidable subsets of hom-sets

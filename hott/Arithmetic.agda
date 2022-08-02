@@ -46,9 +46,12 @@ instance
 O<→O<+r : ∀ {m n} → O < m → O < m + n
 O<→O<+r {1+ m} {n} x = O<S (m + n)
 
-<1→=O : ∀ x → x < 1 → x == O
-<1→=O O _ = idp
-<1→=O (1+ x) (ltSR ())
+<1→=O : ∀ {x} → x < 1 → x == O
+<1→=O {O} _ = idp
+<1→=O {1+ x} (ltSR ())
+
+≤O→=O : ∀ {x} → x ≤ O → x == O
+≤O→=O {.O} (inl idp) = idp
 
 <S→≤ : ∀ {m n} →  m < 1+ n → m ≤ n
 <S→≤ ltS = lteE
@@ -162,6 +165,14 @@ O ∸ n = O
 ∸1-≤ {O} = lteE
 ∸1-≤ {1+ m} = tr (_≤ 1+ m) (! ∸O) lteS
 
+S∸ : ∀ n → S n ∸ n == 1
+S∸ O = idp
+S∸ (1+ n) = S∸ n
+
+O<∸ : ∀ {m n} → n < m → O < m ∸ n
+O<∸ {1+ m} {O} u = u
+O<∸ {1+ m} {1+ n} u = O<∸ (<-cancel-S u)
+
 ∸-move-S-l : ∀ {k} m n → m ∸ n == 1+ k → m ∸ 1+ n == k
 ∸-move-S-l (1+ m) (1+ n) p = ∸-move-S-l m n p
 ∸-move-S-l (1+ O) O p = =-cancel-S p
@@ -172,7 +183,7 @@ O ∸ n = O
 +∸-assoc {k} {1+ m} {O} _ rewrite +-comm k (1+ m) = idp
 +∸-assoc {k} {1+ m} {1+ n} h rewrite +-βr k m = +∸-assoc (<-cancel-S h)
 
-∸-+ : ∀ m n → n < m →  m ∸ n + n == m
+∸-+ : ∀ m n → n < m → m ∸ n + n == m
 ∸-+ (1+ m) O h rewrite +-unit-r m = idp
 ∸-+ (1+ m) (1+ n) h = tr (_== 1+ m)
                          ( (1 + m) ∸ n + n =⟨ +∸-assoc (<-cancel-S h) |in-ctx (_+ n) ⟩
@@ -199,6 +210,10 @@ O ∸ n = O
 <∸→+< : ∀ {m n k} → m < n ∸ k → m + k < n
 <∸→+< {m} {1+ n} {O} h rewrite +-unit-r m = h
 <∸→+< {m} {1+ n} {1+ k} h = tr (_< 1+ n) (! (+-βr m k)) (<-ap-S (<∸→+< h))
+
+≤→∸=O→= : ∀ {m n} → m ≤ n → n ∸ m == O → m == n
+≤→∸=O→= (inl p) _ = p
+≤→∸=O→= {m} {n} (inr u) p = ⊥-rec (<-to-≱ u (∸→≤ p))
 
 
 {- Binomial coefficients -}

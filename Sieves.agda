@@ -52,22 +52,3 @@ empty-sieve-eq i iS = DSM= ptwise
   ... | inl idp | inl (inl idp) = idp
   ... | inl idp | inr _ = idp
   ... | inr x≠i | _ = idp
-
-
-{- Principal sieves -}
-
-⦅_⦆ : {x y : ℕ} → Hom x y → DSM
-⦅_⦆ {x} f u v = χ (u ≟-ℕ x)
-  where
-  χ : ∀ {u v} → Dec (u == x) → Hom u v → Bool
-  χ (inl idp) g = to-Bool (g factors-through? f)
-  χ (inr _) g = false
-
--- Test
-⦅_⦆-correct : ∀ {x y z : ℕ} (f : Hom x y)
-              → (g : Hom x z)
-              → ⟦ ⦅ f ⦆ ⟧ g == to-Bool (g factors-through? f)
-⦅_⦆-correct {x} {y} {z} f g with x ≟-ℕ x
-... | inl p rewrite is-set-UIP Ob-is-set p = idp
-... | inr ¬p = ⊥-rec (¬p idp)
--- Can also reify the above into (g ∈ₘ ⦅ f ⦆) ≃ ∥ g factors-through f ∥

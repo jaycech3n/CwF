@@ -117,6 +117,7 @@ M[ i , h , 1+ t ] iS at .(1+ h) ⦃ ltS ⦄ =
 
     prev-M-∩ : Ty (SCT (1+ h))
     prev-M-∩ = M-unc ([ i , h , t ]∩[ h , [t] ] prev-iS) at (1+ h)
+      -- Should be able to just norm↑ or norm↓ the restriction here, and this should work?
 
     -- The restriction map as an internal lambda
     M↾-̂λ : Tm (prev-M ̂→ prev-M-∩)

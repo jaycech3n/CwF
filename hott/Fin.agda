@@ -31,7 +31,7 @@ Fin=-is-prop {_} {i} {j} = has-level-apply Fin-is-set i j
 
 Fin1-is-prop : is-prop (Fin 1)
 has-level-apply Fin1-is-prop (i , i<1) (j , j<1) =
-  has-level-in (Fin= (<1→=O i i<1 ∙ !(<1→=O j j<1)) , λ p → prop-path Fin=-is-prop _ _)
+  has-level-in (Fin= (<1→=O i<1 ∙ !(<1→=O j<1)) , λ p → prop-path Fin=-is-prop _ _)
 
 Fin1-has-all-paths : has-all-paths (Fin 1)
 Fin1-has-all-paths i j = prop-path Fin1-is-prop _ _

@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --allow-unsolved-metas #-}
 
 open import SuitableSemicategories
 
@@ -73,11 +73,3 @@ shape-from-next-t iS = shape-conds (hcond iS) (S≤→≤ (tcond iS))
 
 shape-from-next-h : ∀ {i h} → is-shape i (1+ h) O → is-shape i h (Hom-size i h)
 shape-from-next-h {i} {h} iS = full-shape i h (≤-trans lteS (hcond iS))
-
-
-{- Shape normalization -}
-
-norm : ∀ i h t → is-shape i h t → Shape
-norm i h (1+ t) iS = (i , h , 1+ t) , iS
-norm i (1+ h) O iS = (i , h , Hom-size i h) , shape-from-next-h iS
-norm i O O iS = (i , O , O) , iS
