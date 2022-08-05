@@ -56,6 +56,9 @@ Shape= : {s s' : Shape}
          → s == s'
 Shape= idp idp idp = pair= idp (prop-path is-shape-is-prop _ _)
 
+Shape-idp : ∀ {i h t} {iS iS'} → (i , h , t) , iS == (i , h , t) , iS'
+Shape-idp = Shape= idp idp idp
+
 
 {- Basic shapes -}
 

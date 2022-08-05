@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --allow-unsolved-metas #-}
+{-# OPTIONS --without-K #-}
 
 open import SuitableSemicategories
 
@@ -15,88 +15,132 @@ norm↓ i (1+ h) O iS = norm↓ i h (Hom-size i h) (shape-from-next-h iS)
 norm↓ i O O iS = (i , O , O) , iS
 
 -- (norm↑ i h t) is the largest member of the ~-equivalence class of (i, h, t).
-norm↑ : ∀ i h {d : ℕ} {p : i ∸ h == d} → ∀ t → is-shape i h t → Shape
-norm↑ i h {O} t iS = (i , h , t) , iS
-norm↑ i h {1+ d} {p} t (shape-conds _ (inl _)) =
-  norm↑ i (1+ h) {d} {∸-move-S-l i h p} O (shape-conds (<→S≤ (∸→< p)) (O≤ _))
-norm↑ i h {1+ d} t iS@(shape-conds _ (inr _)) = (i , h , t) , iS
-
-norm↑-unc : Shape → Shape
-norm↑-unc ((i , h , t) , iS) = norm↑ i h {i ∸ h} {idp} t iS
+norm↑ : ∀ i h t → is-shape i h t → {d : ℕ} {p : i ∸ h == d} → Shape
+norm↑ i h t iS {O} = (i , h , t) , iS
+norm↑ i h _ (shape-conds _ (inl _)) {1+ d} {p} =
+  norm↑ i (1+ h) O (shape-conds (<→S≤ (∸→< p)) (O≤ _)) {d} {∸-move-S-l i h p}
+norm↑ i h t iS@(shape-conds _ (inr _)) {1+ d} = (i , h , t) , iS
 
 
-{- Properties -}
+module lemmas where
+  abstract
+    norm↓= : ∀ {i h t t'} {iS iS'}
+      → t == t'
+      → norm↓ i h t iS == norm↓ i h t' iS'
+    norm↓= {i} {h} {1+ t} {.(1+ t)} {iS} {iS'} idp = Shape-idp
+    norm↓= {i} {1+ h} {O} {.O} {iS} {iS'} idp = norm↓= {i} {h} {Hom-size i h} idp
+    norm↓= {i} {O} {O} {.O} {iS} {iS'} idp = Shape-idp
 
-private
-  norm↑-rec-p = ∸-move-S-l
+    norm↓-empty : ∀ i h iS
+      → (∀ m → m < h → Hom-size i m == O)
+      → norm↓ i h O iS == (i , O , O) , empty-shape i
+    norm↓-empty i O iS P = Shape-idp
+    norm↓-empty i (1+ h) iS P = norm↓= (P h ltS) ∙ norm↓-empty i h iS' P'
+      where
+      iS' : is-shape i h O
+      iS' = shape-conds (≤-trans lteS (hcond iS)) (O≤ _)
 
-  norm↑-rec-shape-conds : ∀ {i h d} → i ∸ h == 1+ d → is-shape i (1+ h) O
-  norm↑-rec-shape-conds p = shape-conds (<→S≤ (∸→< p)) (O≤ _)
+      P' : ∀ m → m < h → Hom-size i m == O
+      P' m m<h = P m (ltSR m<h)
 
-norm↑-apex : ∀ i h {d} {p} t iS → apex (norm↑ i h {d} {p} t iS) == i
-norm↑-apex i h {O} t iS = idp
-norm↑-apex i h {1+ d} {p} t (shape-conds _ (inl _)) =
-  norm↑-apex i (1+ h) {d} {norm↑-rec-p i h p} O (norm↑-rec-shape-conds p)
-norm↑-apex i h {1+ d} t (shape-conds _ (inr _)) = idp
+  private
+    norm↑-rec-p = ∸-move-S-l
 
-norm↑-unc-apex : ∀ (s : Shape) → apex (norm↑-unc s) == apex s
-norm↑-unc-apex s = norm↑-apex i h {i ∸ h} {idp} t iS
-  where
-  i = apex s
-  h = height s
-  t = width s
-  iS = snd s
+    norm↑-rec-shape-conds : ∀ {i h d} → i ∸ h == 1+ d → is-shape i (1+ h) O
+    norm↑-rec-shape-conds p = shape-conds (<→S≤ (∸→< p)) (O≤ _)
 
-norm↑-width : ∀ i h {d} {p} iS → width (norm↑ i h {d} {p} O iS) == O
-norm↑-width i h {O} iS = idp
-norm↑-width i h {1+ d} {p} (shape-conds _ (inl _)) =
-  norm↑-width i (1+ h) {d} {norm↑-rec-p i h p} (norm↑-rec-shape-conds p)
-norm↑-width i h {1+ d} (shape-conds _ (inr _)) = idp
+  abstract
+    norm↑= : ∀ i h t iS iS' {d} {p} {p'}
+      → norm↑ i h t iS {d} {p} == norm↑ i h t iS' {d} {p'}
+    norm↑= _ _ _ _ _ {O} = Shape-idp
+    norm↑= i h _ (shape-conds _ (inl _)) (shape-conds _ (inl _)) {1+ d} {p} {p'} =
+      norm↑= i (1+ h) O (norm↑-rec-shape-conds p) (norm↑-rec-shape-conds p') {d}
+    norm↑= _ _ _ (shape-conds _ (inl idp)) (shape-conds _ (inr u)) {1+ d} =
+      ⊥-rec (¬-< u)
+    norm↑= _ _ _ (shape-conds _ (inr u)) (shape-conds _ (inl idp)) {1+ d} =
+      ⊥-rec (¬-< u)
+    norm↑= _ _ _ (shape-conds _ (inr _)) (shape-conds _ (inr _)) {1+ d} =
+      Shape-idp
 
-module norm↑-height-lemmas where
-  norm↑-height-monotone : ∀ i h {d} {p} t iS
-    → h ≤ height (norm↑ i h {d} {p} t iS)
-  norm↑-height-monotone i h {O} t iS = lteE
-  norm↑-height-monotone i h {1+ d} {p} t (shape-conds _ (inl _)) =
-    ≤-trans lteS
-      (norm↑-height-monotone i (1+ h) {d} {norm↑-rec-p i h p} O
-        (norm↑-rec-shape-conds p))
-  norm↑-height-monotone i h {1+ d} t (shape-conds _ (inr _)) = lteE
+    norm↑-apex : ∀ i h t iS {d} {p} → apex (norm↑ i h t iS {d} {p}) == i
+    norm↑-apex _ _ _ _ {O} = idp
+    norm↑-apex i h _ (shape-conds _ (inl _)) {1+ d} {p} =
+      norm↑-apex i (1+ h) O (norm↑-rec-shape-conds p) {d} {norm↑-rec-p i h p}
+    norm↑-apex _ _ _ (shape-conds _ (inr _)) {1+ d} = idp
 
-  norm↑-height-Hom-size : ∀ i h {d} {p} t iS
-    → height (norm↑ i h {d} {p} t iS) < i
-    → O < Hom-size i (height (norm↑ i h {d} {p} t iS))
-  norm↑-height-Hom-size i h {O} {p} t iS u = ⊥-rec (<-to-≱ u (∸→≤ p))
-  norm↑-height-Hom-size i h {1+ d} {p} t (shape-conds _ (inl t=max)) u =
-    norm↑-height-Hom-size i (1+ h) {d} {norm↑-rec-p i h p} O
-      (norm↑-rec-shape-conds p) u
-  norm↑-height-Hom-size i h {1+ d} t (shape-conds _ (inr t<max)) _ =
-    ≤→<→< (O≤ _) t<max
+    norm↑-width : ∀ i h iS {d} {p} → width (norm↑ i h O iS {d} {p}) == O
+    norm↑-width _ _ _ {O} = idp
+    norm↑-width i h (shape-conds _ (inl _)) {1+ d} {p} =
+      norm↑-width i (1+ h) (norm↑-rec-shape-conds p) {d} {norm↑-rec-p i h p}
+    norm↑-width _ _ (shape-conds _ (inr _)) {1+ d} = idp
 
-  norm↑-height-nonempty : ∀ i h {d} {p} iS
-    → O < Hom-size i h
-    → height (norm↑ i h {d} {p} O iS) ≤ h
-  norm↑-height-nonempty i h {O} iS u = lteE
-  norm↑-height-nonempty i h {1+ d} (shape-conds _ (inl p)) u =
-    ⊥-rec (¬-< (tr (O <_) (! p) u))
-  norm↑-height-nonempty i h {1+ d} (shape-conds _ (inr _)) _ = lteE
+    norm↑-height-monotone : ∀ i h t iS {d} {p}
+      → h ≤ height (norm↑ i h t iS {d} {p})
+    norm↑-height-monotone _ _ _ _ {O} = lteE
+    norm↑-height-monotone i h _ (shape-conds _ (inl _)) {1+ d} {p} =
+      ≤-trans lteS
+        (norm↑-height-monotone i (1+ h) O (norm↑-rec-shape-conds p)
+          {d} {norm↑-rec-p i h p})
+    norm↑-height-monotone _ _ _ (shape-conds _ (inr _)) {1+ d} = lteE
 
-  norm↑-height-max : ∀ i h {d} {p} t iS
-    → ∀ m
-    → h < m
-    → O < Hom-size i m
-    → height (norm↑ i h {d} {p} t iS) ≤ m
-  norm↑-height-max i h {O} t iS m h<m _ = inr h<m
-  norm↑-height-max i h {1+ d} {p} t (shape-conds _ (inl t=max)) m h<m O<H
-   with <→S≤ h<m
-  ... | inl idp = norm↑-height-nonempty i (1+ h) {d} (norm↑-rec-shape-conds p) O<H
-  ... | inr Sh<m = norm↑-height-max i (1+ h) {d} {norm↑-rec-p i h p} O
-                     (norm↑-rec-shape-conds p) m Sh<m O<H
-  norm↑-height-max i h {1+ d} t (shape-conds _ (inr _)) m h<m _ = inr h<m
+    norm↑-height-Hom-size : ∀ i h t iS {d} {p}
+      → height (norm↑ i h t iS {d} {p}) < i
+      → O < Hom-size i (height (norm↑ i h t iS {d} {p}))
+    norm↑-height-Hom-size _ _ _ _ {O} {p} u = ⊥-rec (<-to-≱ u (∸→≤ p))
+    norm↑-height-Hom-size i h _ (shape-conds _ (inl _)) {1+ d} {p} u =
+      norm↑-height-Hom-size i (1+ h) O (norm↑-rec-shape-conds p)
+        {d} {norm↑-rec-p i h p} u
+    norm↑-height-Hom-size _ _ _ (shape-conds _ (inr t<max)) {1+ d} _ =
+      ≤→<→< (O≤ _) t<max
 
-  norm-height-lem : ∀ i h {d} {p} t iS
-    → ∀ m
-    → h < m
-    → m < height (norm↑ i h {d} {p} t iS)
-    → Hom-size i m == O
-  norm-height-lem i h {d} {p} t iS = {!!}
+    norm↑-height-nonempty : ∀ i h iS {d} {p}
+      → O < Hom-size i h
+      → height (norm↑ i h O iS {d} {p}) ≤ h
+    norm↑-height-nonempty _ _ _ {O} _ = lteE
+    norm↑-height-nonempty _ _ (shape-conds _ (inl p)) {1+ d} u =
+      ⊥-rec (¬-< (tr (O <_) (! p) u))
+    norm↑-height-nonempty _ _ (shape-conds _ (inr _)) {1+ d} _ = lteE
+
+    norm↑-height-eq : ∀ i h t iS {d} {p} t' iS'
+      → t < t'
+      → t' < Hom-size i h
+      → height (norm↑ i h t iS {d} {p}) == height (norm↑ i h t' iS' {d} {p})
+    norm↑-height-eq _ _ _ _ {O} _ _ _ _ = idp
+    norm↑-height-eq _ _ _ _ {1+ d}
+      t' (shape-conds _ (inl idp)) _ t'<H = ⊥-rec (¬-< t'<H)
+    norm↑-height-eq _ _ t (shape-conds _ (inl idp)) {1+ d}
+      t' (shape-conds _ (inr x)) t<t' t'<H = ⊥-rec (¬-< (<-trans t<t' t'<H))
+    norm↑-height-eq _ _ _ (shape-conds _ (inr _)) {1+ d}
+      _ (shape-conds _ (inr _)) _ _ = idp
+
+    norm↑-height-eq' : ∀ i h iS iS' {d} {p} {p'}
+      → height (norm↑ i (1+ h) O iS' {d} {p'})
+        == height (norm↑ i h (Hom-size i h) iS {1+ d} {p})
+    norm↑-height-eq' _ _ (shape-conds _ (inl _)) _ {O} = idp
+    norm↑-height-eq' _ _ (shape-conds _ (inr u)) _ {O} = ⊥-rec (¬-< u)
+    norm↑-height-eq' i h (shape-conds _ (inl _)) iS' {1+ d} {p} =
+      ap height (norm↑= i (1+ h) O iS' (norm↑-rec-shape-conds p) {1+ d})
+    norm↑-height-eq' _ _ (shape-conds _ (inr u)) _ {1+ d} = ⊥-rec (¬-< u)
+
+    norm↑-height-max : ∀ i h t iS {d} {p}
+      → ∀ m
+      → h < m
+      → O < Hom-size i m
+      → height (norm↑ i h t iS {d} {p}) ≤ m
+    norm↑-height-max i h t iS {O} m h<m _ = inr h<m
+    norm↑-height-max i h t (shape-conds _ (inl t=max)) {1+ d} {p} m h<m O<H
+     with <→S≤ h<m
+    ... | inl idp = norm↑-height-nonempty i (1+ h) (norm↑-rec-shape-conds p) {d} O<H
+    ... | inr Sh<m = norm↑-height-max i (1+ h) O (norm↑-rec-shape-conds p)
+                       {d} {norm↑-rec-p i h p} m Sh<m O<H
+    norm↑-height-max i h t (shape-conds _ (inr _)) {1+ d} m h<m _ = inr h<m
+
+    norm↑-height-max-contra : ∀ i h t iS {d} {p}
+      → ∀ m
+      → h < m
+      → m < height (norm↑ i h t iS {d} {p})
+      → Hom-size i m == O
+    norm↑-height-max-contra i h t iS {d} {p} m h<m =
+      ≤-contra (norm↑-height-max i h t iS {d} {p} m h<m)
+
+open lemmas public

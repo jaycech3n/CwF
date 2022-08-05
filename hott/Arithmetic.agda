@@ -21,6 +21,11 @@ O+O {m} {n} p q =
 
 {- Inequalities -}
 
+≤-contra : ∀ {a b c} → (O < a → b ≤ c) → (c < b → a == O)
+≤-contra {a} f c<b with O≤ a
+... | inl idp = idp
+... | inr O<a = ⊥-rec (<-to-≱ c<b (f O<a))
+
 -- Automatic inequality constraint solving
 
 instance
@@ -52,6 +57,10 @@ O<→O<+r {1+ m} {n} x = O<S (m + n)
 
 ≤O→=O : ∀ {x} → x ≤ O → x == O
 ≤O→=O {.O} (inl idp) = idp
+
+O≮→=O : ∀ {x} → ¬ (O < x) → x == O
+O≮→=O {O} u = idp
+O≮→=O {1+ x} u = ⊥-rec (u (O<S x))
 
 <S→≤ : ∀ {m n} →  m < 1+ n → m ≤ n
 <S→≤ ltS = lteE
@@ -165,7 +174,11 @@ O ∸ n = O
 ∸1-≤ {O} = lteE
 ∸1-≤ {1+ m} = tr (_≤ 1+ m) (! ∸O) lteS
 
-S∸ : ∀ n → S n ∸ n == 1
+∸-self : ∀ m → m ∸ m == O
+∸-self O = idp
+∸-self (1+ m) = ∸-self m
+
+S∸ : ∀ n → 1+ n ∸ n == 1
 S∸ O = idp
 S∸ (1+ n) = S∸ n
 
@@ -214,6 +227,11 @@ O<∸ {1+ m} {1+ n} u = O<∸ (<-cancel-S u)
 ≤→∸=O→= : ∀ {m n} → m ≤ n → n ∸ m == O → m == n
 ≤→∸=O→= (inl p) _ = p
 ≤→∸=O→= {m} {n} (inr u) p = ⊥-rec (<-to-≱ u (∸→≤ p))
+
+≤→∸S→∸ : ∀ {m n k} → 1+ n ≤ m → m ∸ 1+ n == k → m ∸ n == 1+ k
+≤→∸S→∸ {O} {n} {k} u p = ⊥-rec (S≰O n u)
+≤→∸S→∸ {1+ m} {O} {k} u p rewrite ∸O {m} = ap 1+ p
+≤→∸S→∸ {1+ m} {1+ n} {k} u p = ≤→∸S→∸ {m} {n} (≤-cancel-S u) p
 
 
 {- Binomial coefficients -}
