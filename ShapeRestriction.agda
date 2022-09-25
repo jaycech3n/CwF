@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --allow-unsolved-metas #-}
 
 open import SuitableSemicategories
 
@@ -72,24 +72,41 @@ factors-cumul t f g = to-Bool (idx-of (g ◦ f) ≤?-Fin t)
 ⊙-apex i O O iS {m} f = idp
 
 shape-lemma : ∀ i h t iS {d} {p} {m} f
-  → m ≤ height (norm↑ i h t iS {d} {p}) -- should this be norm↑?
+  → m ≤ height (norm↑ i h t iS {d} {p})
   → [ i , h , t ]⊙[ m , f ] iS == norm↓ m m O (degen-shape m m lteE)
-    -- and this too? And normalize the LHS too?
-shape-lemma i h (1+ t) iS f u with [t] factors-through? f
+
+-- (i, h, t+1)
+shape-lemma i h (1+ t) iS f u
+  with [t] factors-through? f
   where [t] = Hom[ i , h ]# (t , S≤→< (tcond iS))
-shape-lemma i h (1+ t) iS f u | inl (w , _) = {!!}
-shape-lemma i h (1+ t) iS {d} {p} {m} f u | inr _
- with tcond iS
-... | inl x = {!!}
-... | inr St<H = shape-lemma i h t iS' {d} {p} f u'
-      where
-        iS' = shape-conds (hcond iS) (inr (<-trans ltS St<H))
-        u' = tr (m ≤_)
-                (! (norm↑-height-eq i h t iS' {d} {p} (1+ t) iS ltS St<H)) u
+shape-lemma i h (1+ t) iS {d} {p} {m} f u
+  | inl (w , _) = {!!}
+shape-lemma i h (1+ t) iS {d} {p} {m} f u
+  | inr [t]¬factors-through-f
+  with tcond iS
+shape-lemma i h (1+ t) iS {d} {p} {m} f u
+  | inr [t]¬factors-through-f
+  | inr 1+t<H = shape-lemma i h t iS' {d} {p} f u'
+    where
+      iS' = shape-conds (hcond iS) (inr (<-trans ltS 1+t<H))
+      u' = tr (m ≤_)
+            (! (norm↑-height-eq i h t iS' {d} {p} (1+ t) iS ltS 1+t<H)) u
+shape-lemma i h (1+ t) iS {O} {p} {m} f u
+  | inr [t]¬factors-through-f
+  | inl 1+t=H = shape-lemma i h t iS' {p = idp} f
+              (≤-trans u (norm↑-height-monotone i h t iS' {p = idp}))
+    where iS' = shape-conds (hcond iS) (S≤→≤ (inl 1+t=H))
+shape-lemma i h (1+ t) iS {1+ d} {p} {m} f u
+  | inr [t]¬factors-through-f
+  | inl 1+t=H = {!shape-lemma i h t ? f!}
+
+-- (i, h+1, 0)
 shape-lemma i (1+ h) O iS {d} {p} {m} f u =
   shape-lemma i h (Hom-size i h) (shape-from-next-h iS)
     {1+ d} {≤→∸S→∸ (hcond iS) p} f
     (tr (m ≤_) (norm↑-height-eq' i h (shape-from-next-h iS) iS {d}) u)
+
+-- (i, 0, 0)
 shape-lemma i O O iS {O} f u rewrite ≤O→=O u = idp
 shape-lemma i O O iS@(shape-conds _ (inl O=H)) {1+ d} {p} {m} f u =
   ! (norm↓-empty m m (degen-shape m m lteE) claim3)

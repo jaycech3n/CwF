@@ -32,7 +32,7 @@ module lemmas where
     norm↓= {i} {O} {O} {.O} {iS} {iS'} idp = Shape-idp
 
     norm↓-empty : ∀ i h iS
-      → (∀ m → m < h → Hom-size i m == O)
+      → (∀ k → k < h → Hom-size i k == O)
       → norm↓ i h O iS == (i , O , O) , empty-shape i
     norm↓-empty i O iS P = Shape-idp
     norm↓-empty i (1+ h) iS P = norm↓= (P h ltS) ∙ norm↓-empty i h iS' P'
@@ -40,8 +40,26 @@ module lemmas where
       iS' : is-shape i h O
       iS' = shape-conds (≤-trans lteS (hcond iS)) (O≤ _)
 
-      P' : ∀ m → m < h → Hom-size i m == O
-      P' m m<h = P m (ltSR m<h)
+      P' : ∀ k → k < h → Hom-size i k == O
+      P' k k<h = P k (ltSR k<h)
+
+    norm↓-width>O : ∀ i h t iS iS' → O < t → norm↓ i h t iS == (i , h , t) , iS'
+    norm↓-width>O i h (1+ t) iS iS' u = Shape-idp
+
+    norm↓-min : ∀ i h iS j iS'
+      → j < h
+      → O < Hom-size i j
+      → (∀ k → j < k → k < h → Hom-size i k == O)
+      → norm↓ i h O iS == (i , j , Hom-size i j) , iS'
+    norm↓-min i .(1+ j) iS j iS' ltS H P = norm↓-width>O i j (Hom-size i j) _ iS' H
+    norm↓-min i (1+ j') iS j iS' (ltSR u) H P =
+      norm↓= (P j' u ltS) ∙ norm↓-min i j' iS'' j iS' u H P'
+      where
+        iS'' : is-shape i j' O
+        iS'' = shape-conds (≤-trans lteS (hcond iS)) (O≤ _)
+
+        P' : (k : ℕ) → j < k → k < j' → Hom-size i k == O
+        P' k v w = P k v (<-trans w ltS)
 
   private
     norm↑-rec-p = ∸-move-S-l
@@ -83,6 +101,15 @@ module lemmas where
           {d} {norm↑-rec-p i h p})
     norm↑-height-monotone _ _ _ (shape-conds _ (inr _)) {1+ d} = lteE
 
+    norm↑-height-nonempty : ∀ i h iS {d} {p}
+      → O < Hom-size i h
+      → height (norm↑ i h O iS {d} {p}) ≤ h
+    norm↑-height-nonempty _ _ _ {O} _ = lteE
+    norm↑-height-nonempty _ _ (shape-conds _ (inl p)) {1+ d} u =
+      ⊥-rec (¬-< (tr (O <_) (! p) u))
+    norm↑-height-nonempty _ _ (shape-conds _ (inr _)) {1+ d} _ = lteE
+
+    {-
     norm↑-height-Hom-size : ∀ i h t iS {d} {p}
       → height (norm↑ i h t iS {d} {p}) < i
       → O < Hom-size i (height (norm↑ i h t iS {d} {p}))
@@ -92,14 +119,7 @@ module lemmas where
         {d} {norm↑-rec-p i h p} u
     norm↑-height-Hom-size _ _ _ (shape-conds _ (inr t<max)) {1+ d} _ =
       ≤→<→< (O≤ _) t<max
-
-    norm↑-height-nonempty : ∀ i h iS {d} {p}
-      → O < Hom-size i h
-      → height (norm↑ i h O iS {d} {p}) ≤ h
-    norm↑-height-nonempty _ _ _ {O} _ = lteE
-    norm↑-height-nonempty _ _ (shape-conds _ (inl p)) {1+ d} u =
-      ⊥-rec (¬-< (tr (O <_) (! p) u))
-    norm↑-height-nonempty _ _ (shape-conds _ (inr _)) {1+ d} _ = lteE
+    -}
 
     norm↑-height-eq : ∀ i h t iS {d} {p} t' iS'
       → t < t'
@@ -123,24 +143,24 @@ module lemmas where
     norm↑-height-eq' _ _ (shape-conds _ (inr u)) _ {1+ d} = ⊥-rec (¬-< u)
 
     norm↑-height-max : ∀ i h t iS {d} {p}
-      → ∀ m
-      → h < m
-      → O < Hom-size i m
-      → height (norm↑ i h t iS {d} {p}) ≤ m
-    norm↑-height-max i h t iS {O} m h<m _ = inr h<m
-    norm↑-height-max i h t (shape-conds _ (inl t=max)) {1+ d} {p} m h<m O<H
-     with <→S≤ h<m
+      → ∀ k
+      → h < k
+      → O < Hom-size i k
+      → height (norm↑ i h t iS {d} {p}) ≤ k
+    norm↑-height-max i h t iS {O} k h<k _ = inr h<k
+    norm↑-height-max i h t (shape-conds _ (inl t=max)) {1+ d} {p} k h<k O<H
+     with <→S≤ h<k
     ... | inl idp = norm↑-height-nonempty i (1+ h) (norm↑-rec-shape-conds p) {d} O<H
-    ... | inr Sh<m = norm↑-height-max i (1+ h) O (norm↑-rec-shape-conds p)
-                       {d} {norm↑-rec-p i h p} m Sh<m O<H
-    norm↑-height-max i h t (shape-conds _ (inr _)) {1+ d} m h<m _ = inr h<m
+    ... | inr Sh<k = norm↑-height-max i (1+ h) O (norm↑-rec-shape-conds p)
+                       {d} {norm↑-rec-p i h p} k Sh<k O<H
+    norm↑-height-max i h t (shape-conds _ (inr _)) {1+ d} k h<k _ = inr h<k
 
     norm↑-height-max-contra : ∀ i h t iS {d} {p}
-      → ∀ m
-      → h < m
-      → m < height (norm↑ i h t iS {d} {p})
-      → Hom-size i m == O
-    norm↑-height-max-contra i h t iS {d} {p} m h<m =
-      ≤-contra (norm↑-height-max i h t iS {d} {p} m h<m)
+      → ∀ k
+      → h < k
+      → k < height (norm↑ i h t iS {d} {p})
+      → Hom-size i k == O
+    norm↑-height-max-contra i h t iS {d} {p} k h<k =
+      ≤-contra (norm↑-height-max i h t iS {d} {p} k h<k)
 
 open lemmas public
