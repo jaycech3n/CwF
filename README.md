@@ -1,3 +1,6 @@
+**This repository will be deprecated soon.**
+Development has moved to [https://github.com/jaycech3n/internal-diagrams](https://github.com/jaycech3n/internal-diagrams).
+---
 ### CwFs in HoTT-Agda
 
 Categories with families in HoTT-Agda, and constructions thereon.
