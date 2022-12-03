@@ -1,5 +1,5 @@
-**This repository will be deprecated soon.**
-Development has moved to [https://github.com/jaycech3n/internal-diagrams](https://github.com/jaycech3n/internal-diagrams).
+*This repository will soon be deprecated. Development has moved to [https://github.com/jaycech3n/internal-diagrams](https://github.com/jaycech3n/internal-diagrams).*
+
 ---
 ### CwFs in HoTT-Agda
 
