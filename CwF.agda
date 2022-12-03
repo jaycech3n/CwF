@@ -542,7 +542,6 @@ record SigmaStructure {ℓ}
       A ̂× B = ̂Σ A (B [ π A ])
 
       -- n-fold nonempty product
-
       _ˣ_ : ∀ {Γ} (A : Ty Γ) (n : ℕ) ⦃ O<n : O < n ⦄ → Ty Γ
       A ˣ (1+ O) = A
       A ˣ (1+ (1+ n)) = (A ˣ (1+ n)) ̂× A
@@ -567,9 +566,6 @@ record UnitStructure {ℓ}
       ̂*-[] = from-tr _ _ ̂⊤η
 
 
--- "Universe" of types. This is not the universe internalizing all types in Γ;
--- rather, a base type family.
-
 record UStructure {ℓ}
   {C : WildCategory {ℓ}} (cwf : WildCwFStructure C) : Type (lsuc ℓ)
   where
@@ -588,3 +584,41 @@ record UStructure {ℓ}
       _↓ = tr Tm U-[]
 
   open definitions public
+
+{-
+module concepts {ℓ}
+  {C : WildCategory {ℓ}}
+  {cwf : WildCwFStructure C}
+  (unitstr : UnitStructure cwf)
+  (sigmastr : SigmaStructure cwf)
+  where
+
+  open WildCwFStructure cwf
+  open UnitStructure unitstr
+  open SigmaStructure sigmastr
+
+  -- Converting list-like contexts to Σ types
+  data listlike : Con → Type ℓ where
+    ◆-listlike : listlike ◆
+    ∷-listlike : ∀ {Γ} → listlike Γ → ∀ {A} → listlike (Γ ∷ A)
+
+  Σᶜᵒⁿ     : (Γ : Con) → listlike Γ → Ty ◆
+  Σᶜᵒⁿ-sub : (Γ : Con) (ll : listlike Γ) → Sub (◆ ∷ Σᶜᵒⁿ Γ ll) Γ
+  coe-Σᶜᵒⁿ : {Γ : Con} (ll : listlike Γ) → Ty Γ → Ty (◆ ∷ Σᶜᵒⁿ Γ ll)
+
+  Σᶜᵒⁿ .(◆) ◆-listlike = ̂⊤
+  Σᶜᵒⁿ ._ (∷-listlike {Γ} ll {A}) = ̂Σ (Σᶜᵒⁿ Γ ll) (coe-Σᶜᵒⁿ ll A)
+
+  Σᶜᵒⁿ-∷-sub :
+    ∀ {Γ} A → (ll : listlike Γ)
+    → Sub (◆ ∷ Σᶜᵒⁿ (Γ ∷ A) (∷-listlike ll)) (◆ ∷ Σᶜᵒⁿ Γ ll ∷ coe-Σᶜᵒⁿ ll A)
+  Σᶜᵒⁿ-∷-sub A ◆-listlike = {!!} ,, {!υ (̂Σ ̂⊤ (A ʷ ̂⊤))!}
+    where
+  Σᶜᵒⁿ-∷-sub A (∷-listlike ll) = {!!}
+
+  Σᶜᵒⁿ-sub .(◆) ◆-listlike = π ̂⊤
+  Σᶜᵒⁿ-sub ._ (∷-listlike ll) = {!!}
+
+  coe-Σᶜᵒⁿ ◆-listlike X = X ʷ _
+  coe-Σᶜᵒⁿ (∷-listlike {Γ} ll {A}) X = X [ Σᶜᵒⁿ-sub (Γ ∷ A) (∷-listlike ll) ]
+-}
